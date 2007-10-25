@@ -1,0 +1,41 @@
+<userInput>
+	<panel order="0">
+		<field type="title" txt="Configure OpenNMS" id="configureOpenNMS.text" />
+		<field type="staticText" align="left" txt="Database" id="databaseStaticText.text" />
+		<field type="text" variable="databaseHost">
+			<description align="left" txt="PostgreSQL Database Host" id="databaseHost.text" />
+			<spec txt="Database Host:" size="30" set="localhost" />
+			<validator class="com.izforge.izpack.util.NotEmptyValidator" txt="You must specify the database hostname." />
+		</field>
+		<field type="text" variable="databaseName">
+			<description align="left" txt="PostgreSQL Database Name" id="databaseName.text" />
+			<spec txt="Database Name:" size="30" set="opennms" />
+			<validator class="com.izforge.izpack.util.NotEmptyValidator" txt="You must specify the database name." />
+		</field>
+		<field type="text" variable="databaseAdminUser">
+			<description align="left" txt="Database Administrator Username" id="databaseAdminUser.text" />
+			<spec txt="Database Admin User:" size="8" set="postgres" />
+			<validator class="com.izforge.izpack.util.NotEmptyValidator" txt="You must specify the database administrator username." />
+		</field>
+		<field type="text" variable="databaseAdminPass">
+			<description align="left" txt="Database Administrator Password" id="databaseAdminPass.text" />
+			<spec txt="Database Admin Password:" size="8" set="" />
+		</field>
+		<field type="divider" />
+		<field type="staticText" align="left" txt="Discovery Range" id="discoveryStaticText.text" />
+		<field type="rule" variable="discoveryStartRange">
+			<description align="left" txt="Discovery Include Range Start" id="discoveryIncludeRangeStart.text" />
+			<spec txt="Start:" size="15" layout="N:3:3 . N:3:3 . N:3:3 . N:3:3" set="0:192 1:168 2:0 3:1" resultFormat="displayFormat" />
+			<validator class="com.izforge.izpack.util.RegularExpressionValidator" txt="Invalid IP Address.">
+				<param name="pattern" value="\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b" />
+			</validator>
+		</field>
+		<field type="rule" variable="discoveryEndRange">
+			<description align="left" txt="Discovery Include Range End" id="discoveryIncludeRangeEnd.text" />
+			<spec txt="End:" size="15" layout="N:3:3 . N:3:3 . N:3:3 . N:3:3" set="0:192 1:168 2:0 3:254" resultFormat="displayFormat" />
+			<validator class="com.izforge.izpack.util.RegularExpressionValidator" txt="Invalid IP Address.">
+				<param name="pattern" value="\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b" />
+			</validator>
+		</field>
+	</panel>
+</userInput>
