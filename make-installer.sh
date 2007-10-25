@@ -10,4 +10,4 @@ rsync -avr --delete "$BINARY_DIRECTORY"/ "$TEMP_DIRECTORY"/
 cp LICENSE UserInputSpec.xml "$TEMP_DIRECTORY/"
 cp discovery-configuration.xml "$TEMP_DIRECTORY/etc/"
 
-"$IZPACK_COMPILE" install.xml -b "$TEMP_DIRECTORY" -o opennms-install.jar -k standard
+"$IZPACK_COMPILE" install.xml -b "$TEMP_DIRECTORY" -o opennms-installer.jar -k standard
