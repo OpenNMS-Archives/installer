@@ -37,7 +37,7 @@ while (<FILEIN>) {
 	if (/\@parsable_files\@/) {
 		for my $file (@altered) {
 			$file =~ s/${path}/\$INSTALL_PATH/;
-			print FILEOUT "\t\t\t<parsable targetfile=\"$file\" type=\"plain\" />\n";
+			print FILEOUT "\t\t\t<parsable targetfile=\"$file\" />\n";
 		}
 	} else {
 		print FILEOUT;

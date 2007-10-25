@@ -63,6 +63,7 @@
 			<file src="logs" targetdir="$INSTALL_PATH" />
 			<file src="share" targetdir="$INSTALL_PATH" />
 			<file src="jetty-webapps" targetdir="$INSTALL_PATH" />
+			<parsable targetfile="$INSTALL_PATH/etc/discovery-configuration.xml" />
 			@parsable_files@
 		</pack>
 		<pack name="Docs" required="no">
