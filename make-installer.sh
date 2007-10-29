@@ -16,16 +16,16 @@ fi
 
 pushd "$TOPDIR/opennms-build"
 	[ -z "$SKIP_CLEAN" ] && ./build.sh clean
-	./build.sh -Droot.dir="$REPLACEMENT_TOKEN" install assembly:directory-inline
+	[ -z "$SKIP_BUILD" ] && ./build.sh -Dopennms.home="$REPLACEMENT_TOKEN" install assembly:directory-inline
 popd
 
-BINARY_DIRECTORY="$TOPDIR/opennms-build/target/"opennms-*-SNAPSHOT
+BINARY_DIRECTORY=`ls -d -1 "$TOPDIR/opennms-build/target/"opennms-*-SNAPSHOT`
 TEMP_DIRECTORY="$TOPDIR/izpack-temp"
 
-rsync -avr --delete "$BINARY_DIRECTORY"/ "$TEMP_DIRECTORY"/
+rsync -avr --progress --delete "$BINARY_DIRECTORY"/ "$TEMP_DIRECTORY"/
 ./handle-tokens.pl "$TEMP_DIRECTORY" "$REPLACEMENT_TOKEN" '$INSTALL_PATH'
 
-cp LICENSE UserInputSpec.xml "$TEMP_DIRECTORY/"
+cp LICENSE userInputSpec.xml "$TEMP_DIRECTORY/"
 cp discovery-configuration.xml "$TEMP_DIRECTORY/etc/"
 
 "$IZPACK_COMPILE" install.xml -b "$TEMP_DIRECTORY" -o opennms-installer.jar -k standard

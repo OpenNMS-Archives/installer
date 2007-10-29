@@ -47,5 +47,7 @@
 	<classpathentry kind="lib" path="lib/panels/TargetPanel.jar"/>
 	<classpathentry kind="lib" path="lib/panels/UserInputPanel.jar"/>
 	<classpathentry kind="lib" path="lib/panels/XInfoPanel.jar"/>
+	<classpathentry exported="true" kind="var" path="GROOVY_ECLIPSE_HOME/groovy-all-1.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="bin-groovy"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
