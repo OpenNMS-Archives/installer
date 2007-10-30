@@ -1,20 +1,24 @@
 <processing>
   <job name="Setting Up the Database">
     <os family="windows" />
-    <executefile name="$INSTALL_PATH\bin\install.bat">
+    <executefile name="$JavaBinaryPath">
+    	<arg>-Xmx256m</arg>
     	<arg>-Dinstall.dir=$INSTALL_PATH</arg>
     	<arg>-Dinstall.etc.dir=$INSTALL_PATH\/etc</arg>
     	<arg>-Dinstall.servlet.dir=$INSTALL_PATH\webapps\opennms</arg>
+    	<arg>-jar</arg><arg>$INSTALL_PATH\lib\opennms_install.jar</arg>
     	<arg>-disU</arg>
     	<arg>-l</arg><arg>$INSTALL_PATH\lib</arg>
     </executefile>
   </job>
   <job name="Setting Up the Database">
     <os family="unix" />
-    <executefile name="$INSTALL_PATH/bin/install">
+    <executefile name="$JavaBinaryPath">
+    	<arg>-Xmx256m</arg>
     	<arg>-Dinstall.dir=$INSTALL_PATH</arg>
     	<arg>-Dinstall.etc.dir=$INSTALL_PATH/etc</arg>
     	<arg>-Dinstall.servlet.dir=$INSTALL_PATH/webapps/opennms</arg>
+    	<arg>-jar</arg><arg>$INSTALL_PATH/lib/opennms_install.jar</arg>
     	<arg>-disU</arg>
     	<arg>-l</arg><arg>$INSTALL_PATH/lib</arg>
     </executefile>
