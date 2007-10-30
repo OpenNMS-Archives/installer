@@ -1,10 +1,10 @@
 <processing>
   <job name="Setting Up the Database">
     <os family="windows" />
-    <executefile name="$JavaBinaryPath">
+    <executefile name="$JDKPath\bin\java">
     	<arg>-Xmx256m</arg>
     	<arg>-Dinstall.dir=$INSTALL_PATH</arg>
-    	<arg>-Dinstall.etc.dir=$INSTALL_PATH\/etc</arg>
+    	<arg>-Dinstall.etc.dir=$INSTALL_PATH\etc</arg>
     	<arg>-Dinstall.servlet.dir=$INSTALL_PATH\webapps\opennms</arg>
     	<arg>-jar</arg><arg>$INSTALL_PATH\lib\opennms_install.jar</arg>
     	<arg>-disU</arg>
@@ -13,7 +13,7 @@
   </job>
   <job name="Setting Up the Database">
     <os family="unix" />
-    <executefile name="$JavaBinaryPath">
+    <executefile name="$JDKPath/bin/java">
     	<arg>-Xmx256m</arg>
     	<arg>-Dinstall.dir=$INSTALL_PATH</arg>
     	<arg>-Dinstall.etc.dir=$INSTALL_PATH/etc</arg>
