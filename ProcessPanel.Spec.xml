@@ -2,20 +2,21 @@
   <job name="Setting Up the Database">
     <os family="windows" />
     <executefile name="$INSTALL_PATH\bin\install.bat">
+    	<arg>-Dinstall.dir=$INSTALL_PATH</arg>
+    	<arg>-Dinstall.etc.dir=$INSTALL_PATH\/etc</arg>
+    	<arg>-Dinstall.servlet.dir=$INSTALL_PATH\webapps\opennms</arg>
     	<arg>-disU</arg>
     	<arg>-l</arg><arg>$INSTALL_PATH\lib</arg>
     </executefile>
   </job>
   <job name="Setting Up the Database">
-    <os family="mac" />
-    <executefile name="$INSTALL_PATH/bin/install">
-    	<arg>-disU</arg>
-    </executefile>
-  </job>
-  <job name="Setting Up the Database">
     <os family="unix" />
     <executefile name="$INSTALL_PATH/bin/install">
+    	<arg>-Dinstall.dir=$INSTALL_PATH</arg>
+    	<arg>-Dinstall.etc.dir=$INSTALL_PATH/etc</arg>
+    	<arg>-Dinstall.servlet.dir=$INSTALL_PATH/webapps/opennms</arg>
     	<arg>-disU</arg>
+    	<arg>-l</arg><arg>$INSTALL_PATH/lib</arg>
     </executefile>
   </job>
 </processing>

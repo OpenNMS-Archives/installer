@@ -15,8 +15,6 @@ if [ -z "$SKIP_BUILD" ]; then
 		svn co http://opennms.svn.sourceforge.net/svnroot/opennms/opennms/trunk "$TOPDIR/opennms-build"
 	fi
 
-	VERSION=`grep '<version>' "$TOPDIR/opennms-build/pom.xml" | head -n 1 | sed -e 's,^.*<version>,,' -e 's,<.*$,,'`
-
 	pushd "$TOPDIR/opennms-build"
 		[ -z "$SKIP_CLEAN" ] && ./build.sh clean
 		./build.sh \
@@ -27,6 +25,7 @@ if [ -z "$SKIP_BUILD" ]; then
 	popd
 fi
 
+VERSION=`grep '<version>' "$TOPDIR/opennms-build/pom.xml" | head -n 1 | sed -e 's,^.*<version>,,' -e 's,<.*$,,'`
 BINARY_DIRECTORY=`ls -d -1 "$TOPDIR/opennms-build/target/"opennms-*-SNAPSHOT`
 TEMP_DIRECTORY="$TOPDIR/izpack-temp"
 
