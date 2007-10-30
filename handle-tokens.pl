@@ -8,8 +8,10 @@ use File::Find;
 my $path    = shift;
 my $search  = shift;
 my $replace = shift;
+my $version = shift || 1;
 
 my @altered = ();
+my @executable = ();
 
 find(
 	{
@@ -25,6 +27,9 @@ find(
 			if (is_text($File::Find::name)) {
 				tokenize_file($File::Find::name);
 			}
+			if ($File::Find::name =~ m#/bin/#) {
+				push(@executable, $File::Find::name);
+			}
 		},
 		follow => 1,
 	},
@@ -39,6 +44,12 @@ while (<FILEIN>) {
 			$file =~ s/${path}/\$INSTALL_PATH/;
 			print FILEOUT "\t\t\t<parsable targetfile=\"$file\" />\n";
 		}
+		for my $file (@executable) {
+			$file =~ s/${path}/\$INSTALL_PATH/;
+			print FILEOUT "\t\t\t<executable targetfile=\"$file\" stage=\"never\" />\n";
+		}
+	} elsif (/\@appversion\@/) {
+		print FILEOUT "\t\t<appversion>$version</appversion>\n";
 	} else {
 		print FILEOUT;
 	}

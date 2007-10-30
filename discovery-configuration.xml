@@ -1,8 +1,8 @@
 <discovery-configuration threads="1" packets-per-second="1" initial-sleep-time="6000" restart-sleep-time="86400000" retries="1" timeout="2000">
 
         <include-range>
-                <begin>$discoveryStartRange</begin>
-                <end>$discoveryEndRange</end>
+                <begin>$izpackDiscoveryStartRange</begin>
+                <end>$izpackDiscoveryEndRange</end>
         </include-range>
 
 </discovery-configuration>
