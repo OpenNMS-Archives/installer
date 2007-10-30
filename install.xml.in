@@ -59,7 +59,7 @@
 		We specify here our packs.
 	-->
 	<packs>
-		<pack name="Base" required="yes">
+		<pack name="Core" required="yes">
 			<description>The base OpenNMS installation</description>
 			<file src="bin" targetdir="$INSTALL_PATH" />
 			<file src="contrib" targetdir="$INSTALL_PATH" />
@@ -69,15 +69,20 @@
 			<file src="share" targetdir="$INSTALL_PATH" />
 			<file src="jetty-webapps" targetdir="$INSTALL_PATH" />
 			<parsable targetfile="$INSTALL_PATH/etc/discovery-configuration.xml" />
+			<parsable targetfile="$INSTALL_PATH/etc/java.conf" />
 			@parsable_files@
-		</pack>
-		<pack name="Docs" required="no">
-			<description>The documentation</description>
-			<file src="docs" targetdir="$INSTALL_PATH"/>
 		</pack>
 		<pack name="Windows" required="yes" os="windows">
 			<description>OpenNMS components which are required on Windows</description>
 			<file src="lib/jicmp.dll" targetdir="$INSTALL_PATH/lib" />
+		</pack>
+		<pack name="Mac OS X" required="yes" os="mac">
+			<description>OpenNMS components which are required on Mac OS X</description>
+			<file src="lib/libjicmp.jnilib" targetdir="$INSTALL_PATH/lib" />
+		</pack>
+		<pack name="Docs" required="no">
+			<description>The documentation</description>
+			<file src="docs" targetdir="$INSTALL_PATH"/>
 		</pack>
 	</packs>
 

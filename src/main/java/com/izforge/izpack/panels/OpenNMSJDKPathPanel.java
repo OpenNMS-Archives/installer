@@ -21,6 +21,8 @@
 
 package com.izforge.izpack.panels;
 
+import java.io.File;
+
 import com.izforge.izpack.installer.InstallData;
 import com.izforge.izpack.installer.InstallerFrame;
 import com.izforge.izpack.util.OsVersion;
@@ -28,7 +30,7 @@ import com.izforge.izpack.util.OsVersion;
 /**
  * Panel which asks for the JDK path.
  * 
- * @author Klaus Bartz
+ * @author <a href="mailto:ranger@opennms.org">Benjamin Reed</a>
  * 
  */
 public class OpenNMSJDKPathPanel extends JDKPathPanel
@@ -50,6 +52,8 @@ public class OpenNMSJDKPathPanel extends JDKPathPanel
         	idata.setVariable(getVariableName(), "/Library/Java/Home");
         	super.panelActivate();
         }
+        
+        idata.setVariable("JavaBinaryPath", idata.getVariable(getVariableName()) + File.separator + "bin" + File.separator + "java");
     }
 
 }
