@@ -38,7 +38,6 @@
 		<!-- <panel classname="InfoPanel" /> -->
 		<panel classname="LicencePanel" />
 		<panel classname="OpenNMSJDKPathPanel" />
-		<panel classname="JDKPathPanel"/>
 		<panel classname="TargetPanel" /> 
 		<panel classname="UserInputPanel" />
 		<panel classname="UserInputPanel" />

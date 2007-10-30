@@ -604,6 +604,12 @@
             <include name="com/izforge/izpack/panels/PathInputPanel.java" />
             <include name="com/izforge/izpack/panels/PathSelectionPanel.java" />
         </build-panel>
+        <build-panel name="OpenNMSJDKPathPanel">
+            <include name="com/izforge/izpack/panels/OpenNMSJDKPathPanel.java" />
+            <include name="com/izforge/izpack/panels/JDKPathPanel.java" />
+            <include name="com/izforge/izpack/panels/PathInputPanel.java" />
+            <include name="com/izforge/izpack/panels/PathSelectionPanel.java" />
+        </build-panel>
         <build-panel name="XInfoPanel">
             <include name="com/izforge/izpack/panels/XInfoPanel.java" />
         </build-panel>
