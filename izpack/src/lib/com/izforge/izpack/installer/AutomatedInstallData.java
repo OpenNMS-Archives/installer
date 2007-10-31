@@ -192,6 +192,8 @@ public class AutomatedInstallData
     public void setInstallPath(String path)
     {
         setVariable(ScriptParser.INSTALL_PATH, path);
+        String unifiedpath = path.replace('\\', '/');
+        setVariable("UNIFIED_INSTALL_PATH", unifiedpath);
     }
 
     /**

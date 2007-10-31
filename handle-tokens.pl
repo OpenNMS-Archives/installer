@@ -41,11 +41,11 @@ open (FILEOUT, '>install.xml') or die "can't write to install.xml: $!";
 while (<FILEIN>) {
 	if (/\@parsable_files\@/) {
 		for my $file (@altered) {
-			$file =~ s/${path}/\$INSTALL_PATH/;
+			$file =~ s/${path}/\$UNIFIED_INSTALL_PATH/;
 			print FILEOUT "\t\t\t<parsable targetfile=\"$file\" />\n";
 		}
 		for my $file (@executable) {
-			$file =~ s/${path}/\$INSTALL_PATH/;
+			$file =~ s/${path}/\$UNIFIED_INSTALL_PATH/;
 			print FILEOUT "\t\t\t<executable targetfile=\"$file\" stage=\"never\" />\n";
 		}
 	} elsif (/\@appversion\@/) {
