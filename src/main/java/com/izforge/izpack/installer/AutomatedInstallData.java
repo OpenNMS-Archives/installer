@@ -19,7 +19,12 @@
 
 package com.izforge.izpack.installer;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -192,7 +197,7 @@ public class AutomatedInstallData
     public void setInstallPath(String path)
     {
         setVariable(ScriptParser.INSTALL_PATH, path);
-        String unifiedpath = path.replace('\\', '/');
+        String unifiedpath = getShortName(path).replace('\\', '/');
         setVariable("UNIFIED_INSTALL_PATH", unifiedpath);
     }
 
@@ -238,4 +243,54 @@ public class AutomatedInstallData
             attributes.put(attr, val);
 
     }
+    
+	public static String getShortName(String arg) {
+		if (!File.separator.equals("\\")) {
+			return arg;
+		}
+
+		String[] entries = arg.split("\\\\");
+		List<String> path = new ArrayList<String>();
+		Collections.addAll(path, entries);
+		
+		String fullPath = path.remove(0);
+		
+		try {
+			for (String entry : path) {
+				if (entry.length() == 0) {
+					continue;
+				}
+
+				fullPath += "\\";
+				ProcessBuilder pb = new ProcessBuilder("cmd.exe", "/c", "dir", "/a-", "/x", fullPath).redirectErrorStream(true);
+				Process p = pb.start();
+				InputStreamReader isr = new InputStreamReader(p.getInputStream());
+				BufferedReader br = new BufferedReader(isr);
+				String line;
+				Boolean matched = false;
+				while ((line = br.readLine()) != null) {
+					if (!matched && line.endsWith(" " + entry)) {
+						line = line.replace(" " + entry, "").trim();
+						String match = line.replaceAll("^.* ", "");
+						if (match.contains("~")) {
+							fullPath += match;
+							matched = true;
+						}
+					}
+				}
+				br.close();
+				isr.close();
+				p.getInputStream().close();
+				if (!matched) {
+					fullPath += entry;
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+			return arg;
+		}
+
+		return fullPath;
+	}
+
 }
