@@ -30,7 +30,7 @@ BINARY_DIRECTORY=`ls -d -1 "$TOPDIR/opennms-build/target/"opennms-*-SNAPSHOT`
 TEMP_DIRECTORY="$TOPDIR/izpack-temp"
 
 rsync -avr --progress --delete "$BINARY_DIRECTORY"/ "$TEMP_DIRECTORY"/
-./handle-tokens.pl "$TEMP_DIRECTORY" "$REPLACEMENT_TOKEN" '$UNIFIED_INSTALL_PATH' "$VERSION"
+./handle-tokens.pl "$TEMP_DIRECTORY" "($REPLACEMENT_TOKEN|$BINARY_DIRECTORY)" '$UNIFIED_INSTALL_PATH' "$VERSION"
 
 cp LICENSE ProcessPanel.Spec.xml userInputSpec.xml "$TEMP_DIRECTORY/"
 cp *.bat "$TEMP_DIRECTORY/bin/"

@@ -18,8 +18,8 @@ find(
 		wanted => sub {
 			my $filename = shift;
 
-			return unless ($File::Find::name =~ m#/(bin|etc)/#);
-#			return unless ($File::Find::name =~ m#/(bin|etc|[^/]*webapps/opennms/[^/]*INF)/#);
+#			return unless ($File::Find::name =~ m#/(bin|etc)/#);
+			return unless ($File::Find::name =~ m#/(bin|etc|[^/]*webapps/opennms/[^/]*INF)/#);
 			return unless (-f $File::Find::name);
 			# shortcut some known non-translated files
 			return if ($File::Find::name =~ /\.(jsp|html)$/);
