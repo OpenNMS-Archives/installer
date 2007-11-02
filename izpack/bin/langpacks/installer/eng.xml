@@ -17,6 +17,7 @@
     <str id="InfoPanel.headline" txt="Informations"/>
     <str id="InstallPanel.headline" txt="Installation"/>
     <str id="JDKPathPanel.headline" txt="JDK Path"/>
+    <str id="OpenNMSJDKPathPanel.headline" txt="JDK Path"/>
     <str id="LicencePanel.headline" txt="Licensing Agreements"/>
     <str id="PacksPanel.headline" txt="Select Installation Packages"/>
     <str id="ProcessPanel.headline" txt="Perform External Processes"/>
@@ -90,6 +91,13 @@
     <str id="JDKPathPanel.badVersion1" txt="The chosen JDK has the wrong version (available: "/>
     <str id="JDKPathPanel.badVersion2" txt=" required: "/>
     <str id="JDKPathPanel.badVersion3" txt=") should this JDK be used anyway?"/>
+
+    <str id="OpenNMSJDKPathPanel.extendedIntro" txt="The installed application needs a JDK between version ${JDKPathPanel.minVersion} and ${JDKPathPanel.maxVersion}. A java runtime environment (JRE) will be not sufficient."/>
+    <str id="OpenNMSJDKPathPanel.intro" txt="The installed application needs a JDK. A java runtime environment (JRE) will be not sufficient."/>
+    <str id="OpenNMSJDKPathPanel.info" txt="Select the JDK path:"/>
+    <str id="OpenNMSJDKPathPanel.badVersion1" txt="The chosen JDK has the wrong version (available: "/>
+    <str id="OpenNMSJDKPathPanel.badVersion2" txt=" required: "/>
+    <str id="OpenNMSJDKPathPanel.badVersion3" txt=") should this JDK be used anyway?"/>
 
     <str id="PacksPanel.info" txt="Select the packs you want to install:"/>
     <str id="PacksPanel.tip" txt="Note: greyed out packs are required."/>
