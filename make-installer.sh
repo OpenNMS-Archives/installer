@@ -5,7 +5,12 @@ IZPACK_HOME="$TOPDIR/izpack"
 IZPACK_COMPILE="$IZPACK_HOME/bin/compile"
 REPLACEMENT_TOKEN="XXX_TOKENIZE_ME_XXX"
 
-export IZPACK_HOME
+if [ -z "$JAVA_HOME" ]; then
+	JAVA_HOME=`ls -d /usr/java/jdk1* | sort -r -u | head -n 1`
+fi
+PATH="$JAVA_HOME/bin:$PATH"
+
+export IZPACK_HOME PATH JAVA_HOME
 
 # build OpenNMS
 if [ -z "$SKIP_BUILD" ]; then
