@@ -2,6 +2,8 @@
   <job name="Setting Up the Database">
     <executefile name="$JDKPath/bin/java">
     	<arg>-Xmx256m</arg>
+    	<arg>-Dinstall.database.name=$izpackDatabaseName</arg>
+    	<arg>-Dinstall.database.url=jdbc:postgresql://$izpackDatabaseHost:5432/</arg>
     	<arg>-Dinstall.dir=$UNIFIED_INSTALL_PATH</arg>
     	<arg>-Dinstall.etc.dir=$UNIFIED_INSTALL_PATH/etc</arg>
     	<arg>-Dinstall.servlet.dir=$UNIFIED_INSTALL_PATH/webapps/opennms</arg>
