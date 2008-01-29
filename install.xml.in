@@ -70,7 +70,6 @@
 			<file src="jetty-webapps" targetdir="$UNIFIED_INSTALL_PATH" />
 			<singlefile src="bin/install.bat" target="$UNIFIED_INSTALL_PATH/bin/install.bat" os="windows" />
 			<singlefile src="bin/opennms.bat" target="$UNIFIED_INSTALL_PATH/bin/opennms.bat" os="windows" />
-			<singlefile src="etc/installer.properties.in" target="$UNIFIED_INSTALL_PATH/etc/installer.properties" />
 			<singlefile src="etc/java.conf.win" target="$UNIFIED_INSTALL_PATH/etc/java.conf" os="windows" />
 			<singlefile src="etc/java.conf.unix" target="$UNIFIED_INSTALL_PATH/etc/java.conf" os="unix" />
 			<singlefile src="lib/jicmp.dll" target="$UNIFIED_INSTALL_PATH/lib/jicmp.dll" os="windows" />
@@ -78,7 +77,6 @@
 			<parsable targetfile="$UNIFIED_INSTALL_PATH/bin/install.bat" os="windows" />
 			<parsable targetfile="$UNIFIED_INSTALL_PATH/bin/opennms.bat" os="windows" />
 			<parsable targetfile="$UNIFIED_INSTALL_PATH/etc/discovery-configuration.xml" />
-			<parsable targetfile="$UNIFIED_INSTALL_PATH/etc/installer.properties" />
 			<parsable targetfile="$UNIFIED_INSTALL_PATH/etc/java.conf" />
 			@parsable_files@
 		</pack>

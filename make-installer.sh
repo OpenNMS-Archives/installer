@@ -39,7 +39,7 @@ rsync -avr --progress --delete "$BINARY_DIRECTORY"/ "$TEMP_DIRECTORY"/
 
 cp LICENSE ProcessPanel.Spec.xml userInputSpec.xml "$TEMP_DIRECTORY/"
 cp *.bat "$TEMP_DIRECTORY/bin/"
-cp discovery-configuration.xml installer.properties.in java.conf.* "$TEMP_DIRECTORY/etc/"
+cp discovery-configuration.xml java.conf.* "$TEMP_DIRECTORY/etc/"
 cp native/* "$TEMP_DIRECTORY/lib/"
 
 "$IZPACK_COMPILE" install.xml -b "$TEMP_DIRECTORY" -o opennms-installer-$VERSION.jar -k standard
