@@ -68,6 +68,9 @@
 			<file src="logs" targetdir="$UNIFIED_INSTALL_PATH" />
 			<file src="share" targetdir="$UNIFIED_INSTALL_PATH" />
 			<file src="jetty-webapps" targetdir="$UNIFIED_INSTALL_PATH" />
+			<fileset dir="." targetdir="$UNIFIED_INSTALL_PATH/lib">
+				<include name="lib/*.jar" />
+			</fileset>
 			<singlefile src="bin/install.bat" target="$UNIFIED_INSTALL_PATH/bin/install.bat" os="windows" />
 			<singlefile src="bin/opennms.bat" target="$UNIFIED_INSTALL_PATH/bin/opennms.bat" os="windows" />
 			<singlefile src="etc/java.conf.win" target="$UNIFIED_INSTALL_PATH/etc/java.conf" os="windows" />

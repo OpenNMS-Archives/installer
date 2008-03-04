@@ -1,4 +1,5 @@
 <processing>
+  <logfiledir>$UNIFIED_INSTALL_PATH/logs</logfiledir>
   <job name="Setting Up the Database">
     <executefile name="$JDKPath/bin/java">
     	<arg>-Xmx256m</arg>
@@ -9,8 +10,8 @@
     	<arg>-Dinstall.servlet.dir=$UNIFIED_INSTALL_PATH/webapps/opennms</arg>
     	<arg>-jar</arg><arg>$UNIFIED_INSTALL_PATH/lib/opennms_install.jar</arg>
     	<arg>-disU</arg>
-    	<arg>--admin-username</arg><arg>$izpackDatabaseAdminUser</arg>
-    	<arg>--admin-password</arg><arg>$izpackDatabaseAdminPass</arg>
+    	<arg>--admin-username</arg><arg>"$izpackDatabaseAdminUser"</arg>
+    	<arg>--admin-password</arg><arg>"$izpackDatabaseAdminPass"</arg>
     	<arg>-l</arg><arg>$UNIFIED_INSTALL_PATH/lib</arg>
     </executefile>
   </job>
