@@ -42,4 +42,4 @@ cp *.bat "$TEMP_DIRECTORY/bin/"
 cp discovery-configuration.xml java.conf.* opennms-datasources.xml "$TEMP_DIRECTORY/etc/"
 cp native/* "$TEMP_DIRECTORY/lib/"
 
-"$IZPACK_COMPILE" install.xml -b "$TEMP_DIRECTORY" -o opennms-installer-$VERSION.jar -k standard
+"$IZPACK_COMPILE" install.xml -b "$TEMP_DIRECTORY" -o standalone-opennms-installer-$VERSION.jar -k standard
