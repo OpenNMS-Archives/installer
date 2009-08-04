@@ -10,6 +10,10 @@ if [ -z "$JAVA_HOME" ]; then
 fi
 PATH="$JAVA_HOME/bin:$PATH"
 
+if [ -x "settings.xml" ]; then
+	SETTINGS_XML="-s $TOPDIR/settings.xml"
+fi
+
 export IZPACK_HOME PATH JAVA_HOME
 
 # build OpenNMS
@@ -21,8 +25,8 @@ if [ -z "$SKIP_BUILD" ]; then
 	fi
 
 	pushd "$TOPDIR/opennms-build"
-		[ -z "$SKIP_CLEAN" ] && ./build.sh clean
-		./build.sh \
+		[ -z "$SKIP_CLEAN" ] && ./build.sh $SETTINGS_XML clean
+		./build.sh $SETTINGS_XML -Dbuild=all \
 			-Dinstall.database.name='$izpackDatabaseName' \
 			-Dinstall.database.url='jdbc:postgresql://$izpackDatabaseHost:5432/' \
 			-Dopennms.home="$REPLACEMENT_TOKEN" \
