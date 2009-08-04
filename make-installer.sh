@@ -10,7 +10,7 @@ if [ -z "$JAVA_HOME" ]; then
 fi
 PATH="$JAVA_HOME/bin:$PATH"
 
-if [ -x "settings.xml" ]; then
+if [ -e "settings.xml" ]; then
 	SETTINGS_XML="-s $TOPDIR/settings.xml"
 fi
 
