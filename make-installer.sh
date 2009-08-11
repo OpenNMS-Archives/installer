@@ -26,7 +26,7 @@ if [ -z "$SKIP_BUILD" ]; then
 
 	pushd "$TOPDIR/opennms-build"
 		[ -z "$SKIP_CLEAN" ] && ./build.sh $SETTINGS_XML clean
-		./build.sh $SETTINGS_XML -Dbuild=all \
+		./build.sh $SETTINGS_XML -Dbuild=all -PbuildDocs \
 			-Dinstall.database.name='$izpackDatabaseName' \
 			-Dinstall.database.url='jdbc:postgresql://$izpackDatabaseHost:5432/' \
 			-Dopennms.home="$REPLACEMENT_TOKEN" \
