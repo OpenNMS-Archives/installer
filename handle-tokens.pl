@@ -36,26 +36,28 @@ find(
 	$path,
 );
 
-open (FILEIN, 'install.xml.in') or die "can't read from install.xml.in: $!";
-open (FILEOUT, '>install.xml') or die "can't write to install.xml: $!";
-while (<FILEIN>) {
-	if (/\@parsable_files\@/) {
-		for my $file (@altered) {
-			$file =~ s/${path}/\$UNIFIED_INSTALL_PATH/;
-			print FILEOUT "\t\t\t<parsable targetfile=\"$file\" />\n";
+for my $installfile ('install.xml', 'install-1.6.xml') {
+	open (FILEIN, "$installfile.in") or die "can't read from $installfile.in: $!";
+	open (FILEOUT, ">$installfile") or die "can't write to $installfile: $!";
+	while (<FILEIN>) {
+		if (/\@parsable_files\@/) {
+			for my $file (@altered) {
+				$file =~ s/${path}/\$UNIFIED_INSTALL_PATH/;
+				print FILEOUT "\t\t\t<parsable targetfile=\"$file\" />\n";
+			}
+			for my $file (@executable) {
+				$file =~ s/${path}/\$UNIFIED_INSTALL_PATH/;
+				print FILEOUT "\t\t\t<executable targetfile=\"$file\" stage=\"never\" />\n";
+			}
+		} elsif (/\@appversion\@/) {
+			print FILEOUT "\t\t<appversion>$version</appversion>\n";
+		} else {
+			print FILEOUT;
 		}
-		for my $file (@executable) {
-			$file =~ s/${path}/\$UNIFIED_INSTALL_PATH/;
-			print FILEOUT "\t\t\t<executable targetfile=\"$file\" stage=\"never\" />\n";
-		}
-	} elsif (/\@appversion\@/) {
-		print FILEOUT "\t\t<appversion>$version</appversion>\n";
-	} else {
-		print FILEOUT;
 	}
+	close (FILEOUT);
+	close (FILEIN);
 }
-close (FILEOUT);
-close (FILEIN);
 
 sub is_text {
 	my $filename = shift;
