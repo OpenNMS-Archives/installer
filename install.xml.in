@@ -103,6 +103,7 @@
 			<description>The link provisioning adapter creates links between provisioned nodes based on naming conventions defined in the link-adapter-configuration.xml file.  It also updates the status of the map links based on data link events.</description>
 			<fileset dir="." targetdir="$UNIFIED_INSTALL_PATH/etc">
 				<include name="etc/link-adapter-configuration.xml" />
+				<include name="etc/endpoint-configuration.xml" />
 			</fileset>
 			<fileset dir="." targetdir="$UNIFIED_INSTALL_PATH/lib">
 				<include name="lib/opennms-link-provisioning-adapter-*.jar" />
