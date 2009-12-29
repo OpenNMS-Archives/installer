@@ -20,11 +20,9 @@ export IZPACK_HOME PATH JAVA_HOME
 
 # build OpenNMS
 if [ -z "$SKIP_BUILD" ]; then
-	if [ -d "$TOPDIR/opennms-build" ]; then
-		svn up "$TOPDIR/opennms-build"
-	else
-		svn co http://opennms.svn.sourceforge.net/svnroot/opennms/opennms/trunk "$TOPDIR/opennms-build"
-	fi
+	pushd "$TOPDIR/opennms-build"
+		git pull
+	popd
 
 	pushd "$TOPDIR/opennms-build"
 		[ -z "$SKIP_CLEAN" ] && ./build.sh $SETTINGS_XML clean
