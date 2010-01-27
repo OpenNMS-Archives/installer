@@ -69,12 +69,12 @@
 			<file src="share" targetdir="$UNIFIED_INSTALL_PATH" />
 			<file src="jetty-webapps" targetdir="$UNIFIED_INSTALL_PATH" />
 			<fileset dir="." targetdir="$UNIFIED_INSTALL_PATH/lib">
-				<include name="lib/*.jar" />
-				<include name="lib/endorsed/*.jar" />
 				<exclude name="lib/opennms-dns-provisioning-adapter-*.jar" />
 				<exclude name="lib/opennms-link-provisioning-adapter-*.jar" />
 				<exclude name="lib/opennms-map-provisioning-adapter-*.jar" />
 				<exclude name="lib/opennms-rancid-*.jar" />
+				<include name="lib/*.jar" />
+				<include name="lib/endorsed/*.jar" />
 			</fileset>
 			<singlefile src="bin/install.bat" target="$UNIFIED_INSTALL_PATH/bin/install.bat" os="windows" />
 			<singlefile src="bin/opennms.bat" target="$UNIFIED_INSTALL_PATH/bin/opennms.bat" os="windows" />
