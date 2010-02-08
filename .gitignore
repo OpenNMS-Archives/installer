@@ -1,0 +1,5 @@
+.*.swp
+install*.xml
+izpack-temp
+opennms-build
+standalone-*.jar

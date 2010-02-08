@@ -12,13 +12,13 @@ my $version = shift || 1;
 
 my @altered = ();
 my @executable = ();
+my @jars = ();
 
 find(
 	{
 		wanted => sub {
 			my $filename = shift;
 
-#			return unless ($File::Find::name =~ m#/(bin|etc)/#);
 			return unless ($File::Find::name =~ m#/(bin|etc|jetty-webapps/opennms/[^/]*INF)/#);
 			return unless (-f $File::Find::name);
 			# shortcut some known non-translated files
@@ -30,6 +30,24 @@ find(
 			if ($File::Find::name =~ m#/bin/#) {
 				push(@executable, $File::Find::name);
 			}
+		},
+		follow => 1,
+	},
+	$path,
+);
+
+find (
+	{
+		wanted => sub {
+			my $filename = shift;
+
+			return unless ($File::Find::name =~ m#/lib/#);
+			return unless ($File::Find::name =~ m#\.jar$#);
+			return if ($File::Find::name =~ m#^.*/contrib/.*$#);
+			return if ($File::Find::name =~ m#^.*/[^/]*webapps/opennms[^/]*/.*$#);
+			return if ($File::Find::name =~ m#^.*opennms-.*-provisioning-adapter.*$#);
+			return if ($File::Find::name =~ m#^.*opennms-rancid.*$#);
+			push(@jars, $File::Find::name);
 		},
 		follow => 1,
 	},
@@ -48,6 +66,11 @@ for my $installfile ('install.xml', 'install-1.6.xml') {
 			for my $file (@executable) {
 				$file =~ s/${path}/\$UNIFIED_INSTALL_PATH/;
 				print FILEOUT "\t\t\t<executable targetfile=\"$file\" stage=\"never\" />\n";
+			}
+		} elsif (/\@jar_files\@/) {
+			for my $file (@jars) {
+				$file =~ s#^.*?/lib/##;
+				print FILEOUT "\t\t\t<singlefile src=\"lib/$file\" target=\"\$UNIFIED_INSTALL_PATH/lib/$file\" />\n";
 			}
 		} elsif (/\@appversion\@/) {
 			print FILEOUT "\t\t<appversion>$version</appversion>\n";
