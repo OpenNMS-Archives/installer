@@ -20,9 +20,11 @@ export IZPACK_HOME PATH JAVA_HOME
 
 # build OpenNMS
 if [ -z "$SKIP_BUILD" ]; then
-	pushd "$TOPDIR/opennms-build"
-		git pull
-	popd
+	if [ -z "$SKIP_PULL" ]; then
+		pushd "$TOPDIR/opennms-build"
+			git pull
+		popd
+	fi
 
 	pushd "$TOPDIR/opennms-build"
 		[ -z "$SKIP_CLEAN" ] && ./build.sh $SETTINGS_XML clean
