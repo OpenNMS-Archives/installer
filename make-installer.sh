@@ -53,6 +53,7 @@ if [ -d "$TOPDIR/opennms-build/integrations/opennms-map-provisioning-adapter" ];
 	rm -rf "$TEMP_DIRECTORY/"lib/*-tests.jar
 	rm -rf "$TEMP_DIRECTORY/"lib/*-xsds.jar
 	cp $TOPDIR/opennms-build/integrations/opennms-link-provisioning-adapter/src/main/resources/link-adapter-configuration.xml "$TEMP_DIRECTORY/etc/"
+	cp $TOPDIR/opennms-build/integrations/opennms-link-provisioning-adapter/src/main/resources/endpoint-configuration.xml "$TEMP_DIRECTORY/etc/"
 	cp $TOPDIR/opennms-build/integrations/opennms-map-provisioning-adapter/src/main/resources/mapsadapter-configuration.xml   "$TEMP_DIRECTORY/etc/"
 fi
 
