@@ -64,7 +64,6 @@
 			<file src="bin" targetdir="$UNIFIED_INSTALL_PATH" />
 			<file src="contrib" targetdir="$UNIFIED_INSTALL_PATH" />
 			<file src="etc" targetdir="$UNIFIED_INSTALL_PATH" />
-			<file src="lib" targetdir="$UNIFIED_INSTALL_PATH" />
 			<file src="logs" targetdir="$UNIFIED_INSTALL_PATH" />
 			<file src="share" targetdir="$UNIFIED_INSTALL_PATH" />
 			<file src="jetty-webapps" targetdir="$UNIFIED_INSTALL_PATH" />
@@ -76,6 +75,7 @@
 				<include name="lib/*.jar" />
 				<include name="lib/endorsed/*.jar" />
 			</fileset>
+			@jar_files@
 			<singlefile src="bin/install.bat" target="$UNIFIED_INSTALL_PATH/bin/install.bat" os="windows" />
 			<singlefile src="bin/opennms.bat" target="$UNIFIED_INSTALL_PATH/bin/opennms.bat" os="windows" />
 			<singlefile src="etc/java.conf.win" target="$UNIFIED_INSTALL_PATH/etc/java.conf" os="windows" />
@@ -95,32 +95,32 @@
 		</pack>
 		<pack name="DNS Provisioning Adapter Plugin" required="no" preselected="no">
 			<description>The DNS provisioning adapter allows for updating dynamic DNS records based on provisioned nodes.</description>
-			<fileset dir="." targetdir="$UNIFIED_INSTALL_PATH/lib">
+			<fileset dir="." targetdir="$UNIFIED_INSTALL_PATH">
 				<include name="lib/opennms-dns-provisioning-adapter-*.jar" />
 			</fileset>
 		</pack>
 		<pack name="Link Provisioning Adapter Plugin" required="no" preselected="no">
 			<description>The link provisioning adapter creates links between provisioned nodes based on naming conventions defined in the link-adapter-configuration.xml file.  It also updates the status of the map links based on data link events.</description>
-			<fileset dir="." targetdir="$UNIFIED_INSTALL_PATH/etc">
+			<fileset dir="." targetdir="$UNIFIED_INSTALL_PATH">
 				<include name="etc/link-adapter-configuration.xml" />
 				<include name="etc/endpoint-configuration.xml" />
 			</fileset>
-			<fileset dir="." targetdir="$UNIFIED_INSTALL_PATH/lib">
+			<fileset dir="." targetdir="$UNIFIED_INSTALL_PATH">
 				<include name="lib/opennms-link-provisioning-adapter-*.jar" />
 			</fileset>
 		</pack>
 		<pack name="Map Provisioning Adapter Plugin" required="no" preselected="no">
 			<description>The map provisioning adapter will automatically create maps when nodes are provisioned in OpenNMS.</description>
-			<fileset dir="." targetdir="$UNIFIED_INSTALL_PATH/etc">
+			<fileset dir="." targetdir="$UNIFIED_INSTALL_PATH">
 				<include name="etc/mapsadapter-configuration.xml" />
 			</fileset>
-			<fileset dir="." targetdir="$UNIFIED_INSTALL_PATH/lib">
+			<fileset dir="." targetdir="$UNIFIED_INSTALL_PATH">
 				<include name="lib/opennms-map-provisioning-adapter-*.jar" />
 			</fileset>
 		</pack>
 		<pack name="RANCID Provisioning Adapter Plugin" required="no" preselected="no">
 			<description>The RANCID provisioning adapter coordinates with the RANCID Web Service by updating RANCID's device database when OpenNMS provisions nodes.</description>
-			<fileset dir="." targetdir="$UNIFIED_INSTALL_PATH/lib">
+			<fileset dir="." targetdir="$UNIFIED_INSTALL_PATH">
 				<include name="lib/opennms-rancid-*.jar" />
 			</fileset>
 		</pack>

@@ -1,4 +1,6 @@
+.*.swp
+*.xml
+install*.xml
 izpack-temp
 opennms-build
-*.xml
 standalone-*.jar
