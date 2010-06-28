@@ -68,9 +68,10 @@ cp native/* "$TEMP_DIRECTORY/lib/"
 
 INSTALLER_NAME="standalone-opennms-installer-$VERSION"
 ZIP_DIRECTORY="opennms-installer"
+rm -rf "$TOPDIR/$ZIP_DIRECTORY"
 mkdir -p "$TOPDIR/$ZIP_DIRECTORY"
 "$IZPACK_COMPILE" $INSTALL_XML -b "$TEMP_DIRECTORY" -o "$TOPDIR/$ZIP_DIRECTORY/$INSTALLER_NAME.jar" -k standard
-cp launcher.ini setup.exe "$TOPDIR/$ZIP_DIRECTORY/"
+cp INSTALL.txt launcher.ini setup.exe "$TOPDIR/$ZIP_DIRECTORY/"
 pushd "$TOPDIR" >/dev/null 2>&1
 	zip -9 "$INSTALLER_NAME.zip" -r "$ZIP_DIRECTORY"
 popd >/dev/null 2>&1
