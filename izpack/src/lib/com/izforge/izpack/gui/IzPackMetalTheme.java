@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,21 +19,23 @@
 
 package com.izforge.izpack.gui;
 
-import java.awt.Font;
-
 import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.plaf.metal.DefaultMetalTheme;
+import java.awt.*;
 
 /**
  * The IzPack metal theme.
- * 
+ *
  * @author Julien Ponge
  */
+@Deprecated
 public class IzPackMetalTheme extends DefaultMetalTheme
 {
 
-    /** The fonts color. */
+    /**
+     * The fonts color.
+     */
     private ColorUIResource color;
 
     private FontUIResource controlFont;
@@ -42,7 +44,9 @@ public class IzPackMetalTheme extends DefaultMetalTheme
 
     private FontUIResource windowTitleFont;
 
-    /** The constructor. */
+    /**
+     * The constructor.
+     */
     public IzPackMetalTheme()
     {
         color = new ColorUIResource(0, 0, 0);
@@ -63,7 +67,7 @@ public class IzPackMetalTheme extends DefaultMetalTheme
 
     /**
      * Returns the color.
-     * 
+     *
      * @return The color.
      */
     public ColorUIResource getControlTextColor()
@@ -73,7 +77,7 @@ public class IzPackMetalTheme extends DefaultMetalTheme
 
     /**
      * Returns the color.
-     * 
+     *
      * @return The color.
      */
     public ColorUIResource getMenuTextColor()
@@ -83,7 +87,7 @@ public class IzPackMetalTheme extends DefaultMetalTheme
 
     /**
      * Returns the color.
-     * 
+     *
      * @return The color.
      */
     public ColorUIResource getSystemTextColor()
@@ -93,7 +97,7 @@ public class IzPackMetalTheme extends DefaultMetalTheme
 
     /**
      * Returns the color.
-     * 
+     *
      * @return The color.
      */
     public ColorUIResource getUserTextColor()

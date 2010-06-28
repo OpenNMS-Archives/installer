@@ -1,7 +1,7 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
- * http://izpack.org/ http://developer.berlios.de/projects/izpack/
+ * http://izpack.org/ http://izpack.codehaus.org/
  * 
  * Copyright 2007 Dennis Reil
  * 
@@ -17,18 +17,18 @@
  */
 package com.izforge.izpack.io;
 
+import com.izforge.izpack.util.Debug;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.GZIPInputStream;
 
-import com.izforge.izpack.util.Debug;
-
 /**
  * An inputstream which transparently spans over multiple volumes. The amount of volumes has to be
  * specified
- * 
+ *
  * @author Dennis Reil, <Dennis.Reil@reddot.de>
  */
 public class FileSpanningInputStream extends InputStream
@@ -50,6 +50,8 @@ public class FileSpanningInputStream extends InputStream
 
     protected GZIPInputStream zippedinputstream;
 
+    protected byte[] magicnumber;
+
     public FileSpanningInputStream(File volume, int volumestotal) throws IOException
     {
         fileinputstream = new FileInputStream(volume);
@@ -58,7 +60,14 @@ public class FileSpanningInputStream extends InputStream
         volumename = volume.getAbsolutePath();
         this.volumestotal = volumestotal;
         filepointer = 0;
-        Debug.trace("Opening stream to " + volume);
+
+        // read magic number
+        this.magicnumber = new byte[FileSpanningOutputStream.MAGIC_NUMER_LENGTH];
+        zippedinputstream.read(this.magicnumber);
+        // this.read(this.magicnumber);
+        Debug.trace("Opening stream to " + volume + " magicnr is " + magicnumber);
+        // reset filepointer
+        filepointer = 0;
     }
 
     public FileSpanningInputStream(String volumename, int volumestotal) throws IOException
@@ -67,10 +76,53 @@ public class FileSpanningInputStream extends InputStream
     }
 
     /**
+     * checks if the MagicNumber of this stream is valid. The stream has to be opened right before.
+     *
+     * @return wether the magic number is valid or not
+     * @throws IOException
+     */
+    private boolean isMagicNumberValid() throws IOException
+    {
+        Debug.trace("trying to read magic number");
+        boolean valid = false;
+        byte[] magicnumberofvolume = new byte[FileSpanningOutputStream.MAGIC_NUMER_LENGTH];
+        long oldfilepointer = this.filepointer;
+        // this.read(magicnumberofvolume);
+        this.zippedinputstream.read(magicnumberofvolume);
+        this.filepointer = oldfilepointer;
+        Debug.trace("MagicNr is " + magicnumberofvolume);
+        if ((magicnumberofvolume != null) && (this.magicnumber != null))
+        {
+            if (magicnumberofvolume.length != this.magicnumber.length)
+            {
+                // magicnumbers aren't valid
+                valid = false;
+            }
+            else
+            {
+                boolean errorfound = false;
+                // check if magicnumbers are identical
+                for (int i = 0; i < magicnumberofvolume.length; i++)
+                {
+                    byte op1 = magicnumberofvolume[i];
+                    byte op2 = this.magicnumber[i];
+                    if (op1 != op2)
+                    {
+                        errorfound = true;
+                        break;
+                    }
+                }
+                valid = !errorfound;
+            }
+        }
+        return valid;
+    }
+
+    /**
      * creates an inputstream to the next volume
-     * 
+     *
      * @return true - an inputstream to the next volume has been created false - the last volume was
-     * reached
+     *         reached
      * @throws IOException
      */
     private boolean createInputStreamToNextVolume() throws IOException
@@ -79,7 +131,7 @@ public class FileSpanningInputStream extends InputStream
         // have we reached the last volume?
         if (currentvolumeindex >= volumestotal)
         {
-            Debug.error("last volume reached.");
+            Debug.trace("last volume reached.");
             return false;
         }
         // the next volume name
@@ -97,6 +149,17 @@ public class FileSpanningInputStream extends InputStream
         // try to open new stream to next volume
         fileinputstream = new FileInputStream(nextvolumefile);
         zippedinputstream = new GZIPInputStream(fileinputstream);
+        // check magic number
+        if (!this.isMagicNumberValid())
+        {
+            currentvolumeindex--;
+            nextvolumenotfound = true;
+            Debug
+                    .trace("volume found, but magic number incorrect. Maybe not a volume of the same version.");
+            throw new CorruptVolumeException(nextvolumename
+                    + "was found, but has magic number error. Maybe not the right version?",
+                    nextvolumename);
+        }
         // everything fine
         nextvolumenotfound = false;
         return true;
@@ -238,7 +301,9 @@ public class FileSpanningInputStream extends InputStream
 
                 int bytesInBuffer = this.read(buffer, 0, maxBytes);
                 if (bytesInBuffer == -1)
+                {
                     throw new IOException("Unexpected end of stream (installer corrupted?)");
+                }
 
                 bytesskipped += bytesInBuffer;
             }
@@ -253,7 +318,7 @@ public class FileSpanningInputStream extends InputStream
 
     /**
      * Returns the name of the volume
-     * 
+     *
      * @return the name of the volume
      */
     public String getVolumename()
@@ -263,7 +328,7 @@ public class FileSpanningInputStream extends InputStream
 
     /**
      * Sets the volumename
-     * 
+     *
      * @param volumename
      */
     public void setVolumename(String volumename)
@@ -290,7 +355,7 @@ public class FileSpanningInputStream extends InputStream
 
     /**
      * Returns the current position in the file. Notice: this is the global position in all volumes.
-     * 
+     *
      * @return the current position in file.
      */
     public long getFilepointer()

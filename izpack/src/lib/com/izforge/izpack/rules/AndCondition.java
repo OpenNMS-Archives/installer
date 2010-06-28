@@ -1,10 +1,10 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  *
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  *
- * Copyright 2007 Dennis Reil
+ * Copyright 2007-2009 Dennis Reil
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,26 +21,24 @@
 
 package com.izforge.izpack.rules;
 
-import java.util.List;
-import java.util.Properties;
-
-import net.n3.nanoxml.XMLElement;
+import com.izforge.izpack.adaptator.IXMLElement;
 import com.izforge.izpack.util.Debug;
 
 /**
  * Defines a condition where both operands have to be true
- * 
- * @author Dennis Reil, <Dennis.Reil@reddot.de>
+ *
+ * @author Dennis Reil, <izpack@reil-online.de>
  */
 public class AndCondition extends Condition
 {
+    private static final long serialVersionUID = -5854944262991488370L;
 
     protected Condition leftoperand;
 
     protected Condition rightoperand;
 
     /**
-     * 
+     *
      */
     public AndCondition()
     {
@@ -48,32 +46,28 @@ public class AndCondition extends Condition
     }
 
     /**
-     * 
+     *
      */
     public AndCondition(Condition operand1, Condition operand2)
     {
         this.leftoperand = operand1;
+        if (this.leftoperand != null){
+            this.leftoperand.setInstalldata(this.installdata);    
+        }
+        
         this.rightoperand = operand2;
+        if (this.rightoperand != null){
+            this.rightoperand.setInstalldata(this.installdata);    
+        }        
     }
 
+
     /*
-     * (non-Javadoc)
-     * 
-     * @see de.reddot.installer.util.Condition#isTrue()
-     */
-    /*
-    public boolean isTrue(Properties variables)
-    {
-        return leftoperand.isTrue(variables) && rightoperand.isTrue(variables);
-    }
+    * (non-Javadoc)
+    *
+    * @see de.reddot.installer.rules.Condition#readFromXML(com.izforge.izpack.adaptator.IXMLElement)
     */
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see de.reddot.installer.rules.Condition#readFromXML(net.n3.nanoxml.XMLElement)
-     */
-    public void readFromXML(XMLElement xmlcondition)
+    public void readFromXML(IXMLElement xmlcondition)
     {
         try
         {
@@ -91,15 +85,41 @@ public class AndCondition extends Condition
         }
     }
 
-    /*
-    public boolean isTrue(Properties variables, List selectedpacks)
-    {
-        return leftoperand.isTrue(variables, selectedpacks)
-                && rightoperand.isTrue(variables, selectedpacks);
-    }
-    */
+
     public boolean isTrue()
-    {        
+    {
+        if ((this.leftoperand == null) || (this.rightoperand == null)){
+            Debug.trace("Operands of condition " + this.id + " not initialized correctly.");
+            return false;
+        }
+        this.leftoperand.setInstalldata(this.installdata);
+        this.rightoperand.setInstalldata(this.installdata);
         return leftoperand.isTrue() && rightoperand.isTrue();
+    }
+
+    /* (non-Javadoc)
+     * @see com.izforge.izpack.rules.Condition#getDependenciesDetails()
+     */
+    public String getDependenciesDetails()
+    {
+        StringBuffer details = new StringBuffer();
+        details.append(this.id);
+        details.append(" depends on:<ul><li>");
+        details.append(leftoperand.getDependenciesDetails());
+        details.append("</li> AND <li>");
+        details.append(rightoperand.getDependenciesDetails());
+        details.append("</li></ul>");
+        return details.toString();
+    }
+
+    @Override
+    public void makeXMLData(IXMLElement root)
+    {
+        IXMLElement left = RulesEngine.createConditionElement(this.leftoperand, root);
+        this.leftoperand.makeXMLData(left);
+        root.addChild(left);        
+        IXMLElement right = RulesEngine.createConditionElement(this.rightoperand, root);
+        this.rightoperand.makeXMLData(right);
+        root.addChild(right);                
     }
 }

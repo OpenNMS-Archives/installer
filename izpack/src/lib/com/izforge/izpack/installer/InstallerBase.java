@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2003 Jonathan Halliday
  * 
@@ -21,30 +21,28 @@
 
 package com.izforge.izpack.installer;
 
-import java.io.File;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Properties;
-import java.net.InetAddress;
-
 import com.izforge.izpack.CustomData;
 import com.izforge.izpack.Info;
 import com.izforge.izpack.Pack;
-import com.izforge.izpack.util.Debug;
-import com.izforge.izpack.util.IoHelper;
-import com.izforge.izpack.util.OsConstraint;
-import com.izforge.izpack.util.OsVersion;
-import com.izforge.izpack.util.VariableSubstitutor;
+import com.izforge.izpack.Panel;
+import com.izforge.izpack.adaptator.IXMLElement;
+import com.izforge.izpack.adaptator.impl.XMLParser;
+import com.izforge.izpack.compiler.DynamicVariable;
+import com.izforge.izpack.rules.Condition;
+import com.izforge.izpack.rules.RulesEngine;
+import com.izforge.izpack.util.*;
+
+import javax.swing.*;
+import java.io.File;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.net.InetAddress;
+import java.util.*;
 
 /**
  * Common utility functions for the GUI and text installers. (Do not import swing/awt classes to
  * this class.)
- * 
+ *
  * @author Jonathan Halliday
  * @author Julien Ponge
  */
@@ -52,20 +50,49 @@ public class InstallerBase
 {
 
     /**
+     * Resource name of the conditions specification
+     */
+    private static final String CONDITIONS_SPECRESOURCENAME = "conditions.xml";
+    
+    private RulesEngine rules; 
+    private List<InstallerRequirement> installerrequirements;
+    private Map<String, List<DynamicVariable>> dynamicvariables;
+    
+    /**
      * The base name of the XML file that specifies the custom langpack. Searched is for the file
      * with the name expanded by _ISO3.
      */
     protected static final String LANG_FILE_NAME = "CustomLangpack.xml";
+    
+    /**
+     * Returns an ArrayList of the available langpacks ISO3 codes.
+     *
+     * @return The available langpacks list.
+     * @throws Exception Description of the Exception
+     */
+    public List<String> getAvailableLangPacks() throws Exception
+    {
+        // We read from the langpacks file in the jar
+        InputStream in = getClass().getResourceAsStream("/langpacks.info");
+        ObjectInputStream objIn = new ObjectInputStream(in);
+        List<String> available = (List<String>) objIn.readObject();
+        objIn.close();
 
+        return available;
+    }
+
+    public RulesEngine getRules(){
+        return this.rules;
+    }
+    
     /**
      * Loads the installation data. Also sets environment variables to <code>installdata</code>.
      * All system properties are available as $SYSTEM_<variable> where <variable> is the actual
      * name _BUT_ with all separators replaced by '_'. Properties with null values are never stored.
      * Example: $SYSTEM_java_version or $SYSTEM_os_name
-     * 
+     *
      * @param installdata Where to store the installation data.
-     * 
-     * @exception Exception Description of the Exception
+     * @throws Exception Description of the Exception
      */
     public void loadInstallData(AutomatedInstallData installdata) throws Exception
     {
@@ -91,16 +118,23 @@ public class InstallerBase
         Info inf = (Info) objIn.readObject();
         objIn.close();
 
+        checkForPrivilegedExecution(inf);
+
         // We put the Info data as variables
         installdata.setVariable(ScriptParser.APP_NAME, inf.getAppName());
         if (inf.getAppURL() != null)
+        {
             installdata.setVariable(ScriptParser.APP_URL, inf.getAppURL());
+        }
         installdata.setVariable(ScriptParser.APP_VER, inf.getAppVersion());
-
+        if (inf.getUninstallerCondition() != null)
+        {
+            installdata.setVariable("UNINSTALLER_CONDITION", inf.getUninstallerCondition());
+        }
         // We read the panels order data
         in = InstallerBase.class.getResourceAsStream("/panelsOrder");
         objIn = new ObjectInputStream(in);
-        List panelsOrder = (List) objIn.readObject();
+        List<Panel> panelsOrder = (List<Panel>) objIn.readObject();
         objIn.close();
 
         // We read the packs data
@@ -108,12 +142,15 @@ public class InstallerBase
         objIn = new ObjectInputStream(in);
         size = objIn.readInt();
         ArrayList availablePacks = new ArrayList();
-        ArrayList allPacks = new ArrayList();
+        ArrayList<Pack> allPacks = new ArrayList<Pack>();
         for (i = 0; i < size; i++)
         {
             Pack pk = (Pack) objIn.readObject();
             allPacks.add(pk);
-            if (OsConstraint.oneMatchesCurrentSystem(pk.osConstraints)) availablePacks.add(pk);
+            if (OsConstraint.oneMatchesCurrentSystem(pk.osConstraints))
+            {
+                availablePacks.add(pk);
+            }
         }
         objIn.close();
 
@@ -139,25 +176,27 @@ public class InstallerBase
                 dir = System.getProperty("user.home");
             }
         }
-        
+
         // We determine the hostname and IPAdress
         String hostname;
         String IPAddress;
-        
-        try {
+
+        try
+        {
             InetAddress addr = InetAddress.getLocalHost();
-    
-		        // Get IP Address
-		        IPAddress = addr.getHostAddress();
-		    
-		        // Get hostname
-		        hostname = addr.getHostName();
-        } catch (Exception e) {
+
+            // Get IP Address
+            IPAddress = addr.getHostAddress();
+
+            // Get hostname
+            hostname = addr.getHostName();
+        }
+        catch (Exception e)
+        {
             hostname = "";
             IPAddress = "";
         }
-        
-				
+
 
         installdata.setVariable("APPLICATIONS_DEFAULT_ROOT", dir);
         dir += File.separator;
@@ -204,7 +243,10 @@ public class InstallerBase
         while (pack_it.hasNext())
         {
             Pack pack = (Pack) pack_it.next();
-            if (pack.preselected) installdata.selectedPacks.add(pack);
+            if (pack.preselected)
+            {
+                installdata.selectedPacks.add(pack);
+            }
         }
         // Set the installation path in a default manner
         installPath = dir + inf.getAppName();
@@ -219,10 +261,55 @@ public class InstallerBase
 
     }
 
+    private void checkForPrivilegedExecution(Info info)
+    {
+        if (PrivilegedRunner.isPrivilegedMode())
+        {
+            // We have been launched through a privileged execution, so stop the checkings here!
+            return;
+        }
+        else if (info.isPrivilegedExecutionRequired())
+        {
+            boolean shouldElevate = true;
+            final String conditionId = info.getPrivilegedExecutionConditionID();
+            if (conditionId != null)
+            {
+                shouldElevate = RulesEngine.getCondition(conditionId).isTrue();
+            }
+            PrivilegedRunner runner = new PrivilegedRunner(!shouldElevate);
+            if (runner.isPlatformSupported() && runner.isElevationNeeded())
+            {
+                try
+                {
+                    if (runner.relaunchWithElevatedRights() == 0)
+                    {
+                        System.exit(0);
+                    }
+                    else
+                    {
+                        throw new RuntimeException("Launching an installer with elevated permissions failed.");
+                    }
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                    JOptionPane.showMessageDialog(null, "The installer could not launch itself with administrator permissions.\n" +
+                        "The installation will still continue but you may encounter problems due to insufficient permissions.");
+                }
+            }
+            else if (!runner.isPlatformSupported())
+            {
+                JOptionPane.showMessageDialog(null, "This installer should be run by an administrator.\n" +
+                    "The installation will still continue but you may encounter problems due to insufficient permissions.");
+            }
+        }
+
+    }
+
     /**
      * Add the contents of a custom langpack (if exist) to the previos loaded comman langpack. If
      * not exist, trace an info and do nothing more.
-     * 
+     *
      * @param idata install data to be used
      */
     protected void addCustomLangpack(AutomatedInstallData idata)
@@ -244,27 +331,36 @@ public class InstallerBase
      * Get the default path for Windows (i.e Program Files/...).
      * Windows has a Setting for this in the environment and in the registry.
      * Just try to use the setting in the environment. If it fails for whatever reason, we take the former solution (buildWindowsDefaultPathFromProps).
+     *
      * @return The Windows default installation path for applications.
      */
     private String buildWindowsDefaultPath()
     {
-      try{
-        //get value from environment...
-        String prgFilesPath = IoHelper.getenv("ProgramFiles");
-        if (prgFilesPath!=null && prgFilesPath.length()>0){
-          return prgFilesPath;
-        }else{
-          return buildWindowsDefaultPathFromProps();
+        try
+        {
+            //get value from environment...
+            String prgFilesPath = IoHelper.getenv("ProgramFiles");
+            if (prgFilesPath != null && prgFilesPath.length() > 0)
+            {
+                return prgFilesPath;
+            }
+            else
+            {
+                return buildWindowsDefaultPathFromProps();
+            }
         }
-      }catch(Exception x){
-        x.printStackTrace();
-        return buildWindowsDefaultPathFromProps();
-      }
+        catch (Exception x)
+        {
+            x.printStackTrace();
+            return buildWindowsDefaultPathFromProps();
+        }
     }
-    /** 
+
+    /**
      * just plain wrong in case the programfiles are not stored where the developer expects them.
      * E.g. in custom installations of large companies or if used internationalized version of windows with a language pack.
-     * @return
+     *
+     * @return the program files path
      */
     private String buildWindowsDefaultPathFromProps()
     {
@@ -279,7 +375,10 @@ public class InstallerBase
 
             // We look for the drive mapping
             String drive = System.getProperty("user.home");
-            if (drive.length() > 3) drive = drive.substring(0, 3);
+            if (drive.length() > 3)
+            {
+                drive = drive.substring(0, 3);
+            }
 
             // Now we have it :-)
             dpath.append(drive);
@@ -287,7 +386,10 @@ public class InstallerBase
             // Ensure that we have a trailing backslash (in case drive was
             // something
             // like "C:")
-            if (drive.length() == 2) dpath.append("\\");
+            if (drive.length() == 2)
+            {
+                dpath.append("\\");
+            }
 
             String language = Locale.getDefault().getLanguage();
             String country = Locale.getDefault().getCountry();
@@ -317,7 +419,7 @@ public class InstallerBase
 
     /**
      * Loads custom data like listener and lib references if exist and fills the installdata.
-     * 
+     *
      * @param installdata installdata into which the custom action data should be stored
      * @throws Exception
      */
@@ -331,7 +433,9 @@ public class InstallerBase
         String[] streamNames = AutomatedInstallData.CUSTOM_ACTION_TYPES;
         List[] out = new List[streamNames.length];
         for (i = 0; i < streamNames.length; ++i)
+        {
             out[i] = new ArrayList();
+        }
         in = InstallerBase.class.getResourceAsStream("/customData");
         if (in != null)
         {
@@ -351,28 +455,222 @@ public class InstallerBase
                 }
                 switch (ca.type)
                 {
-                case CustomData.INSTALLER_LISTENER:
-                    Class clazz = Class.forName(ca.listenerName);
-                    if (clazz == null)
-                        throw new InstallerException("Custom action " + ca.listenerName
-                                + " not bound!");
-                    out[ca.type].add(clazz.newInstance());
-                    break;
-                case CustomData.UNINSTALLER_LISTENER:
-                case CustomData.UNINSTALLER_JAR:
-                    out[ca.type].add(ca);
-                    break;
-                case CustomData.UNINSTALLER_LIB:
-                    out[ca.type].add(ca.contents);
-                    break;
+                    case CustomData.INSTALLER_LISTENER:
+                        Class clazz = Class.forName(ca.listenerName);
+                        if (clazz == null)
+                        {
+                            throw new InstallerException("Custom action " + ca.listenerName
+                                    + " not bound!");
+                        }
+                        out[ca.type].add(clazz.newInstance());
+                        break;
+                    case CustomData.UNINSTALLER_LISTENER:
+                    case CustomData.UNINSTALLER_JAR:
+                        out[ca.type].add(ca);
+                        break;
+                    case CustomData.UNINSTALLER_LIB:
+                        out[ca.type].add(ca.contents);
+                        break;
                 }
 
             }
             // Add the current custem action data to the installdata hash map.
             for (i = 0; i < streamNames.length; ++i)
+            {
                 installdata.customData.put(streamNames[i], out[i]);
+            }
         }
         // uninstallerLib list if exist
 
+    }
+    
+    /**
+     * Reads the conditions specification file and initializes the rules engine.
+     */
+    protected void loadConditions(AutomatedInstallData installdata)
+    {
+        // try to load already parsed conditions
+        try
+        {
+            InputStream in = InstallerBase.class.getResourceAsStream("/rules");
+            ObjectInputStream objIn = new ObjectInputStream(in);
+            Map rules = (Map) objIn.readObject();
+            if ((rules != null) && (rules.size() != 0))
+            {
+                this.rules = new RulesEngine(rules, installdata);
+            }
+            objIn.close();
+        }
+        catch (Exception e)
+        {
+            Debug.trace("Can not find optional rules");
+        }
+        if (rules != null)
+        {
+            installdata.setRules(rules);
+            // rules already read
+            return;
+        }
+        try
+        {
+            InputStream input = null;
+            input = this.getResource(CONDITIONS_SPECRESOURCENAME);
+            if (input == null)
+            {
+                this.rules = new RulesEngine((IXMLElement) null, installdata);
+                return;
+            }
+            XMLParser xmlParser = new XMLParser();
+
+            // get the data
+            IXMLElement conditionsxml = xmlParser.parse(input);
+            this.rules = new RulesEngine(conditionsxml, installdata);         
+        }
+        catch (Exception e)
+        {
+            Debug.trace("Can not find optional resource " + CONDITIONS_SPECRESOURCENAME);
+            // there seem to be no conditions
+            this.rules = new RulesEngine((IXMLElement) null, installdata);
+        }
+        installdata.setRules(rules);
+    }
+    
+    /**
+     * Loads Dynamic Variables.
+     */
+    protected void loadDynamicVariables()
+    {
+        try
+        {
+            InputStream in = InstallerFrame.class.getResourceAsStream("/dynvariables");
+            ObjectInputStream objIn = new ObjectInputStream(in);
+            dynamicvariables = (Map<String, List<DynamicVariable>>) objIn.readObject();
+            objIn.close();
+        }
+        catch (Exception e)
+        {
+            Debug.trace("Cannot find optional dynamic variables");
+            System.out.println(e);
+        }
+    }
+    
+    /**
+     * Load installer conditions
+     *
+     * @throws Exception
+     */
+    public void loadInstallerRequirements() throws Exception
+    {
+        InputStream in = InstallerBase.class.getResourceAsStream("/installerrequirements");
+        ObjectInputStream objIn = new ObjectInputStream(in);
+        this.installerrequirements = (List<InstallerRequirement>) objIn.readObject();
+        objIn.close();
+    }
+    
+    public boolean checkInstallerRequirements(AutomatedInstallData installdata) throws Exception
+    {
+        boolean result = true;
+
+        for (InstallerRequirement installerrequirement : this.installerrequirements)
+        {
+            String conditionid = installerrequirement.getCondition();
+            Condition condition = RulesEngine.getCondition(conditionid);
+            if (condition == null)
+            {
+                Debug.log(conditionid + " not a valid condition.");
+                throw new Exception(conditionid + "could not be found as a defined condition");
+            }
+            if (!condition.isTrue())
+            {
+                String message = installerrequirement.getMessage();
+                if ((message != null) && (message.length() > 0))
+                {
+                    String localizedMessage = installdata.langpack.getString(message);
+                    this.showMissingRequirementMessage(localizedMessage);
+                }
+                result = false;
+                break;
+            }
+        }
+        return result;
+    }
+    
+    protected void showMissingRequirementMessage(String message){
+        Debug.log(message);
+    }
+    
+    /**
+     * Gets the stream to a resource.
+     *
+     * @param res The resource id.
+     * @return The resource value, null if not found
+     * @throws Exception
+     */
+    public InputStream getResource(String res) throws Exception
+    {
+        InputStream result;
+        String basePath = "";
+        ResourceManager rm = null;
+
+        try
+        {
+            rm = ResourceManager.getInstance();
+            basePath = rm.resourceBasePath;
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+
+        result = this.getClass().getResourceAsStream(basePath + res);
+
+        if (result == null)
+        {
+            throw new ResourceNotFoundException("Warning: Resource not found: "
+                    + res);
+        }
+        return result;
+    }
+    
+    /**
+     * Refreshes Dynamic Variables.
+     */
+    protected void refreshDynamicVariables(VariableSubstitutor substitutor, AutomatedInstallData installdata)
+    {
+        Debug.log("refreshing dyamic variables.");
+        if (dynamicvariables != null)
+        {
+            for (String dynvarname : dynamicvariables.keySet())
+            {
+                Debug.log("Variable: " + dynvarname);
+                for (DynamicVariable dynvar : dynamicvariables.get(dynvarname))
+                {
+                    boolean refresh = false;
+                    String conditionid = dynvar.getConditionid();
+                    Debug.log("condition: " + conditionid);
+                    if ((conditionid != null) && (conditionid.length() > 0))
+                    {
+                        if ((rules != null) && rules.isConditionTrue(conditionid))
+                        {
+                            Debug.log("refresh condition");
+                            // condition for this rule is true
+                            refresh = true;
+                        }
+                    }
+                    else
+                    {
+                        Debug.log("refresh condition");
+                        // empty condition
+                        refresh = true;
+                    }
+                    if (refresh)
+                    {
+                        String newvalue = substitutor.substitute(dynvar.getValue(), null);
+                        Debug.log("newvalue: " + newvalue);
+                        installdata.variables.setProperty(dynvar.getName(), newvalue);
+                    }
+                }
+            }
+        }
     }
 }

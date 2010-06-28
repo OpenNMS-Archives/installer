@@ -1,9 +1,9 @@
 /*
- * $Id: BZip2PackCompressor.java 1816 2007-04-23 19:57:27Z jponge $
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * $Id: BZip2PackCompressor.java 2163 2008-05-18 13:48:36Z jponge $
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2005 Klaus Bartz
  *
@@ -28,24 +28,24 @@ import java.io.OutputStream;
  * IzPack will be able to support different compression methods for the
  * packs included in the installation jar file.
  * This class implements the PackCompressor for the compression format "bzip2".
- * 
+ *
  * @author Klaus Bartz
  */
 public class BZip2PackCompressor extends PackCompressorBase
 {
 
-    private static final String [] THIS_FORMAT_NAMES = {"bzip2"};
-    private static final String [] THIS_CONTAINER_PATH = {"lib/ant.jar"};
+    private static final String[] THIS_FORMAT_NAMES = {"bzip2"};
+    private static final String[] THIS_CONTAINER_PATH = {"lib/ant.jar"};
     private static final String THIS_DECODER_MAPPER = "org.apache.tools.bzip2.CBZip2InputStream";
-    private static final String [][] THIS_DECODER_CLASS_NAMES = 
-        {{ "org.apache.tools.bzip2.BZip2Constants.*" ,
-          "org.apache.tools.bzip2.CBZip2InputStream.*",
-          "org.apache.tools.bzip2.CRC.*"
-        }};
+    private static final String[][] THIS_DECODER_CLASS_NAMES =
+            {{"org.apache.tools.bzip2.BZip2Constants.*",
+                    "org.apache.tools.bzip2.CBZip2InputStream.*",
+                    "org.apache.tools.bzip2.CRC.*"
+            }};
     private static final String THIS_ENCODER_CLASS_NAME = "org.apache.tools.bzip2.CBZip2OutputStream";
 
     /**
-     * 
+     *
      */
     public BZip2PackCompressor()
     {
@@ -63,8 +63,8 @@ public class BZip2PackCompressor extends PackCompressorBase
     public OutputStream getOutputStream(OutputStream os) throws Exception
     {
         // TODO Auto-generated method stub
-        
-        return( getOutputInstance(os));
+
+        return (getOutputInstance(os));
     }
 
 }

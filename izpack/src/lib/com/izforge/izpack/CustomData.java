@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2004 Klaus Bartz
  *
@@ -21,12 +21,14 @@
 
 package com.izforge.izpack;
 
+import com.izforge.izpack.util.OsConstraint;
+
 import java.io.Serializable;
 import java.util.List;
 
 /**
  * Container for serialized custom data.
- * 
+ *
  * @author Klaus Bartz
  */
 public class CustomData implements Serializable
@@ -34,10 +36,14 @@ public class CustomData implements Serializable
 
     static final long serialVersionUID = 5504496325961965576L;
 
-    /** Identifier for custom data type "installer listener". */
+    /**
+     * Identifier for custom data type "installer listener".
+     */
     public static final int INSTALLER_LISTENER = 0;
 
-    /** Identifier for custom data typ "uninstaller listener". */
+    /**
+     * Identifier for custom data typ "uninstaller listener".
+     */
     public static final int UNINSTALLER_LISTENER = 1;
 
     /**
@@ -46,7 +52,9 @@ public class CustomData implements Serializable
      */
     public static final int UNINSTALLER_LIB = 2;
 
-    /** Identifier for custom data typ "uninstaller jar files". */
+    /**
+     * Identifier for custom data typ "uninstaller jar files".
+     */
     public static final int UNINSTALLER_JAR = 3;
 
     /**
@@ -54,7 +62,7 @@ public class CustomData implements Serializable
      * contained files are listed with it complete sub path. If it is a uninstaller native library,
      * this value is the path in the installer jar.
      */
-    public List contents;
+    public List<String> contents;
 
     /**
      * Full qualified name of the managed listener. If type is not a listener, this value is
@@ -62,8 +70,10 @@ public class CustomData implements Serializable
      */
     public String listenerName;
 
-    /** The target operation system of this custom action */
-    public List osConstraints = null;
+    /**
+     * The target operation system of this custom action
+     */
+    public List<OsConstraint> osConstraints = null;
 
     /**
      * Type of this custom action data; possible are INSTALLER_LISTENER, UNINSTALLER_LISTENER,
@@ -77,13 +87,13 @@ public class CustomData implements Serializable
      * listener or a jar file for uninstall will be managed, all needed files (class, properties and
      * so on) must be referenced in the contents with the path which they have in the installer jar
      * file.
-     * 
-     * @param listenerName path of the listener
-     * @param contents also needed objects referenced with the path in install.jar
+     *
+     * @param listenerName  path of the listener
+     * @param contents      also needed objects referenced with the path in install.jar
      * @param osConstraints target operation system of this custom action
-     * @param type type of this custom data
+     * @param type          type of this custom data
      */
-    public CustomData(String listenerName, List contents, List osConstraints, int type)
+    public CustomData(String listenerName, List<String> contents, List<OsConstraint> osConstraints, int type)
     {
         this.listenerName = listenerName;
         this.contents = contents;

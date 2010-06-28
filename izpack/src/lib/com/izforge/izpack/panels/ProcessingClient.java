@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2003 Elmar Grom
  * 
@@ -21,15 +21,16 @@
 
 package com.izforge.izpack.panels;
 
+import java.util.Map;
+
 /*---------------------------------------------------------------------------*/
 /**
  * Implement this interface in any class that wants to use processing or validation services.
- * 
+ *
+ * @author Elmar Grom
+ * @version 0.0.1 / 2/22/03
  * @see com.izforge.izpack.panels.Processor
  * @see com.izforge.izpack.panels.Validator
- * 
- * @version 0.0.1 / 2/22/03
- * @author Elmar Grom
  */
 /*---------------------------------------------------------------------------*/
 public interface ProcessingClient
@@ -38,7 +39,7 @@ public interface ProcessingClient
     /*--------------------------------------------------------------------------*/
     /**
      * Returns the number of sub-fields.
-     * 
+     *
      * @return the number of sub-fields
      */
     /*--------------------------------------------------------------------------*/
@@ -47,14 +48,43 @@ public interface ProcessingClient
     /*--------------------------------------------------------------------------*/
     /**
      * Returns the contents of the field indicated by <code>index</code>.
-     * 
+     *
      * @param index the index of the sub-field from which the contents is requested.
-     * 
      * @return the contents of the indicated sub-field.
-     * 
-     * @exception IndexOutOfBoundsException if the index is out of bounds.
+     * @throws IndexOutOfBoundsException if the index is out of bounds.
      */
     /*--------------------------------------------------------------------------*/
     public String getFieldContents(int index);
+
+// These newly added fields are similar to the functionality provided 
+// by the multiple validator support using the validator container.
+
+    /*---------------------------------------------------------------------------*/
+
+    /**
+     * Returns the field contents.
+     *
+     * @return the field contents
+     */
+    /*--------------------------------------------------------------------------*/
+    public String getText();
+
+    /*--------------------------------------------------------------------------*/
+    /**
+     * @return true if this instance has any parameters to pass to the Validator instance.
+     */
+    /*--------------------------------------------------------------------------*/
+    public boolean hasParams();
+
+    /*--------------------------------------------------------------------------*/
+    /**
+     * Returns the validator parameters, if any. The caller should check for the existence of
+     * validator parameters via the <code>hasParams()</code> method prior to invoking this method.
+     *
+     * @return a java.util.Map containing the validator parameters.
+     */
+    /*--------------------------------------------------------------------------*/
+    public Map<String, String> getValidatorParams();
+
 }
 /*---------------------------------------------------------------------------*/

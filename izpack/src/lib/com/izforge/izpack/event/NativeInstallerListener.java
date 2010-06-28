@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2004 Klaus Bartz
  * 
@@ -28,9 +28,8 @@ import com.izforge.izpack.util.os.WrappedNativeLibException;
 /**
  * This class implements some methods which are needed by installer custom actions with native
  * parts.
- * 
+ *
  * @author Klaus Bartz
- * 
  */
 public class NativeInstallerListener extends SimpleInstallerListener
 {
@@ -46,9 +45,8 @@ public class NativeInstallerListener extends SimpleInstallerListener
     /**
      * Constructs a native installer listener. If useSpecHelper is true, a specification helper will
      * be created.
-     * 
+     *
      * @param useSpecHelper
-     * 
      */
     public NativeInstallerListener(boolean useSpecHelper)
     {
@@ -62,7 +60,7 @@ public class NativeInstallerListener extends SimpleInstallerListener
      * int, com.izforge.izpack.util.AbstractUIProgressHandler)
      */
     public void beforePacks(AutomatedInstallData idata, Integer npacks,
-            AbstractUIProgressHandler handler) throws Exception
+                            AbstractUIProgressHandler handler) throws Exception
     {
         super.beforePacks(idata, npacks, handler);
 

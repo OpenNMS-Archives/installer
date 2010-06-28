@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2005 Chad McHenry
  * 
@@ -21,23 +21,28 @@
 
 package com.izforge.izpack.ant;
 
-import java.util.Properties;
-
 import org.apache.tools.ant.Project;
+
+import java.util.Properties;
 
 /**
  * A subclass of Ant Property to validate values, but not add to the ant
  * project's properties.
- * 
+ *
  * @author Chad McHenry
  */
 public class Property extends org.apache.tools.ant.taskdefs.Property
 {
-    /** Store the property[s] of this Property tag. */
+    /**
+     * Store the property[s] of this Property tag.
+     */
     protected Properties props = new Properties();
-    
-    /** Creates new IZPackTask */
-    public Property() {
+
+    /**
+     * Creates new IZPackTask
+     */
+    public Property()
+    {
         super(false);
     }
 
@@ -45,17 +50,22 @@ public class Property extends org.apache.tools.ant.taskdefs.Property
     {
         return props;
     }
-    
+
     /**
      * Overridden to store properties locally, not in the Ant Project.
      *
      * @param n name of property
      * @param v value to set
      */
-    protected void addProperty(String n, String v) {
+    protected void addProperty(String n, String v)
+    {
         if (props.get(n) == null)
+        {
             props.put(n, v);
+        }
         else
+        {
             log("Override ignored for " + n, Project.MSG_VERBOSE);
+        }
     }
 }

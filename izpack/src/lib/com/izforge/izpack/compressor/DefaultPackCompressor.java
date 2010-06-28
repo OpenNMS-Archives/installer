@@ -1,9 +1,9 @@
 /*
- * $Id: DefaultPackCompressor.java 1816 2007-04-23 19:57:27Z jponge $
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * $Id: DefaultPackCompressor.java 2163 2008-05-18 13:48:36Z jponge $
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2005 Klaus Bartz
  *
@@ -24,28 +24,27 @@ package com.izforge.izpack.compressor;
 import java.io.OutputStream;
 
 
-
 /**
  * IzPack will be able to support different compression methods for the
  * packs included in the installation jar file.
  * This class implements the PackCompressor for the compression format "default"
  * which is current the LZ77 implementation of zlib (also known as
  * zip or deflate).
- * 
+ *
  * @author Klaus Bartz
  */
 public class DefaultPackCompressor extends PackCompressorBase
 {
-    private static final String [] THIS_FORMAT_NAMES = 
-    {"default", "deflate", "zip", "lz77"};
-    private static final String [] THIS_CONTAINER_PATH = null;
+    private static final String[] THIS_FORMAT_NAMES =
+            {"default", "deflate", "zip", "lz77"};
+    private static final String[] THIS_CONTAINER_PATH = null;
     private static final String THIS_DECODER_MAPPER = null;
-    private static final String [][] THIS_DECODER_CLASS_NAMES = null;
+    private static final String[][] THIS_DECODER_CLASS_NAMES = null;
     private static final String THIS_ENCODER_CLASS_NAME = null;
 
 
     /**
-     * 
+     *
      */
     public DefaultPackCompressor()
     {
@@ -63,7 +62,7 @@ public class DefaultPackCompressor extends PackCompressorBase
     public OutputStream getOutputStream(OutputStream os)
     {
         // This will crash the packager if implementation is wrong :-)
-        return(null);
+        return (null);
     }
 
     /* (non-Javadoc)
@@ -71,14 +70,15 @@ public class DefaultPackCompressor extends PackCompressorBase
      */
     public boolean useStandardCompression()
     {
-        return(true);
+        return (true);
     }
+
     /* (non-Javadoc)
-     * @see com.izforge.izpack.compressor.PackCompressor#needsBufferedOutputStream()
-     */
+    * @see com.izforge.izpack.compressor.PackCompressor#needsBufferedOutputStream()
+    */
     public boolean needsBufferedOutputStream()
     {
-        return(false);
+        return (false);
     }
 
 }

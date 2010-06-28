@@ -1,10 +1,10 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  *
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  *
- * Copyright 2007 Dennis Reil
+ * Copyright 2007-2009 Dennis Reil
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,20 +18,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.izforge.izpack.rules;
 
+import java.io.Serializable;
+
+import com.izforge.izpack.adaptator.IXMLElement;
 import com.izforge.izpack.installer.AutomatedInstallData;
-import net.n3.nanoxml.XMLElement;
 
 /**
- * Abstract base class for all conditions
+ * Abstract base class for all conditions. Implementations of custom conditions
+ * have to derive from this class.
  *
- * @author Dennis Reil, <Dennis.Reil@reddot.de>
+ * @author Dennis Reil, <izpack@reil-online.de>
  */
-public abstract class Condition
+public abstract class Condition implements Serializable
 {
 
+    private static final long serialVersionUID = 507592103321711123L;
     protected String id;
     protected AutomatedInstallData installdata;
 
@@ -58,7 +61,7 @@ public abstract class Condition
         this.id = id;
     }
 
-    public abstract void readFromXML(XMLElement xmlcondition);
+    public abstract void readFromXML(IXMLElement xmlcondition);
 
     public abstract boolean isTrue();
 
@@ -72,4 +75,16 @@ public abstract class Condition
     {
         this.installdata = installdata;
     }
+
+    public String getDependenciesDetails()
+    {
+        return "No dependencies for this condition.";
+    }
+    
+    /**
+     * This element will be called by the RulesEngine to serialize the configuration
+     * of a condition into XML.
+     * @param conditionRoot the root element for this condition
+     */
+    public abstract void makeXMLData(IXMLElement conditionRoot);
 }

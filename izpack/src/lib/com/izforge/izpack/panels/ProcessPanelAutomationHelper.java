@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2003 Jonathan Halliday
  * 
@@ -21,19 +21,15 @@
 
 package com.izforge.izpack.panels;
 
-import java.io.IOException;
-
-import net.n3.nanoxml.XMLElement;
-
-import com.izforge.izpack.installer.AutomatedInstallData;
-import com.izforge.izpack.installer.PanelAutomation;
-import com.izforge.izpack.installer.PanelAutomationHelper;
-import com.izforge.izpack.installer.ProcessPanelWorker;
+import com.izforge.izpack.installer.*;
 import com.izforge.izpack.util.AbstractUIProcessHandler;
+import com.izforge.izpack.adaptator.IXMLElement;
+
+import java.io.IOException;
 
 /**
  * Functions to support automated usage of the CompilePanel
- * 
+ *
  * @author Jonathan Halliday
  * @author Tino Schwarze
  */
@@ -47,11 +43,11 @@ public class ProcessPanelAutomationHelper extends PanelAutomationHelper implemen
 
     /**
      * Save data for running automated.
-     * 
+     *
      * @param installData installation parameters
-     * @param panelRoot unused.
+     * @param panelRoot   unused.
      */
-    public void makeXMLData(AutomatedInstallData installData, XMLElement panelRoot)
+    public void makeXMLData(AutomatedInstallData installData, IXMLElement panelRoot)
     {
         // not used here - during automatic installation, no automatic
         // installation information is generated
@@ -59,25 +55,26 @@ public class ProcessPanelAutomationHelper extends PanelAutomationHelper implemen
 
     /**
      * Perform the installation actions.
-     * 
+     *
      * @param panelRoot The panel XML tree root.
-     * 
-     * @return true if processes were run successfully.
      */
-    public boolean runAutomated(AutomatedInstallData idata, XMLElement panelRoot)
+    public void runAutomated(AutomatedInstallData idata, IXMLElement panelRoot) throws InstallerException
     {
         try
         {
             ProcessPanelWorker worker = new ProcessPanelWorker(idata, this);
 
             worker.run();
-            
-            return worker.getResult();
+
+            if (!worker.getResult())
+            {
+                throw new InstallerException("The work done by the ProcessPanel (line " + panelRoot.getLineNr() + ") failed");
+            }
         }
         catch (IOException e)
         {
             e.printStackTrace();
-            return false;
+            throw new InstallerException("The work done by the ProcessPanel (line " + panelRoot.getLineNr() + ") failed", e);
         }
 
     }
@@ -96,7 +93,7 @@ public class ProcessPanelAutomationHelper extends PanelAutomationHelper implemen
 
     /**
      * Reports progress on System.out
-     * 
+     *
      * @see com.izforge.izpack.util.AbstractUIProcessHandler#startProcessing(int)
      */
     public void startProcessing(int noOfJobs)
@@ -106,16 +103,16 @@ public class ProcessPanelAutomationHelper extends PanelAutomationHelper implemen
     }
 
     /**
-     * 
-     * @see com.izforge.izpack.util.AbstractUIProcessHandler#finishProcessing()
+     * @see com.izforge.izpack.util.AbstractUIProcessHandler#finishProcessing
      */
-    public void finishProcessing()
+    public void finishProcessing(boolean unlockPrev, boolean unlockNext)
     {
+        /* FIXME: maybe we should abort if unlockNext is false...? */
         System.out.println("[ Processing finished ]");
     }
 
     /**
-     * 
+     *
      */
     public void startProcess(String name)
     {

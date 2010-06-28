@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2002 Marcus Wolschon
  * Copyright 2002 Jan Blok
@@ -24,14 +24,25 @@
 
 package com.izforge.izpack.panels;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import com.izforge.izpack.LocaleDatabase;
+import com.izforge.izpack.Pack;
+import com.izforge.izpack.gui.LabelFactory;
+import com.izforge.izpack.installer.*;
+import com.izforge.izpack.util.Debug;
+import com.izforge.izpack.util.IoHelper;
+import com.izforge.izpack.util.VariableSubstitutor;
+import com.izforge.izpack.adaptator.IXMLElement;
+
+import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.plaf.metal.MetalLookAndFeel;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellRenderer;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -39,47 +50,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.AbstractCellEditor;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.ButtonModel;
-import javax.swing.Icon;
-import javax.swing.JCheckBox;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JTextArea;
-import javax.swing.ListSelectionModel;
-import javax.swing.border.Border;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.plaf.metal.MetalLookAndFeel;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableCellEditor;
-import javax.swing.table.TableCellRenderer;
-
-import net.n3.nanoxml.XMLElement;
-
-import com.izforge.izpack.LocaleDatabase;
-import com.izforge.izpack.Pack;
-import com.izforge.izpack.gui.LabelFactory;
-import com.izforge.izpack.installer.InstallData;
-import com.izforge.izpack.installer.InstallerFrame;
-import com.izforge.izpack.installer.IzPanel;
-import com.izforge.izpack.installer.ResourceManager;
-import com.izforge.izpack.util.Debug;
-import com.izforge.izpack.util.IoHelper;
-import com.izforge.izpack.util.VariableSubstitutor;
-
 /**
  * The base class for Packs panels. It brings the common member and methods of the different packs
  * panels together. This class handles the common logic of pack selection. The derived class should
  * be create the layout and other specific actions. There are some helper methods to simplify layout
  * creation in the derived class.
- * 
+ *
  * @author Julien Ponge
  * @author Klaus Bartz
  * @author Dennis Reil
@@ -118,7 +94,7 @@ public abstract class PacksPanelBase extends IzPanel implements PacksPanelInterf
      * The packs model.
      */
     protected PacksModel packsModel;
-    
+
     /**
      * The tablescroll.
      */
@@ -128,12 +104,12 @@ public abstract class PacksPanelBase extends IzPanel implements PacksPanelInterf
     /**
      * Map that connects names with pack objects
      */
-    private Map names;
+    private Map<String, Pack> names;
 
     /**
      * The bytes of the current pack.
      */
-    protected int bytes = 0;
+    protected long bytes = 0;
 
     /**
      * The free bytes of the current selected disk.
@@ -155,11 +131,13 @@ public abstract class PacksPanelBase extends IzPanel implements PacksPanelInterf
      */
     private static final String LANG_FILE_NAME = "packsLang.xml";
 
+    private Debugger debugger;
+
     /**
      * The constructor.
-     * 
+     *
      * @param parent The parent window.
-     * @param idata The installation data.
+     * @param idata  The installation data.
      */
     public PacksPanelBase(InstallerFrame parent, InstallData idata)
     {
@@ -170,6 +148,7 @@ public abstract class PacksPanelBase extends IzPanel implements PacksPanelInterf
             this.langpack = parent.langpack;
             InputStream inputStream = ResourceManager.getInstance().getInputStream(LANG_FILE_NAME);
             this.langpack.add(inputStream);
+            this.debugger = parent.getDebugger();
         }
         catch (Throwable exception)
         {
@@ -179,6 +158,23 @@ public abstract class PacksPanelBase extends IzPanel implements PacksPanelInterf
         computePacks(idata.availablePacks);
 
         createNormalLayout();
+
+        packsTable.addMouseListener(new MouseAdapter()
+        {
+            @Override
+            public void mouseClicked(MouseEvent event)
+            {
+                int row = packsTable.rowAtPoint(event.getPoint());
+                int col = packsTable.columnAtPoint(event.getPoint());
+                if (col == 0)
+                {
+                    Integer checked = (Integer) packsModel.getValueAt(row, 0);
+                    checked = (checked == 0) ? 1 : 0;
+                    packsModel.setValueAt(checked, row, 0);
+                    packsTable.repaint();
+                }
+            }
+        });
     }
 
     /**
@@ -201,9 +197,9 @@ public abstract class PacksPanelBase extends IzPanel implements PacksPanelInterf
      * 
      * @see com.izforge.izpack.panels.PacksPanelInterface#getBytes()
      */
-    public int getBytes()
+    public long getBytes()
     {
-        return (bytes);
+        return bytes;
     }
 
     /*
@@ -211,7 +207,7 @@ public abstract class PacksPanelBase extends IzPanel implements PacksPanelInterf
      * 
      * @see com.izforge.izpack.panels.PacksPanelInterface#setBytes(int)
      */
-    public void setBytes(int bytes)
+    public void setBytes(long bytes)
     {
         this.bytes = bytes;
     }
@@ -223,7 +219,10 @@ public abstract class PacksPanelBase extends IzPanel implements PacksPanelInterf
      */
     public void showSpaceRequired()
     {
-        if (spaceLabel != null) spaceLabel.setText(Pack.toByteUnitsString(bytes));
+        if (spaceLabel != null)
+        {
+            spaceLabel.setText(Pack.toByteUnitsString(bytes));
+        }
     }
 
     /*
@@ -235,20 +234,24 @@ public abstract class PacksPanelBase extends IzPanel implements PacksPanelInterf
     {
         if (IoHelper.supported("getFreeSpace") && freeSpaceLabel != null)
         {
-            String msg = null;
+            String msg;
             freeBytes = IoHelper.getFreeSpace(IoHelper.existingParent(
                     new File(idata.getInstallPath())).getAbsolutePath());
             if (freeBytes < 0)
+            {
                 msg = parent.langpack.getString("PacksPanel.notAscertainable");
+            }
             else
+            {
                 msg = Pack.toByteUnitsString(freeBytes);
+            }
             freeSpaceLabel.setText(msg);
         }
     }
 
     /**
      * Indicates wether the panel has been validated or not.
-     * 
+     *
      * @return true if the needed space is less than the free space, else false
      */
     public boolean isValidated()
@@ -260,15 +263,55 @@ public abstract class PacksPanelBase extends IzPanel implements PacksPanelInterf
                     .getString("installer.error"), JOptionPane.ERROR_MESSAGE);
             return (false);
         }
+        
+        for (Pack pack : idata.availablePacks) {
+            for (String validator : pack.getValidators())
+            {
+                /*
+                 * This will call
+                 * public static boolean validate(AbstractUIHandler handler,
+                 *   InstallData idata, String packsId, boolean isSelected)
+                 * from the validator class  
+                 */
+                        
+                PackValidator validatorInst;
+                try
+                {
+                    validatorInst = (PackValidator) Class.forName(validator).newInstance();
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                    System.err.println("Error: Validator class "+validator
+                            +" for pack "+pack.name+" not available.");
+                    continue;
+                }
+                
+                try
+                {
+                    if (validatorInst.validate(this, idata, pack.id, (idata.selectedPacks.indexOf(pack) > -1)))
+                        continue;
+                    else
+                        return false;
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                    System.err.println("Error: Exception in "+validator+".validate("
+                            +(idata.selectedPacks.indexOf(pack) > -1)+") for pack "+pack.name);
+                    continue;
+                }
+            }
+        }
         return (true);
     }
 
     /**
      * Asks to make the XML panel data.
-     * 
+     *
      * @param panelRoot The XML tree to write the data in.
      */
-    public void makeXMLData(XMLElement panelRoot)
+    public void makeXMLData(IXMLElement panelRoot)
     {
         new ImgPacksPanelAutomationHelper().makeXMLData(idata, panelRoot);
     }
@@ -280,23 +323,12 @@ public abstract class PacksPanelBase extends IzPanel implements PacksPanelInterf
      */
     public void valueChanged(ListSelectionEvent e)
     {
-        VariableSubstitutor vs = new VariableSubstitutor(idata.getVariables());
+        int selectedRow = packsTable.getSelectedRow();
 
-        int i = packsTable.getSelectedRow();
-        if (i < 0) return;
-        
-        // toggle the value stored in the packsModel
-        Integer checked = (Integer)packsModel.getValueAt(i, 0);
-        if (checked.intValue() == 0) {
-          packsModel.setValueAt(new Integer(1), i, 0);
-        } else if (checked.intValue() == 1) {
-          packsModel.setValueAt(new Integer(0), i, 0);
-        }
-        
         // Operations for the description
-        if (descriptionArea != null)
+        if ((descriptionArea != null) && (selectedRow != -1))
         {
-            Pack pack = (Pack) idata.availablePacks.get(i);
+            Pack pack = this.packsModel.getPackAtRow(selectedRow);
             String desc = "";
             String key = pack.id + ".description";
             if (langpack != null && pack.id != null && !"".equals(pack.id))
@@ -307,14 +339,15 @@ public abstract class PacksPanelBase extends IzPanel implements PacksPanelInterf
             {
                 desc = pack.description;
             }
+            VariableSubstitutor vs = new VariableSubstitutor(idata.getVariables());
             desc = vs.substitute(desc, null);
             descriptionArea.setText(desc);
         }
         // Operation for the dependency listing
-        if (dependencyArea != null)
+        if ((dependencyArea != null) && (selectedRow != -1))
         {
-            Pack pack = (Pack) idata.availablePacks.get(i);
-            List dep = pack.dependencies;
+            Pack pack = this.packsModel.getPackAtRow(selectedRow);
+            List<String> dep = pack.dependencies;
             String list = "";
             if (dep != null)
             {
@@ -323,9 +356,12 @@ public abstract class PacksPanelBase extends IzPanel implements PacksPanelInterf
             }
             for (int j = 0; dep != null && j < dep.size(); j++)
             {
-                String name = (String) dep.get(j);
-                list += getI18NPackName((Pack) names.get(name));
-                if (j != dep.size() - 1) list += ", ";
+                String name = dep.get(j);
+                list += getI18NPackName(names.get(name));
+                if (j != dep.size() - 1)
+                {
+                    list += ", ";
+                }
             }
 
             // add the list of the packs to be excluded
@@ -340,7 +376,7 @@ public abstract class PacksPanelBase extends IzPanel implements PacksPanelInterf
                     String exgroup = otherpack.excludeGroup;
                     if (exgroup != null)
                     {
-                        if (q != i && pack.excludeGroup.equals(exgroup))
+                        if (q != selectedRow && pack.excludeGroup.equals(exgroup))
                         {
 
                             excludeslist += getI18NPackName(otherpack) + ", ";
@@ -350,11 +386,20 @@ public abstract class PacksPanelBase extends IzPanel implements PacksPanelInterf
                 }
             }
             // concatenate
-            if (dep != null) excludeslist = "    " + excludeslist;
-            if (numexcludes > 0) list += excludeslist;
-            if (list.endsWith(", ")) list = list.substring(0, list.length() - 2);
+            if (dep != null)
+            {
+                excludeslist = "    " + excludeslist;
+            }
+            if (numexcludes > 0)
+            {
+                list += excludeslist;
+            }
+            if (list.endsWith(", "))
+            {
+                list = list.substring(0, list.length() - 2);
+            }
 
-            // and display the result
+            // and checkbox the result
             dependencyArea.setText(list);
         }
     }
@@ -362,7 +407,7 @@ public abstract class PacksPanelBase extends IzPanel implements PacksPanelInterf
     /**
      * This method tries to resolve the localized name of the given pack. If this is not possible,
      * the name given in the installation description file in ELEMENT <pack> will be used.
-     * 
+     *
      * @param pack for which the name should be resolved
      * @return localized name of the pack
      */
@@ -375,7 +420,7 @@ public abstract class PacksPanelBase extends IzPanel implements PacksPanelInterf
         {
             packName = langpack.getString(key);
         }
-        if ("".equals(packName) || key == null || key.equals(packName) )
+        if ("".equals(packName) || key == null || key.equals(packName))
         {
             packName = pack.name;
         }
@@ -387,19 +432,22 @@ public abstract class PacksPanelBase extends IzPanel implements PacksPanelInterf
      * Creates an label with a message given by msgId and an icon given by the iconId. If layout and
      * constraints are not null, the label will be added to layout with the given constraints. The
      * label will be added to this object.
-     * 
-     * @param msgId identifier for the IzPack langpack
-     * @param iconId identifier for the IzPack icons
-     * @param layout layout to be used
+     *
+     * @param msgId       identifier for the IzPack langpack
+     * @param iconId      identifier for the IzPack icons
+     * @param layout      layout to be used
      * @param constraints constraints to be used
      * @return the created label
      */
     protected JLabel createLabel(String msgId, String iconId, GridBagLayout layout,
-            GridBagConstraints constraints)
+                                 GridBagConstraints constraints)
     {
         JLabel label = LabelFactory.create(parent.langpack.getString(msgId), parent.icons
                 .getImageIcon(iconId), TRAILING);
-        if (layout != null && constraints != null) layout.addLayoutComponent(label, constraints);
+        if (layout != null && constraints != null)
+        {
+            layout.addLayoutComponent(label, constraints);
+        }
         add(label);
         return (label);
     }
@@ -409,25 +457,29 @@ public abstract class PacksPanelBase extends IzPanel implements PacksPanelInterf
      * and a label on the right side with initial no text. The right label will be returned. If
      * layout and constraints are not null, the label will be added to layout with the given
      * constraints. The panel will be added to this object.
-     * 
-     * @param msgId identifier for the IzPack langpack
-     * @param layout layout to be used
+     *
+     * @param msgId       identifier for the IzPack langpack
+     * @param layout      layout to be used
      * @param constraints constraints to be used
      * @return the created (right) label
      */
     protected JLabel createPanelWithLabel(String msgId, GridBagLayout layout,
-            GridBagConstraints constraints)
+                                          GridBagConstraints constraints)
     {
         JPanel panel = new JPanel();
         JLabel label = new JLabel();
-        if (label == null) label = new JLabel("");
         panel.setAlignmentX(LEFT_ALIGNMENT);
         panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
         panel.add(LabelFactory.create(parent.langpack.getString(msgId)));
         panel.add(Box.createHorizontalGlue());
         panel.add(label);
-        if (layout != null && constraints != null) layout.addLayoutComponent(panel, constraints);
+        if (layout != null && constraints != null)
+        {
+            layout.addLayoutComponent(panel, constraints);
+        }
         add(panel);
+        boolean doNotShowRequiredSize = Boolean.parseBoolean(idata.guiPrefs.modifier.get("doNotShowRequiredSize"));
+        panel.setVisible(!doNotShowRequiredSize);
         return (label);
     }
 
@@ -437,15 +489,15 @@ public abstract class PacksPanelBase extends IzPanel implements PacksPanelInterf
      * else the text area will be added directly to this object. If layout and constraints are not
      * null, the text area or scroller will be added to layout with the given constraints. The text
      * area will be returned.
-     * 
-     * @param msgId identifier for the IzPack langpack
-     * @param scroller the scroller to be used
-     * @param layout layout to be used
+     *
+     * @param msgId       identifier for the IzPack langpack
+     * @param scroller    the scroller to be used
+     * @param layout      layout to be used
      * @param constraints constraints to be used
      * @return the created text area
      */
     protected JTextArea createTextArea(String msgId, JScrollPane scroller, GridBagLayout layout,
-            GridBagConstraints constraints)
+                                       GridBagConstraints constraints)
     {
         JTextArea area = new JTextArea();
         // area.setMargin(new Insets(2, 2, 2, 2));
@@ -466,7 +518,9 @@ public abstract class PacksPanelBase extends IzPanel implements PacksPanelInterf
                 layout.addLayoutComponent(scroller, constraints);
             }
             else
+            {
                 layout.addLayoutComponent(area, constraints);
+            }
         }
         if (scroller != null)
         {
@@ -474,24 +528,25 @@ public abstract class PacksPanelBase extends IzPanel implements PacksPanelInterf
             add(scroller);
         }
         else
+        {
             add(area);
+        }
         return (area);
 
     }
 
     /**
      * Creates the table for the packs. All parameters are required. The table will be returned.
-     * 
-     * @param width of the table
-     * @param scroller the scroller to be used
-     * @param layout layout to be used
+     *
+     * @param width       of the table
+     * @param scroller    the scroller to be used
+     * @param layout      layout to be used
      * @param constraints constraints to be used
      * @return the created table
      */
     protected JTable createPacksTable(int width, JScrollPane scroller, GridBagLayout layout,
-            GridBagConstraints constraints)
+                                      GridBagConstraints constraints)
     {
-
         JTable table = new JTable();
         table.setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 2));
         table.setIntercellSpacing(new Dimension(0, 0));
@@ -505,25 +560,30 @@ public abstract class PacksPanelBase extends IzPanel implements PacksPanelInterf
         scroller.setPreferredSize(new Dimension(width, (idata.guiPrefs.height / 3 + 30)));
 
         if (layout != null && constraints != null)
+        {
             layout.addLayoutComponent(scroller, constraints);
+        }
         add(scroller);
         return (table);
     }
 
     /**
      * Computes pack related data like the names or the dependencies state.
-     * 
-     * @param packs
+     *
+     * @param packs The list of packs.
      */
     private void computePacks(List packs)
     {
-        names = new HashMap();
+        names = new HashMap<String, Pack>();
         dependenciesExist = false;
-        for (int i = 0; i < packs.size(); i++)
+        for (Object pack1 : packs)
         {
-            Pack pack = (Pack) packs.get(i);
+            Pack pack = (Pack) pack1;
             names.put(pack.name, pack);
-            if (pack.dependencies != null || pack.excludeGroup != null) dependenciesExist = true;
+            if (pack.dependencies != null || pack.excludeGroup != null)
+            {
+                dependenciesExist = true;
+            }
         }
     }
 
@@ -535,23 +595,27 @@ public abstract class PacksPanelBase extends IzPanel implements PacksPanelInterf
     {
         try
         {
-            // TODO the PacksModel could be patched such that isCellEditable
-            // allows returns false. In that case the PacksModel must not be
-            // adapted here.
-            packsModel = new PacksModel(this, idata, this.parent.getRules()) {
-              public boolean isCellEditable(int rowIndex, int columnIndex) { return false; }
+            packsModel = new PacksModel(this, idata, this.parent.getRules())
+            {
+                @Override
+                public boolean isCellEditable(int rowIndex, int columnIndex)
+                {
+                    return false;
+                }
             };
             packsTable.setModel(packsModel);
             CheckBoxRenderer packSelectedRenderer = new CheckBoxRenderer();
             packsTable.getColumnModel().getColumn(0).setCellRenderer(packSelectedRenderer);
             packsTable.getColumnModel().getColumn(0).setMaxWidth(40);
-            
-            //packsTable.getColumnModel().getColumn(1).setCellRenderer(renderer1);
+
             packsTable.getColumnModel().getColumn(1).setCellRenderer(new PacksPanelTableCellRenderer());
-            PacksPanelTableCellRenderer renderer2 = new PacksPanelTableCellRenderer();
-            renderer2.setHorizontalAlignment(RIGHT);
-            packsTable.getColumnModel().getColumn(2).setCellRenderer(renderer2);
-            packsTable.getColumnModel().getColumn(2).setMaxWidth(100);
+            PacksPanelTableCellRenderer packTextColumnRenderer = new PacksPanelTableCellRenderer();
+            packTextColumnRenderer.setHorizontalAlignment(RIGHT);
+            if (packsTable.getColumnCount() > 2){
+                packsTable.getColumnModel().getColumn(2).setCellRenderer(packTextColumnRenderer);
+                packsTable.getColumnModel().getColumn(2).setMaxWidth(100);    
+            }
+            
 
             // remove header,so we don't need more strings
             tableScroller.remove(packsTable.getTableHeader());
@@ -570,15 +634,20 @@ public abstract class PacksPanelBase extends IzPanel implements PacksPanelInterf
                     bytes += p.nbytes;
                     continue;
                 }
-                if (idata.selectedPacks.contains(p)) bytes += p.nbytes;
+                if (idata.selectedPacks.contains(p))
+                {
+                    bytes += p.nbytes;
+                }
             }
         }
         catch (Exception e)
         {
             e.printStackTrace();
         }
+
         showSpaceRequired();
         showFreeSpace();
+        packsTable.setRowSelectionInterval(0, 0);
     }
 
     /*
@@ -599,169 +668,245 @@ public abstract class PacksPanelBase extends IzPanel implements PacksPanelInterf
             }
             first = false;
             Pack pack = (Pack) iter.next();
-            if (langpack != null && pack.id != null && !"".equals(pack.id))
+            retval.append(getI18NPackName(pack));
+        }
+        if (packsModel.isModifyinstallation())
+        {
+            Map installedpacks = packsModel.getInstalledpacks();
+            iter = installedpacks.keySet().iterator();
+            retval.append("<br><b>");
+            retval.append(langpack.getString("PacksPanel.installedpacks.summarycaption"));
+            retval.append("</b>");
+            retval.append("<br>");
+            while (iter.hasNext())
             {
-                retval.append(langpack.getString(pack.id));
+                Pack pack = (Pack) installedpacks.get(iter.next());
+                retval.append(getI18NPackName(pack));
+                retval.append("<br>");
             }
-            else
-                retval.append(pack.name);
         }
         return (retval.toString());
     }
 
     static class CheckBoxRenderer implements TableCellRenderer
     {
-        public Component getTableCellRendererComponent(JTable table, Object value,
-                boolean isSelected, boolean hasFocus, int row, int column)
+        JCheckBox checkbox = new JCheckBox();
+
+        CheckBoxRenderer()
         {
-            JCheckBox display = new JCheckBox();
-            if(com.izforge.izpack.util.OsVersion.IS_UNIX)
+            if (com.izforge.izpack.util.OsVersion.IS_UNIX && !com.izforge.izpack.util.OsVersion.IS_OSX)
             {
-                display.setIcon(new LFIndependentIcon());
-                display.setDisabledIcon(new LFIndependentIcon());
-                display.setSelectedIcon(new LFIndependentIcon());
-                display.setDisabledSelectedIcon(new LFIndependentIcon());
+                checkbox.setIcon(new LFIndependentIcon());
+                checkbox.setDisabledIcon(new LFIndependentIcon());
+                checkbox.setSelectedIcon(new LFIndependentIcon());
+                checkbox.setDisabledSelectedIcon(new LFIndependentIcon());
             }
-            display.setHorizontalAlignment(CENTER);
-            
+            checkbox.setHorizontalAlignment(CENTER);
+        }
+
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                                                       boolean isSelected, boolean hasFocus, int row, int column)
+        {
             if (isSelected)
             {
-                display.setForeground(table.getSelectionForeground());
-                display.setBackground(table.getSelectionBackground());
+                checkbox.setForeground(table.getSelectionForeground());
+                checkbox.setBackground(table.getSelectionBackground());
             }
             else
             {
-                display.setForeground(table.getForeground());
-                display.setBackground(table.getBackground());
+                checkbox.setForeground(table.getForeground());
+                checkbox.setBackground(table.getBackground());
             }
-            int state = ((Integer) value).intValue();
+
+            int state = (Integer) value;
             if (state == -2)
             {
                 // condition not fulfilled
-                display.setForeground(Color.GRAY);                
+                checkbox.setForeground(Color.GRAY);
             }
-            display.setSelected((value != null && Math.abs(state) == 1));
-            display.setEnabled(state >= 0);
-            return display;
+            if (state == -3)
+            {
+                checkbox.setForeground(Color.RED);
+                checkbox.setSelected(true);
+            }
+
+            checkbox.setEnabled(state >= 0);
+            checkbox.setSelected((value != null && Math.abs(state) == 1));
+            return checkbox;
         }
     }
-    
+
     public static class LFIndependentIcon implements Icon
     {
-       ButtonModel buttonModel = null;
-       protected int getControlSize() { return 13; }
-       public void paintIcon(Component c, Graphics g, int x, int y)
-       {
-          ButtonModel model = ((JCheckBox)c).getModel();
-          buttonModel = model;
-          int controlSize = getControlSize();
-          if (model.isPressed() && model.isArmed())
-          {
-             g.setColor( MetalLookAndFeel.getControlShadow() );
-             if(model.isEnabled()) g.setColor(Color.green); else g.setColor(Color.gray);
-             g.fillRect( x, y, controlSize-1, controlSize-1);
-             drawPressedBorder(g, x, y, controlSize, controlSize, model);
-          }
-          else
-          {
-             drawBorder(g, x, y, controlSize, controlSize, model);
-          }
-          g.setColor( Color.green );
-          if (model.isSelected())
-          {
-             drawCheck(c,g,x,y);
-          }
-       }
-       private void drawBorder(Graphics g, int x, int y, int w, int h, ButtonModel model)
-       {
-          g.translate(x, y);
+        ButtonModel buttonModel = null;
 
-          // outer frame rectangle
-          g.setColor(MetalLookAndFeel.getControlDarkShadow());
-          if(!model.isEnabled()) g.setColor(new Color(0.4f, 0.4f, 0.4f));
-          g.drawRect(0, 0, w-2, h-2);
+        protected int getControlSize()
+        {
+            return 13;
+        }
 
-          // middle frame
-          g.setColor(MetalLookAndFeel.getControlHighlight());
-          if(!model.isEnabled()) g.setColor(new Color(0.6f, 0.6f, 0.6f));
-          g.drawRect(1, 1, w-2, h-2);
+        public void paintIcon(Component c, Graphics g, int x, int y)
+        {
+            ButtonModel model = ((JCheckBox) c).getModel();
+            buttonModel = model;
+            int controlSize = getControlSize();
+            if (model.isPressed() && model.isArmed())
+            {
+                g.setColor(MetalLookAndFeel.getControlShadow());
+                if (model.isEnabled())
+                {
+                    g.setColor(Color.green);
+                }
+                else
+                {
+                    g.setColor(Color.gray);
+                }
+                g.fillRect(x, y, controlSize - 1, controlSize - 1);
+                drawPressedBorder(g, x, y, controlSize, controlSize, model);
+            }
+            else
+            {
+                drawBorder(g, x, y, controlSize, controlSize, model);
+            }
+            g.setColor(Color.green);
+            if (model.isSelected())
+            {
+                drawCheck(g, x, y);
+            }
+        }
 
-          // background
-          if(model.isEnabled()) g.setColor(Color.white); else g.setColor(new Color(0.8f, 0.8f, 0.8f));
-          g.fillRect(2, 2, w-3, h-3);
+        private void drawBorder(Graphics g, int x, int y, int w, int h, ButtonModel model)
+        {
+            g.translate(x, y);
 
-          //some extra lines for FX
-          g.setColor(MetalLookAndFeel.getControl());
-          g.drawLine(0, h-1, 1, h-2);
-          g.drawLine(w-1, 0, w-2, 1);
-          g.translate(-x, -y);
-       }
-       private void drawPressedBorder(Graphics g, int x, int y, int w, int h, ButtonModel model)
-       {
-          g.translate(x, y);
-          drawBorder(g, 0, 0, w, h, model);
-          g.setColor(MetalLookAndFeel.getControlShadow());
-          g.drawLine(1, 1, 1, h-2);
-          g.drawLine(1, 1, w-2, 1);
-          g.drawLine(2, 2, 2, h-3);
-          g.drawLine(2, 2, w-3, 2);
-          g.translate(-x, -y);
-       }
-       protected void drawCheck(Component c, Graphics g, int x, int y)
-       {
-          int controlSize = getControlSize();
-          if(buttonModel!=null)
-             if(buttonModel.isEnabled())
-                g.setColor(new Color(0.0f,0.6f,0.0f));
-             else g.setColor(new Color(0.1f,0.1f,0.1f));
+            // outer frame rectangle
+            g.setColor(MetalLookAndFeel.getControlDarkShadow());
+            if (!model.isEnabled())
+            {
+                g.setColor(new Color(0.4f, 0.4f, 0.4f));
+            }
+            g.drawRect(0, 0, w - 2, h - 2);
 
-          g.drawLine( x+(controlSize-4), y+2, x+(controlSize-4)-4, y+2+4 );
-          g.drawLine( x+(controlSize-4), y+3, x+(controlSize-4)-4, y+3+4 );
-          g.drawLine( x+(controlSize-4), y+4, x+(controlSize-4)-4, y+4+4 );
+            // middle frame
+            g.setColor(MetalLookAndFeel.getControlHighlight());
+            if (!model.isEnabled())
+            {
+                g.setColor(new Color(0.6f, 0.6f, 0.6f));
+            }
+            g.drawRect(1, 1, w - 2, h - 2);
 
-          g.drawLine( x+(controlSize-4)-4, y+2+4, x+(controlSize-4)-4-2, y+2+4-2 );
-          g.drawLine( x+(controlSize-4)-4, y+3+4, x+(controlSize-4)-4-2, y+3+4-2 );
-          g.drawLine( x+(controlSize-4)-4, y+4+4, x+(controlSize-4)-4-2, y+4+4-2 );
-       }
-       public int getIconWidth() {return getControlSize();}
-       public int getIconHeight() {return getControlSize();}
+            // background
+            if (model.isEnabled())
+            {
+                g.setColor(Color.white);
+            }
+            else
+            {
+                g.setColor(new Color(0.8f, 0.8f, 0.8f));
+            }
+            g.fillRect(2, 2, w - 3, h - 3);
+
+            //some extra lines for FX
+            g.setColor(MetalLookAndFeel.getControl());
+            g.drawLine(0, h - 1, 1, h - 2);
+            g.drawLine(w - 1, 0, w - 2, 1);
+            g.translate(-x, -y);
+        }
+
+        private void drawPressedBorder(Graphics g, int x, int y, int w, int h, ButtonModel model)
+        {
+            g.translate(x, y);
+            drawBorder(g, 0, 0, w, h, model);
+            g.setColor(MetalLookAndFeel.getControlShadow());
+            g.drawLine(1, 1, 1, h - 2);
+            g.drawLine(1, 1, w - 2, 1);
+            g.drawLine(2, 2, 2, h - 3);
+            g.drawLine(2, 2, w - 3, 2);
+            g.translate(-x, -y);
+        }
+
+        protected void drawCheck(Graphics g, int x, int y)
+        {
+            int controlSize = getControlSize();
+            if (buttonModel != null)
+            {
+                if (buttonModel.isEnabled())
+                {
+                    g.setColor(new Color(0.0f, 0.6f, 0.0f));
+                }
+                else
+                {
+                    g.setColor(new Color(0.1f, 0.1f, 0.1f));
+                }
+            }
+
+            g.drawLine(x + (controlSize - 4), y + 2, x + (controlSize - 4) - 4, y + 2 + 4);
+            g.drawLine(x + (controlSize - 4), y + 3, x + (controlSize - 4) - 4, y + 3 + 4);
+            g.drawLine(x + (controlSize - 4), y + 4, x + (controlSize - 4) - 4, y + 4 + 4);
+
+            g.drawLine(x + (controlSize - 4) - 4, y + 2 + 4, x + (controlSize - 4) - 4 - 2, y + 2 + 4 - 2);
+            g.drawLine(x + (controlSize - 4) - 4, y + 3 + 4, x + (controlSize - 4) - 4 - 2, y + 3 + 4 - 2);
+            g.drawLine(x + (controlSize - 4) - 4, y + 4 + 4, x + (controlSize - 4) - 4 - 2, y + 4 + 4 - 2);
+        }
+
+        public int getIconWidth()
+        {
+            return getControlSize();
+        }
+
+        public int getIconHeight()
+        {
+            return getControlSize();
+        }
     }
-    
+
     static class PacksPanelTableCellRenderer extends DefaultTableCellRenderer
     {
+        /**
+         * Required (serializable)
+         */
+        private static final long serialVersionUID = -9089892183236584242L;
 
-        
         public Component getTableCellRendererComponent(JTable table, Object value,
-                boolean isSelected, boolean hasFocus, int row, int column)
+                                                       boolean isSelected, boolean hasFocus, int row, int column)
         {
-            Component renderer = super.getTableCellRendererComponent(table, value, isSelected, hasFocus,row, column);
-            
-            int state = ((Integer) table.getModel().getValueAt(row, 0)).intValue();
+            Component renderer = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+            int state = (Integer) table.getModel().getValueAt(row, 0);
             if (state == -2)
             {
                 // condition not fulfilled
                 renderer.setForeground(Color.GRAY);
-                if (isSelected){
+                if (isSelected)
+                {
                     renderer.setBackground(table.getSelectionBackground());
                 }
-                else {
+                else
+                {
                     renderer.setBackground(table.getBackground());
                 }
             }
-            else {
-                if (isSelected){
+            else
+            {
+                if (isSelected)
+                {
                     renderer.setForeground(table.getSelectionForeground());
                     renderer.setBackground(table.getSelectionBackground());
                 }
-                else {
+                else
+                {
                     renderer.setForeground(table.getForeground());
                     renderer.setBackground(table.getBackground());
                 }
             }
-            
+
             return renderer;
         }
 
     }
 
+    public Debugger getDebugger()
+    {
+        return this.debugger;
+    }
 }

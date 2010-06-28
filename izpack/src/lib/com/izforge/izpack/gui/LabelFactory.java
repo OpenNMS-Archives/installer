@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2004 Klaus Bartz
  * 
@@ -21,26 +21,26 @@
 
 package com.izforge.izpack.gui;
 
-import javax.swing.Icon;
-import javax.swing.JLabel;
-import javax.swing.SwingConstants;
+import java.awt.Font;
+import javax.swing.*;
 
 /**
  * <p>
  * A label factory which can handle modified look like to present icons or present it not.
  * </p>
- * 
+ *
  * @author Klaus Bartz
- * 
  */
 public class LabelFactory implements SwingConstants
 {
 
     private static boolean useLabelIcons = true;
+    private static float labelFontSizeVal = 1.0f;
+    private static Font customLabelFontObj = null;
 
     /**
      * Returns whether the factory creates labels with icons or without icons.
-     * 
+     *
      * @return whether the factory creates labels with icons or without icons
      */
     public static boolean isUseLabelIcons()
@@ -50,7 +50,7 @@ public class LabelFactory implements SwingConstants
 
     /**
      * Sets the use icon state.
-     * 
+     *
      * @param b flag for the icon state
      */
     public static void setUseLabelIcons(boolean b)
@@ -59,9 +59,37 @@ public class LabelFactory implements SwingConstants
     }
 
     /**
+     * Returns the current label-font-size multiplier.
+     *
+     * @return the current label-font-size multiplier (or 1.0 if none
+     * has been entered).
+     */
+    public static float getLabelFontSize()
+    {
+        return labelFontSizeVal;
+    }
+
+    /**
+     * Sets the label-font-size multiplier.  If the value is not greater
+     * than zero or is greater than 5.0 then it will not be used.
+     *
+     * @param val label-font-size multiplier value to use.
+     */
+    public static void setLabelFontSize(float val)
+    {
+        if (val > 0.0f && val <= 5.0f && val != labelFontSizeVal)
+        {
+            labelFontSizeVal = val;
+            final Font fontObj = (new JLabel()).getFont();
+            customLabelFontObj =
+                              fontObj.deriveFont(fontObj.getSize2D() * val);
+        }
+    }
+
+    /**
      * Returns a new JLabel with the horizontal alignment CENTER. If isUseLabelIcons is true, the
      * given image will be set to the label, else an empty label returns.
-     * 
+     *
      * @param image the image to be used as label icon
      * @return new JLabel with the given parameters
      */
@@ -74,8 +102,8 @@ public class LabelFactory implements SwingConstants
     /**
      * Returns a new JLabel with the given horizontal alignment. If isUseLabelIcons is true, the
      * given image will be set to the label, else an empty label returns.
-     * 
-     * @param image the image to be used as label icon
+     *
+     * @param image               the image to be used as label icon
      * @param horizontalAlignment horizontal alignment of the label
      * @return new JLabel with the given parameters
      */
@@ -87,7 +115,7 @@ public class LabelFactory implements SwingConstants
 
     /**
      * Returns a new JLabel with the horizontal alignment CENTER.
-     * 
+     *
      * @param text the text to be set
      * @return new JLabel with the given parameters
      */
@@ -99,8 +127,8 @@ public class LabelFactory implements SwingConstants
 
     /**
      * Returns a new JLabel or FullLineLabel with the horizontal alignment CENTER.
-     * 
-     * @param text the text to be set
+     *
+     * @param text       the text to be set
      * @param isFullLine determines whether a FullLineLabel or a JLabel should be created
      * @return new JLabel or FullLineLabel with the given parameters
      */
@@ -112,8 +140,8 @@ public class LabelFactory implements SwingConstants
 
     /**
      * Returns a new JLabel with the given horizontal alignment.
-     * 
-     * @param text the text to be set
+     *
+     * @param text                the text to be set
      * @param horizontalAlignment horizontal alignment of the label
      * @return new JLabel with the given parameters
      */
@@ -125,10 +153,10 @@ public class LabelFactory implements SwingConstants
 
     /**
      * Returns a new JLabel or FullLineLabel with the given horizontal alignment.
-     * 
-     * @param text the text to be set
+     *
+     * @param text                the text to be set
      * @param horizontalAlignment horizontal alignment of the label
-     * @param isFullLine determines whether a FullLineLabel or a JLabel should be created
+     * @param isFullLine          determines whether a FullLineLabel or a JLabel should be created
      * @return new JLabel or FullLineLabel with the given parameters
      */
     public static JLabel create(String text, int horizontalAlignment, boolean isFullLine)
@@ -141,26 +169,26 @@ public class LabelFactory implements SwingConstants
      * Returns a new JLabel with the given horizontal alignment. If isUseLabelIcons is true, the
      * given image will be set to the label. The given text will be set allways to the label. It is
      * allowed, that image and/or text are null.
-     * 
-     * @param text the text to be set
-     * @param image the image to be used as label icon
+     *
+     * @param text                the text to be set
+     * @param image               the image to be used as label icon
      * @param horizontalAlignment horizontal alignment of the label
      * @return new JLabel with the given parameters
      */
     public static JLabel create(String text, Icon image, int horizontalAlignment)
     {
-        return( create(text, image, horizontalAlignment, false));
+        return (create(text, image, horizontalAlignment, false));
     }
-    
+
     /**
      * Returns a new JLabel or FullLineLabel with the given horizontal alignment. If isUseLabelIcons
      * is true, the given image will be set to the label. The given text will be set allways to the
      * label. It is allowed, that image and/or text are null.
-     * 
-     * @param text the text to be set
-     * @param image the image to be used as label icon
+     *
+     * @param text                the text to be set
+     * @param image               the image to be used as label icon
      * @param horizontalAlignment horizontal alignment of the label
-     * @param isFullLine determines whether a FullLineLabel or a JLabel should be created
+     * @param isFullLine          determines whether a FullLineLabel or a JLabel should be created
      * @return new JLabel or FullLineLabel with the given parameters
      */
     public static JLabel create(String text, Icon image, int horizontalAlignment, boolean isFullLine)
@@ -169,18 +197,33 @@ public class LabelFactory implements SwingConstants
         if (image != null && isUseLabelIcons())
         {
             if (isFullLine)
+            {
                 retval = new FullLineLabel(image);
+            }
             else
+            {
                 retval = new JLabel(image);
+            }
         }
         else
         {
             if (isFullLine)
+            {
                 retval = new FullLineLabel();
+            }
             else
+            {
                 retval = new JLabel();
+            }
         }
-        if (text != null) retval.setText(text);
+        if (text != null)
+        {
+            retval.setText(text);
+        }
+        if (customLabelFontObj != null)
+        {
+            retval.setFont(customLabelFontObj);
+        }
         retval.setHorizontalAlignment(horizontalAlignment);
         return (retval);
     }
@@ -191,19 +234,23 @@ public class LabelFactory implements SwingConstants
      * A FullLineLabel gets from the IzPanelLayout as default a constraints for a full line.
      * Therefore the width of this label do not determine the width of a column as a JLable
      * it do.
-     * 
+     *
      * @author Klaus Bartz
-     * 
      */
     public static class FullLineLabel extends JLabel
     {
+
+        /**
+         * Required (serializable)
+         */
+        private static final long serialVersionUID = 2918265795390777147L;
 
         /**
          * Creates a <code>JLabel</code> instance with the specified image.
          * The label is centered vertically and horizontally
          * in its display area.
          *
-         * @param image  The image to be displayed by the label.
+         * @param image The image to be displayed by the label.
          */
         public FullLineLabel(Icon image)
         {

@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  *
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  *
  * Copyright 2005 Marc Eppelmann
  *
@@ -24,13 +24,12 @@ package com.izforge.izpack.util;
 /**
  * Holds and provides some StringConstants
  * such as NL = "\n"
- *  
- * @author marc.eppelmann&#064;reddot.de
  *
+ * @author marc.eppelmann&#064;reddot.de
  */
 public interface StringConstants
 {
-  public final static String NL = "\n";
-  
-  public final static String SP = " ";
+    public final static String NL = "\n";
+
+    public final static String SP = " ";
 }

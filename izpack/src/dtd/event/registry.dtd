@@ -6,7 +6,7 @@
         All entries can contain IzPack variables like $INSTALL_PATH
         or ${myOwnVariable.WhichIsDefinedAfterPacks}
         =====================================
-$Id: registry.dtd 1282 2005-08-24 15:17:43Z bartzkau $
+$Id: registry.dtd 2116 2008-04-19 13:00:24Z jponge $
         
 -->
 <!-- The root element -->

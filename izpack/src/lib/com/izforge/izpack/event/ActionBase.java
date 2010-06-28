@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2004 Klaus Bartz 
  * 
@@ -26,9 +26,8 @@ import java.util.HashSet;
 
 /**
  * Base class for action classes like AntAction.
- * 
+ *
  * @author Klaus Bartz
- * 
  */
 public class ActionBase implements Serializable
 {
@@ -80,6 +79,8 @@ public class ActionBase implements Serializable
     public static final String LOGFILE = "logfile";
 
     public static final String BUILDFILE = "buildfile";
+    
+    public static final String BUILDRESOURCE = "buildresource";
 
     public static final String PROPERTYFILE = "propertyfile";
 
@@ -147,9 +148,9 @@ public class ActionBase implements Serializable
 
     public static final String ASKFALSE = "askfalse";
 
-    private static final HashSet installOrders = new HashSet();
+    private static final HashSet<String> installOrders = new HashSet<String>();
 
-    private static final HashSet uninstallOrders = new HashSet();
+    private static final HashSet<String> uninstallOrders = new HashSet<String>();
 
     protected String uninstallOrder = ActionBase.BEFOREDELETION;
 
@@ -177,7 +178,7 @@ public class ActionBase implements Serializable
 
     /**
      * Returns the order.
-     * 
+     *
      * @return the order
      */
     public String getOrder()
@@ -188,18 +189,21 @@ public class ActionBase implements Serializable
     /**
      * Sets the order to the given string. Valid values are "beforepacks", "beforepack", "afterpack"
      * and "afterpacks".
-     * 
+     *
      * @param order order to be set
      */
     public void setOrder(String order) throws Exception
     {
-        if (!installOrders.contains(order)) throw new Exception("Bad value for order.");
+        if (!installOrders.contains(order))
+        {
+            throw new Exception("Bad value for order.");
+        }
         this.order = order;
     }
 
     /**
      * Returns the order for uninstallation.
-     * 
+     *
      * @return the order for uninstallation
      */
     public String getUninstallOrder()
@@ -210,18 +214,21 @@ public class ActionBase implements Serializable
     /**
      * Sets the order to the given string for uninstallation. Valid values are "beforedeletion" and
      * "afterdeletion".
-     * 
+     *
      * @param order order to be set
      */
     public void setUninstallOrder(String order) throws Exception
     {
-        if (!uninstallOrders.contains(order)) throw new Exception("Bad value for order.");
+        if (!uninstallOrders.contains(order))
+        {
+            throw new Exception("Bad value for order.");
+        }
         this.uninstallOrder = order;
     }
 
     /**
      * Returns the defined message ID for this action.
-     * 
+     *
      * @return the defined message ID
      */
     public String getMessageID()
@@ -231,7 +238,7 @@ public class ActionBase implements Serializable
 
     /**
      * Sets the message ID to the given string.
-     * 
+     *
      * @param string string to be used as message ID
      */
     public void setMessageID(String string)

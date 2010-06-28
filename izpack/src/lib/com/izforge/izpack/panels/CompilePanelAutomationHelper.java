@@ -1,9 +1,9 @@
 /*
  /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2003 Jonathan Halliday
  * 
@@ -22,20 +22,15 @@
 
 package com.izforge.izpack.panels;
 
+import com.izforge.izpack.installer.*;
+import com.izforge.izpack.adaptator.IXMLElement;
+
 import java.io.IOException;
-
-import net.n3.nanoxml.XMLElement;
-
-import com.izforge.izpack.installer.AutomatedInstallData;
-import com.izforge.izpack.installer.CompileHandler;
-import com.izforge.izpack.installer.CompileResult;
-import com.izforge.izpack.installer.CompileWorker;
-import com.izforge.izpack.installer.PanelAutomation;
-import com.izforge.izpack.installer.PanelAutomationHelper;
+import java.io.PrintStream;
 
 /**
  * Functions to support automated usage of the CompilePanel
- * 
+ *
  * @author Jonathan Halliday
  * @author Tino Schwarze
  */
@@ -51,13 +46,17 @@ public class CompilePanelAutomationHelper extends PanelAutomationHelper implemen
 
     private int last_line_len = 0;
 
+    // when using the eclipse compiler, we're capturing System.out and System.err...
+    private PrintStream stdout;
+    private PrintStream stderr;
+
     /**
      * Save data for running automated.
-     * 
+     *
      * @param installData installation parameters
-     * @param panelRoot unused.
+     * @param panelRoot   unused.
      */
-    public void makeXMLData(AutomatedInstallData installData, XMLElement panelRoot)
+    public void makeXMLData(AutomatedInstallData installData, IXMLElement panelRoot)
     {
         // not used here - during automatic installation, no automatic
         // installation information is generated
@@ -65,33 +64,38 @@ public class CompilePanelAutomationHelper extends PanelAutomationHelper implemen
 
     /**
      * Perform the installation actions.
-     * 
+     *
      * @param panelRoot The panel XML tree root.
+     * @throws InstallerException if something went wrong.
      */
-    public boolean runAutomated(AutomatedInstallData idata, XMLElement panelRoot)
+    public void runAutomated(AutomatedInstallData idata, IXMLElement panelRoot) throws InstallerException
     {
-        XMLElement compiler_xml = panelRoot.getFirstChildNamed("compiler");
+        IXMLElement compiler_xml = panelRoot.getFirstChildNamed("compiler");
 
         String compiler = null;
 
-        if (compiler_xml != null) compiler = compiler_xml.getContent();
+        if (compiler_xml != null)
+        {
+            compiler = compiler_xml.getContent();
+        }
 
         if (compiler == null)
         {
-            System.out.println("invalid automation data: could not find compiler");
-            return false;
+            throw new InstallerException("invalid automation data: could not find compiler");
         }
 
-        XMLElement args_xml = panelRoot.getFirstChildNamed("arguments");
+        IXMLElement args_xml = panelRoot.getFirstChildNamed("arguments");
 
         String args = null;
 
-        if (args_xml != null) args = args_xml.getContent();
+        if (args_xml != null)
+        {
+            args = args_xml.getContent();
+        }
 
         if (args_xml == null)
         {
-            System.out.println("invalid automation data: could not find compiler arguments");
-            return false;
+            throw new InstallerException("invalid automation data: could not find compiler arguments");
         }
 
         try
@@ -100,51 +104,55 @@ public class CompilePanelAutomationHelper extends PanelAutomationHelper implemen
             this.worker.setCompiler(compiler);
             this.worker.setCompilerArguments(args);
 
+            this.stdout = System.out;
+            this.stderr = System.err;
+
             this.worker.run();
-            
-            return this.worker.getResult().isSuccess();
+
+            if(this.worker.getResult().isSuccess()) {
+                throw new InstallerException("Compilation failed (xml line " + panelRoot.getLineNr() + ")");
+            }
         }
         catch (IOException e)
         {
-            e.printStackTrace();
-            return false;
+            throw new InstallerException(e);
         }
     }
 
     /**
      * Reports progress on System.out
-     * 
+     *
      * @see com.izforge.izpack.util.AbstractUIProgressHandler#startAction(String, int)
      */
     public void startAction(String name, int noOfJobs)
     {
-        System.out.println("[ Starting compilation ]");
+        this.stdout.println("[ Starting compilation ]");
         this.job_name = "";
     }
 
     /**
      * Reports the error to System.err
-     * 
+     *
      * @param error the error
      * @see CompileHandler#handleCompileError(CompileResult)
      */
     public void handleCompileError(CompileResult error)
     {
-        System.out.println();
-        System.out.println("[ Compilation failed ]");
-        System.err.println("Command line: " + error.getCmdline());
-        System.err.println();
-        System.err.println("stdout of compiler:");
-        System.err.println(error.getStdout());
-        System.err.println("stderr of compiler:");
-        System.err.println(error.getStderr());
+        this.stdout.println();
+        this.stdout.println("[ Compilation failed ]");
+        this.stderr.println("Command line: " + error.getCmdline());
+        this.stderr.println();
+        this.stderr.println("stdout of compiler:");
+        this.stderr.println(error.getStdout());
+        this.stderr.println("stderr of compiler:");
+        this.stderr.println(error.getStderr());
         // abort instantly and make installation fail
         error.setAction(CompileResult.ACTION_ABORT);
     }
 
     /**
      * Sets state variable for thread sync.
-     * 
+     *
      * @see com.izforge.izpack.util.AbstractUIProgressHandler#stopAction()
      */
     public void stopAction()
@@ -152,18 +160,23 @@ public class CompilePanelAutomationHelper extends PanelAutomationHelper implemen
         if ((this.job_name != null) && (this.last_line_len > 0))
         {
             String line = this.job_name + ": done.";
-            System.out.print("\r" + line);
+            this.stdout.print("\r" + line);
             for (int i = line.length(); i < this.last_line_len; i++)
-                System.out.print(' ');
-            System.out.println();
+            {
+                this.stdout.print(' ');
+            }
+            this.stdout.println();
         }
 
-        if (this.worker.getResult().isSuccess()) System.out.println("[ Compilation successful ]");
+        if (this.worker.getResult().isSuccess())
+        {
+            this.stdout.println("[ Compilation successful ]");
+        }
     }
 
     /**
      * Tell about progress.
-     * 
+     *
      * @param val
      * @param msg
      * @see com.izforge.izpack.util.AbstractUIProgressHandler#progress(int, String)
@@ -177,19 +190,21 @@ public class CompilePanelAutomationHelper extends PanelAutomationHelper implemen
 
         int line_len = line.length();
 
-        System.out.print("\r" + line);
+        this.stdout.print("\r" + line);
         for (int i = line_len; i < this.last_line_len; i++)
-            System.out.print(' ');
+        {
+            this.stdout.print(' ');
+        }
 
         this.last_line_len = line_len;
     }
 
     /**
      * Reports progress to System.out
-     * 
+     *
      * @param jobName The next job's name.
-     * @param max unused
-     * @param jobNo The next job's number.
+     * @param max     unused
+     * @param jobNo   The next job's number.
      * @see com.izforge.izpack.util.AbstractUIProgressHandler#nextStep(String, int, int)
      */
     public void nextStep(String jobName, int max, int jobNo)
@@ -197,14 +212,24 @@ public class CompilePanelAutomationHelper extends PanelAutomationHelper implemen
         if ((this.job_name != null) && (this.last_line_len > 0))
         {
             String line = this.job_name + ": done.";
-            System.out.print("\r" + line);
+            this.stdout.print("\r" + line);
             for (int i = line.length(); i < this.last_line_len; i++)
-                System.out.print(' ');
-            System.out.println();
+            {
+                this.stdout.print(' ');
+            }
+            this.stdout.println();
         }
 
         this.job_max = max;
         this.job_name = jobName;
         this.last_line_len = 0;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void setSubStepNo(int no_of_substeps)
+    {
+        this.job_max = no_of_substeps;
     }
 }

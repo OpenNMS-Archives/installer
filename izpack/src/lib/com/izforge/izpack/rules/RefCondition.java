@@ -1,10 +1,10 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  *
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  *
- * Copyright 2007 Dennis Reil
+ * Copyright 2007-2009 Dennis Reil
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,47 +20,75 @@
  */
 package com.izforge.izpack.rules;
 
-import net.n3.nanoxml.XMLElement;
+import com.izforge.izpack.adaptator.IXMLElement;
 
 /**
  * References an already defined condition
- * 
- * @author Dennis Reil, <Dennis.Reil@reddot.de>
+ *
+ * @author Dennis Reil, <izpack@reil-online.de>
  */
 public class RefCondition extends Condition
 {
 
+    /**
+     *
+     */
+    private static final long serialVersionUID = -2880915036530702269L;
     Condition referencedcondition;
+    private String referencedConditionId;
 
     public RefCondition()
     {
         this.referencedcondition = null;
+        this.referencedConditionId = null;
     }
 
     /*
      * public boolean isTrue(Properties variables) { if (referencedcondition == null) { return
      * false; } else { return referencedcondition.isTrue(variables); } }
      */
-    public void readFromXML(XMLElement xmlcondition)
+    public void readFromXML(IXMLElement xmlcondition)
     {
-        String refid = xmlcondition.getAttribute("refid");
-        this.referencedcondition = RulesEngine.getCondition(refid);
+        this.referencedConditionId = xmlcondition.getAttribute("refid");
+        this.referencedcondition = RulesEngine.getCondition(this.referencedConditionId);
+        this.id = "ref." + this.referencedConditionId;
     }
 
     public boolean isTrue()
     {
-        if (this.referencedcondition == null)
+        if (this.referencedConditionId == null)
         {
             return false;
         }
         else
         {
-            return this.referencedcondition.isTrue();
+            if (this.referencedcondition == null)
+            {
+                this.referencedcondition = RulesEngine.getCondition(this.referencedConditionId);
+            }
+            if (this.referencedcondition != null){
+                this.referencedcondition.setInstalldata(this.installdata);
+            }            
+            return (this.referencedcondition != null) ? this.referencedcondition.isTrue() : false;
         }
     }
 
-    /*
-     * public boolean isTrue(Properties variables, List selectedpacks) { return
-     * referencedcondition.isTrue(variables, selectedpacks); }
+    /* (non-Javadoc)
+     * @see com.izforge.izpack.rules.Condition#getDependenciesDetails()
      */
+    public String getDependenciesDetails()
+    {
+        StringBuffer details = new StringBuffer();
+        details.append(this.id);
+        details.append(" depends on:<ul><li>");
+        details.append(referencedcondition.getDependenciesDetails());
+        details.append("</li></ul>");
+        return details.toString();
+    }
+
+    @Override
+    public void makeXMLData(IXMLElement conditionRoot)
+    {
+       conditionRoot.setAttribute("refid", this.referencedConditionId);        
+    }
 }

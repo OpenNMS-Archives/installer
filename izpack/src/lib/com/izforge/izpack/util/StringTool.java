@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2003 Marc Eppelmann
  * 
@@ -26,7 +26,7 @@ import java.util.ArrayList;
 
 /**
  * A extended Java Implementation of Pythons string.replace()
- * 
+ *
  * @author marc.eppelmann&#064;gmx.de
  */
 public class StringTool
@@ -48,7 +48,7 @@ public class StringTool
 
     /**
      * Standalone callable Test method
-     * 
+     *
      * @param args Commandline Args
      */
     public static void main(String[] args)
@@ -59,11 +59,10 @@ public class StringTool
 
     /**
      * Replaces <b>from</b> with <b>to</b> in given String: <b>value</b>
-     * 
+     *
      * @param value original String
-     * @param from Search Pattern
-     * @param to Replace with this
-     * 
+     * @param from  Search Pattern
+     * @param to    Replace with this
      * @return the replaced String
      */
     public static String replace(String value, String from, String to)
@@ -73,17 +72,19 @@ public class StringTool
 
     /**
      * Replaces <b>from</b> with <b>to</b> in given String: <b>value</b>
-     * 
-     * @param value original String
-     * @param from Search Pattern
-     * @param to Replace with this
+     *
+     * @param value              original String
+     * @param from               Search Pattern
+     * @param to                 Replace with this
      * @param aCaseSensitiveFlag set to true be case sensitive.
-     * 
      * @return the replaced String
      */
     public static String replace(String value, String from, String to, boolean aCaseSensitiveFlag)
     {
-        if ((value == null) || (value.length() == 0) || (from == null) || (from.length() == 0)) { return value; }
+        if ((value == null) || (value.length() == 0) || (from == null) || (from.length() == 0))
+        {
+            return value;
+        }
 
         if (to == null)
         {
@@ -116,17 +117,78 @@ public class StringTool
 
         return result;
     }
+    
+    
+    /**
+     * Escapes all white Space Characters
+     * @param apathString
+     * @return
+     */
+    public static String escapeSpaces( String aPathString )
+    {  
+       return replaceOrEscapeAll( aPathString, null, null, true ); 
+    }
+    
+    
+    /**
+     * Escapes all white Space Characters
+     * @param apathString
+     * @return
+     */
+    public static String replaceSpacesWithMinus( String aPathString )
+    {  
+       return replaceSpaces( aPathString, "-" ); 
+    }
+    
+    /**
+     * Escapes all white Space Characters
+     * @param apathString
+     * @return
+     */
+    public static String replaceSpaces( String aPathString, String replaceWith )
+    {  
+       return replaceOrEscapeAll( aPathString, replaceWith, null, false ); 
+    }
+    
+    /**
+     * Replaces all given white Space Characters with the replaceOrEscapeWith or Escapes with replaceOrEscapeWith
+     * 
+     * If true was given as Escape-Flag , the Method escapes each whitespace with the replaceOrEscapeWith + replaceWhat[x] 
+     * Otherwise the replaces each replaceWhat[x] with the replaceOrEscapeWith.
+     * 
+     * @param aPathString The input string in which the white space should be handled.
+     * @param replaceOrEscapeWith The Repace or Escape Char Interpreted depended on the escape Flag
+     * @param replaceWhat The atring array with the Characters, which should be replaced
+     * @param escape The flag, wihch indeicates, how to handle the given replaceOrEscapeWith String.
+     * 
+     */
+    public static String replaceOrEscapeAll( String aPathString, String replaceOrEscapeWith, String[] replaceWhat,  boolean escape )
+    {       
+        if( replaceWhat == null )
+       
+            replaceWhat = new String[]{" ", "\t", "\n"};
+       
+        if( replaceOrEscapeWith == null )
+            replaceOrEscapeWith = "\\";
+               
+       for (int i = 0; i < replaceWhat.length; i++)
+       {
+         
+           aPathString = replace(aPathString, replaceWhat[i], escape == true ? replaceOrEscapeWith + replaceWhat[i]: replaceOrEscapeWith );
+       }
+       
+       return aPathString; 
+    }
 
     /**
      * Normalizes a Windows or Unix Path.
-     * 
+     * <p/>
      * Reason: Javas File accepts / or \ for Pathes. Batches or ShellScripts does it not!
-     * 
+     * <p/>
      * TODO: implement support for MAC < MacOSX
-     * 
+     *
      * @param destination
      * @param fileSeparator a target-system fileseparator
-     * 
      * @return the normalized path
      */
     public static String normalizePath(String destination, String fileSeparator)
@@ -159,9 +221,8 @@ public class StringTool
     /**
      * Normalizes a mixed Windows/Unix Path. Does Only work for Windows or Unix Pathes Reason:
      * Java.File accepts / or \ for Pathes. Batches or ShellScripts does it not!
-     * 
+     *
      * @param destination accepted mixed form by java.File like "C:/a/mixed\path\accepted/by\Java"
-     * 
      * @return the normalized Path
      */
     public static String normalizePath(String destination)
@@ -171,16 +232,16 @@ public class StringTool
 
     /**
      * Converts an String Array to a space separated String w/o any check
-     * 
+     *
      * @param args The StringArray
      * @return the space separated result.
      */
     public static String stringArrayToSpaceSeparatedString(String[] args)
     {
         String result = "";
-        for (int idx = 0; idx < args.length; idx++)
+        for (String arg : args)
         {
-            result += args[idx] + " ";
+            result += arg + " ";
         }
         return result;
     }
@@ -198,9 +259,8 @@ public class StringTool
 
     /**
      * Transforms a (Array)List of Strings into a line.separator="\n" separated Stringlist.
-     * 
+     *
      * @param aStringList
-     * 
      * @return a printable list
      */
     public static String stringArrayListToString(ArrayList aStringList)
@@ -210,21 +270,23 @@ public class StringTool
 
     /**
      * Transforms a (Array)List of Strings into an aLineSeparator separated Stringlist.
-     * 
+     *
      * @param aStringList
-     * 
      * @return a printable list
      */
     public static String stringArrayListToString(ArrayList aStringList, String aLineSeparator)
     {
         String LineSeparator = aLineSeparator;
-        if (LineSeparator == null) LineSeparator = System.getProperty("line.separator", "\n");
+        if (LineSeparator == null)
+        {
+            LineSeparator = System.getProperty("line.separator", "\n");
+        }
 
         StringBuffer temp = new StringBuffer();
 
-        for (int idx = 0; idx < aStringList.size(); idx++)
+        for (Object anAStringList : aStringList)
         {
-            temp.append(aStringList.get(idx)).append(LineSeparator);
+            temp.append(anAStringList).append(LineSeparator);
         }
 
         return temp.toString();
@@ -232,10 +294,9 @@ public class StringTool
 
     /**
      * True if a given string starts with the another given String
-     * 
-     * @param str The String to search in
+     *
+     * @param str    The String to search in
      * @param prefix The string to search for
-     * 
      * @return True if str starts with prefix
      */
     public static boolean startsWith(String str, String prefix)
@@ -245,10 +306,9 @@ public class StringTool
 
     /**
      * The same as startsWith but ignores the case.
-     * 
-     * @param str The String to search in
+     *
+     * @param str    The String to search in
      * @param prefix The string to search for
-     * 
      * @return rue if str starts with prefix
      */
     public static boolean startsWithIgnoreCase(String str, String prefix)

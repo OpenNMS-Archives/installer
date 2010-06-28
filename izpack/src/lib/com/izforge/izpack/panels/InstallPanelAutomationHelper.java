@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2003 Jonathan Halliday
  * 
@@ -21,18 +21,13 @@
 
 package com.izforge.izpack.panels;
 
-import net.n3.nanoxml.XMLElement;
-
-import com.izforge.izpack.installer.AutomatedInstallData;
-import com.izforge.izpack.installer.IUnpacker;
-import com.izforge.izpack.installer.PanelAutomation;
-import com.izforge.izpack.installer.PanelAutomationHelper;
-import com.izforge.izpack.installer.UnpackerFactory;
+import com.izforge.izpack.installer.*;
 import com.izforge.izpack.util.AbstractUIProgressHandler;
+import com.izforge.izpack.adaptator.IXMLElement;
 
 /**
  * Functions to support automated usage of the InstallPanel
- * 
+ *
  * @author Jonathan Halliday
  */
 public class InstallPanelAutomationHelper extends PanelAutomationHelper implements PanelAutomation,
@@ -43,33 +38,32 @@ public class InstallPanelAutomationHelper extends PanelAutomationHelper implemen
 
     /**
      * Null op - this panel type has no state to serialize.
-     * 
+     *
      * @param installData unused.
-     * @param panelRoot unused.
+     * @param panelRoot   unused.
      */
-    public void makeXMLData(AutomatedInstallData installData, XMLElement panelRoot)
+    public void makeXMLData(AutomatedInstallData installData, IXMLElement panelRoot)
     {
         // do nothing.
     }
 
     /**
      * Perform the installation actions.
-     * 
+     *
      * @param panelRoot The panel XML tree root.
-     * 
      * @return true if the installation was successful.
      */
-    public boolean runAutomated(AutomatedInstallData idata, XMLElement panelRoot)
+    public void runAutomated(AutomatedInstallData idata, IXMLElement panelRoot) throws InstallerException
     {
         /*
         Unpacker unpacker = new Unpacker(idata, this);
         unpacker.start();
         */
-        IUnpacker unpacker = UnpackerFactory.getUnpacker(idata.info.getUnpackerClassName(), idata, this);        
+        IUnpacker unpacker = UnpackerFactory.getUnpacker(idata.info.getUnpackerClassName(), idata, this);
         Thread unpackerthread = new Thread(unpacker, "IzPack - Unpacker thread");
+        unpacker.setRules(idata.getRules());
         unpackerthread.start();
-        boolean done = false;
-        while (!done && unpackerthread.isAlive())
+        while (unpackerthread.isAlive())
         {
             try
             {
@@ -80,12 +74,14 @@ public class InstallPanelAutomationHelper extends PanelAutomationHelper implemen
                 // ignore it, we're waiting for the unpacker to finish...
             }
         }
-        return unpacker.getResult();
+        if(!unpacker.getResult()) {
+            throw new InstallerException("Unpack failed (xml line "+ panelRoot.getLineNr() + ")");
+        }
     }
 
     /**
      * Reports progress on System.out
-     * 
+     *
      * @see AbstractUIProgressHandler#startAction(String, int)
      */
     public void startAction(String name, int no_of_steps)
@@ -96,18 +92,18 @@ public class InstallPanelAutomationHelper extends PanelAutomationHelper implemen
 
     /**
      * Sets state variable for thread sync.
-     * 
+     *
      * @see com.izforge.izpack.util.AbstractUIProgressHandler#stopAction()
      */
     public void stopAction()
     {
-        System.out.println("[ Unpacking finished. ]");
+        System.out.println("[ Unpacking finished ]");
         boolean done = true;
     }
 
     /**
      * Null op.
-     * 
+     *
      * @param val
      * @param msg
      * @see com.izforge.izpack.util.AbstractUIProgressHandler#progress(int, String)
@@ -120,9 +116,9 @@ public class InstallPanelAutomationHelper extends PanelAutomationHelper implemen
 
     /**
      * Reports progress to System.out
-     * 
+     *
      * @param packName The currently installing pack.
-     * @param stepno The number of the pack
+     * @param stepno   The number of the pack
      * @param stepsize unused
      * @see com.izforge.izpack.util.AbstractUIProgressHandler#nextStep(String, int, int)
      */
@@ -135,4 +131,11 @@ public class InstallPanelAutomationHelper extends PanelAutomationHelper implemen
         System.out.println(") ]");
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    public void setSubStepNo(int no_of_substeps)
+    {
+        // not used here
+    }
 }

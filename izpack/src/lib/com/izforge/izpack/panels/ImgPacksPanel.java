@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2004 Volker Friedritz
  * Copyright 2002 Marcus Wolschon
@@ -23,33 +23,25 @@
 
 package com.izforge.izpack.panels;
 
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Iterator;
-
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.ImageIcon;
-import javax.swing.JLabel;
-import javax.swing.JScrollPane;
-import javax.swing.event.ListSelectionEvent;
-
+import com.izforge.izpack.Pack;
 import com.izforge.izpack.installer.InstallData;
 import com.izforge.izpack.installer.InstallerFrame;
 import com.izforge.izpack.installer.ResourceManager;
 import com.izforge.izpack.util.IoHelper;
+
+import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import java.awt.*;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * The ImgPacks panel class. Allows the packages selection with a small picture displayed for every
  * pack. This new version combines the old PacksPanel and the ImgPacksPanel so that the positive
  * characteristics of both are combined. This class handles only the layout and some related stuff.
  * Common stuff are handled by the base class.
- * 
+ *
  * @author Julien Ponge
  * @author Volker Friedritz
  * @author Klaus Bartz
@@ -58,21 +50,25 @@ public class ImgPacksPanel extends PacksPanelBase
 {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 3977858492633659444L;
 
-    /** The images to display. */
-    private ArrayList images;
+    /**
+     * The images to display.
+     */
+    private HashMap<String, ImageIcon> images;
 
-    /** The img label. */
+    /**
+     * The img label.
+     */
     private JLabel imgLabel;
 
     /**
      * The constructor.
-     * 
+     *
      * @param parent The parent window.
-     * @param idata The installation data.
+     * @param idata  The installation data.
      */
     public ImgPacksPanel(InstallerFrame parent, InstallData idata)
     {
@@ -109,7 +105,23 @@ public class ImgPacksPanel extends PacksPanelBase
         packsTable = createPacksTable(250, tableScroller, layout, gbConstraints);
 
         // Create the image label with a scroller.
-        imgLabel = new JLabel((ImageIcon) images.get(0));
+        // Use the image of the first pack having an image as initial image
+        Iterator pack_it = idata.availablePacks.iterator();
+        Pack firstImgPack = null;
+        boolean imgFound = false;
+        while (!imgFound && pack_it.hasNext())
+        {
+            firstImgPack = (Pack) pack_it.next();
+            imgFound = firstImgPack.packImgId != null;
+        }
+        if (imgFound)
+        {
+            imgLabel = new JLabel(images.get(firstImgPack.packImgId));
+        }
+        else
+        {
+            imgLabel = new JLabel();
+        }
         JScrollPane imgScroller = new JScrollPane(imgLabel);
         imgScroller.setPreferredSize(getPreferredSizeFromImages());
         parent.buildConstraints(gbConstraints, 1, 1, 1, 1, 0.5, 1.0);
@@ -155,22 +167,31 @@ public class ImgPacksPanel extends PacksPanelBase
 
     }
 
-    /** Pre-loads the images. */
+    /**
+     * Pre-loads the images.
+     */
     private void preLoadImages()
     {
         int size = idata.availablePacks.size();
-        images = new ArrayList(size);
-        for (int i = 0; i < size; i++)
-            try
+        images = new HashMap<String, ImageIcon>(size);
+        Iterator pack_it = idata.availablePacks.iterator();
+        while (pack_it.hasNext())
+        {
+            Pack pack = (Pack) pack_it.next();
+            if (pack.packImgId != null)
             {
-                URL url = ResourceManager.getInstance().getURL("ImgPacksPanel.img." + i);
-                ImageIcon img = new ImageIcon(url);
-                images.add(img);
+                try
+                {
+                    URL url = ResourceManager.getInstance().getURL(pack.packImgId);
+                    ImageIcon img = new ImageIcon(url);
+                    images.put(pack.packImgId, img);
+                }
+                catch (Exception err)
+                {
+                    err.printStackTrace();
+                }
             }
-            catch (Exception err)
-            {
-                err.printStackTrace();
-            }
+        }
     }
 
     /**
@@ -183,9 +204,9 @@ public class ImgPacksPanel extends PacksPanelBase
         int maxHeight = 60;
         ImageIcon icon;
 
-        for (Iterator it = images.iterator(); it.hasNext();)
+        for (ImageIcon imageIcon : images.values())
         {
-            icon = (ImageIcon) it.next();
+            icon = imageIcon;
             maxWidth = Math.max(maxWidth, icon.getIconWidth());
             maxHeight = Math.max(maxHeight, icon.getIconHeight());
         }
@@ -203,10 +224,20 @@ public class ImgPacksPanel extends PacksPanelBase
      */
     public void valueChanged(ListSelectionEvent e)
     {
-        super.valueChanged(e);
+        // this MUST be called before calling the super's valueChanged() since
+        // that method refreshes the tablemodel and thus deselects the 
+        // just selected row
         int i = packsTable.getSelectedRow();
-        if (i >= 0) imgLabel.setIcon((ImageIcon) images.get(i));
-
+        super.valueChanged(e);
+        if (i < 0)
+        {
+            return;
+        }
+        if (i >= 0)
+        {
+            Pack pack = (Pack) idata.availablePacks.get(i);
+            imgLabel.setIcon(images.get(pack.packImgId));
+        }
     }
 
 }

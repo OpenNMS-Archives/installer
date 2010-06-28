@@ -1,7 +1,7 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  *
- * http://izpack.org/ http://developer.berlios.de/projects/izpack/
+ * http://izpack.org/ http://izpack.codehaus.org/
  *
  * Copyright 2006 Marc Eppelmann
  *
@@ -19,42 +19,38 @@ package com.izforge.izpack.util.os.unix;
 
 import com.izforge.izpack.util.FileExecutor;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.StringReader;
-
+import java.io.*;
 import java.util.ArrayList;
 
 /**
  * Helper Methods for unix-systems and derived.
- * 
+ *
  * @author marc.eppelmann&#064;reddot.de
- * @version $Revision: 1816 $
+ * @version $Revision: 2163 $
  */
 public class UnixHelper
 {
 
     // ~ Static fields/initializers *********************************************************
 
-    /** whichCommand = "/usr/bin/which" or so */
+    /**
+     * whichCommand = "/usr/bin/which" or /bin/which
+     */
     public static String whichCommand = FileExecutor.getExecOutput(
-            new String[] { "/usr/bin/env", "which", "which"}, false).trim();
+            new String[]{"/usr/bin/env", "which", "which"}, false).trim();
 
-    public final static String VERSION = "$Revision: 1816 $";
+    public final static String VERSION = "$Revision: 2163 $";
 
     // ~ Methods ****************************************************************************
 
     /**
-     * get the lines from /etc/passwd as Array
-     * 
+     * Get the lines from /etc/passwd as Array
+     *
      * @return the /etc/passwd as String ArrayList
      */
-    public static ArrayList getEtcPasswdArray()
+    public static ArrayList<String> getEtcPasswdArray()
     {
-        ArrayList result = new ArrayList();
+        ArrayList<String> result = new ArrayList<String>();
 
         String line = "";
         BufferedReader reader = null;
@@ -72,45 +68,80 @@ public class UnixHelper
         {
             // ignore - there are maybe no users
         }
+        finally
+        {
+            try
+            {
+                if (reader != null)
+                {
+                    reader.close();
+                }
+            }
+            catch (Exception ignore)
+            {
+                // ignore
+            }
+        }
 
         return result;
     }
 
     /**
-     * get the lines from /etc/passwd as Array
-     * 
+     * Get the YelloyPages (NIS) Users lines from <code>ypcat passwd</code> as Array. Ypcat
+     * passwd's output has the same format as the the local /etc/passwd. Because there can be
+     * thousands of yp-users and this query is net-based, this is a candidate for a token-based
+     * optimization.
+     *
      * @return the /etc/passwd as String ArrayList
      */
-    public static ArrayList getYpPasswdArray()
+    public static ArrayList<String> getYpPasswdArray()
     {
-        ArrayList result = new ArrayList();
+        ArrayList<String> result = new ArrayList<String>();
 
         String line = "";
         BufferedReader reader = null;
+        String ypcommand = getYpCatCommand();
 
-        try
+        if (ypcommand != null && ypcommand.length() > 0)
         {
-            reader = new BufferedReader(new StringReader(FileExecutor.getExecOutput(new String[] {
-                    getYpCatCommand(), "passwd"})));
 
-            while ((line = reader.readLine()) != null)
+            try
             {
-                result.add(line);
+                reader = new BufferedReader(new StringReader(FileExecutor
+                        .getExecOutput(new String[]{ypcommand, "passwd"})));
+                while ((line = reader.readLine()) != null)
+                {
+                    result.add(line);
+                }
+            }
+            catch (Exception e)
+            {
+                // ignore - there are maybe no users
+            }
+            finally
+            {
+                try
+                {
+                    if (reader != null)
+                    {
+                        reader.close();
+                    }
+
+                }
+                catch (Exception i)
+                {
+                    // ignore
+                }
             }
         }
-        catch (Exception e)
-        {
-            // ignore - there are maybe no users
-        }
-
         return result;
     }
 
     /**
-     * Test if KDE is installed. This is done by $>/usr/bin/env konqueror --version This assumes
-     * that the konqueror as a main-app of kde is already installed. If this returns with 0 konqeror
-     * and resp. kde means to be installed,
-     * 
+     * Test if KDE is installed. This is done by <code> $>/usr/bin/env kwin --version</code> This
+     * assumes that kwin, the window Manager, as part of the kde-base package is already installed.
+     * If this returns with 0 kwin resp. kde means to be installed,
+     *
      * @return true if kde is installed otherwise false.
      */
     public static boolean kdeIsInstalled()
@@ -119,17 +150,17 @@ public class UnixHelper
 
         String[] execOut = new String[2];
 
-        int execResult = fe.executeCommand(
-                new String[] { "/usr/bin/env", "konqueror", "--version"}, execOut);
+        int execResult = fe.executeCommand(new String[]{"/usr/bin/env", "kwin", "--version"},
+                execOut);
 
         return execResult == 0;
     }
 
     /**
-     * Gets the absolute Pathe to the cp (Copy) Command. This is necessary, because the command is
+     * Gets the absolute path of the which command. This is necessary, because the command is
      * located at /bin on linux but in /usr/bin on Sun Solaris.
-     * 
-     * @return /bin/cp on linux /usr/bin/cp on solaris
+     *
+     * @return /bin/which on linux /usr/bin/which on solaris
      */
     public static String getWhichCommand()
     {
@@ -137,67 +168,66 @@ public class UnixHelper
     }
 
     /**
-     * Gets the absolute Pathe to the cp (Copy) Command. This is necessary, because the command is
+     * Gets the absolute path of the cp (Copy) command. This is necessary, because the command is
      * located at /bin on linux but in /usr/bin on Sun Solaris.
-     * 
+     *
      * @return /bin/cp on linux /usr/bin/cp on solaris
      */
     public static String getCpCommand()
     {
-        return FileExecutor.getExecOutput(new String[] { getWhichCommand(), "cp"}).trim();
+        return FileExecutor.getExecOutput(new String[]{getWhichCommand(), "cp"}).trim();
     }
 
     /**
-     * Gets the absolute Pathe to the su (SuperUser) Command. This is necessary, because the command
+     * Gets the absolute path to the su (SuperUser) command. This is necessary, because the command
      * is located at /bin on linux but in /usr/bin on Sun Solaris.
-     * 
+     *
      * @return /bin/su on linux /usr/bin/su on solaris
      */
     public static String getSuCommand()
     {
-        return FileExecutor.getExecOutput(new String[] { getWhichCommand(), "su"}).trim();
+        return FileExecutor.getExecOutput(new String[]{getWhichCommand(), "su"}).trim();
     }
 
     /**
      * Gets the absolute Pathe to the rm (Remove) Command. This is necessary, because the command is
      * located at /bin on linux but in /usr/bin on Sun Solaris.
-     * 
+     *
      * @return /bin/rm on linux /usr/bin/rm on solaris
      */
     public static String getRmCommand()
     {
-        return FileExecutor.getExecOutput(new String[] { whichCommand, "rm"}).trim();
+        return FileExecutor.getExecOutput(new String[]{whichCommand, "rm"}).trim();
     }
 
     /**
      * Gets the absolute Pathe to the ypcat (YellowPage/NIS Cat) Command. This is necessary, because
      * the command is located at /bin on linux but in /usr/bin on Sun Solaris.
-     * 
+     *
      * @return /bin/ypcat on linux /usr/bin/ypcat on solaris
      */
     public static String getYpCatCommand()
     {
-        return FileExecutor.getExecOutput(new String[] { whichCommand, "ypcat"}).trim();
+        return FileExecutor.getExecOutput(new String[]{whichCommand, "ypcat"}).trim();
     }
 
     /**
-     * Gets the absolute Pathe to the ypcat (YellowPage/NIS Cat) Command. This is necessary, because
-     * the command is located at /bin on linux but in /usr/bin on Sun Solaris.
-     * 
+     * Gets the absolute Pathe to the given custom command. This is necessary, because the command
+     * may be located at /bin on linux but in /usr/bin on Sun Solaris. Which can locate it in your
+     * $PATH for you.
+     *
      * @param aCommand a Custom Command
-     * 
-     * @return /bin/ypcat on linux /usr/bin/ypcat on solaris
+     * @return /bin/aCommand on linux /usr/bin/aCommand on solaris
      */
     public static String getCustomCommand(String aCommand)
     {
-        return FileExecutor.getExecOutput(new String[] { whichCommand, aCommand}).trim();
+        return FileExecutor.getExecOutput(new String[]{whichCommand, aCommand}).trim();
     }
 
     /**
-     * Standalone Test Main Method call with : &gt; java -cp
-     * ../bin/panels/UserInputPanel.jar:../_dist/IzPack-install-3.9.0-preview1.jar
+     * Standalone Test Main Method call with : &gt; java -cp ../_build
      * com.izforge.izpack.util.os.unix.UnixHelper
-     * 
+     *
      * @param args commandline args
      */
     public static void main(String[] args)
@@ -207,7 +237,7 @@ public class UnixHelper
         // System.out.println( StringTool.stringArrayListToString(UnixUsers.getUsersAsArrayList())
         // );
 
-        //System.out.println("Kde is" + (kdeIsInstalled() ? " " : " not ") + "installed");
+        // System.out.println("Kde is" + (kdeIsInstalled() ? " " : " not ") + "installed");
 
         System.out.println("WhichCommand: '" + getWhichCommand() + "'");
         System.out.println("SuCommand: " + getSuCommand());
@@ -231,41 +261,69 @@ public class UnixHelper
         }
 
         System.out.println("Tempfile: " + tempFile.toString());
+        System.out.println("TempfileName: " + tempFile.getName());
 
         // This does not work :-(
         /*
          * FileExecutor.getExecOutput(new String[] { getCustomCommand("echo"), "Hallo", ">",
          * tempFile.toString()});
          */
+        String username = System.getProperty("user.name");
 
+        // System.out.println("Your Name: " + username);
         // so try:
-        try
+        if ("root".equals(username))
         {
-            BufferedWriter w = new BufferedWriter(  new FileWriter(tempFile) );
-            w.write("Hallo");
-            w.flush();
-            w.close();
-            if( tempFile.exists() )
-              System.out.println("Wrote: " + tempFile + ">>Hallo");
-            else
-                System.out.println("Could not Wrote: " + tempFile + "Hallo");
+            try
+            {
+                BufferedWriter w = new BufferedWriter(new FileWriter(tempFile));
+                w.write("Hallo");
+                w.flush();
+                w.close();
+                if (tempFile.exists())
+                {
+                    System.out.println("Wrote: " + tempFile + ">>Hallo");
+                }
+                else
+                {
+                    System.out.println("Could not Wrote: " + tempFile + "Hallo");
+                }
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+
+            String destfilename = "/home/marc.eppelmann" + File.separator + "Desktop"
+                    + File.separator + tempFile.getName();
+
+            System.out.println("Copy: " + tempFile.toString() + " to " + destfilename);
+
+            ShellScript s = new ShellScript("bash");
+
+            s.append(getSuCommand() + " " + "marc.eppelmann" + " " + "-c" + " " + "\""
+                    + getCpCommand() + " " + tempFile.toString() + " " + destfilename + "\"");
+
+            String shLocation = "/tmp/x.21.21";
+            try
+            {
+                shLocation = File.createTempFile(UnixHelper.class.getName(),
+                        Long.toString(System.currentTimeMillis()) + ".sh").toString();
+            }
+            catch (Exception x)
+            {
+                x.printStackTrace();
+            }
+            s.write(shLocation);
+            s.exec();
+
+            // File deleteMe = new File( shLocation ); deleteMe.delete();
+
         }
-        catch (Exception e)
+        else
         {
-            e.printStackTrace();
+            System.out.println("Your name: '" + username
+                    + "' is not 'root'. But this is a test for the user root.");
         }
-        // tempFile
-
-        String destfilename = "/home/marc.eppelmann" + File.separator + "Desktop" ;
-
-        System.out.println("Copy: " + tempFile.toString() + " to " + destfilename);
-
-        String result = FileExecutor.getExecOutput(new String[] { getSuCommand(), "marc.eppelmann", "-c",
-                "\"" + getCpCommand() + " " + tempFile.toString() + " " + destfilename + "\""});
-        
-        System.out.println("Wrote: " + tempFile.toString() + " to " + destfilename + " > " + result);
-
-        // getYpPasswdArray();
-        // System.out.println("/bin/bash".endsWith("sh"));
     }
 }

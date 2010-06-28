@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,86 +19,83 @@
 
 package com.izforge.izpack.uninstaller;
 
-import java.awt.Color;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.GraphicsEnvironment;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.Point;
-import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseMotionAdapter;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import com.izforge.izpack.LocaleDatabase;
+import com.izforge.izpack.gui.ButtonFactory;
+import com.izforge.izpack.gui.IconsDatabase;
+import com.izforge.izpack.util.AbstractUIHandler;
+import com.izforge.izpack.util.Housekeeper;
+
+import javax.swing.*;
+
+import java.awt.*;
+import java.awt.event.*;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JProgressBar;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-
-import com.izforge.izpack.LocaleDatabase;
-import com.izforge.izpack.gui.ButtonFactory;
-import com.izforge.izpack.gui.IconsDatabase;
-import com.izforge.izpack.util.AbstractUIHandler;
-
 /**
  * The uninstaller frame class.
- * 
+ *
  * @author Julien Ponge
  */
 public class UninstallerFrame extends JFrame
 {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 3257281444152684850L;
 
-    /** The icons database. */
+    /**
+     * The icons database.
+     */
     private IconsDatabase icons;
 
-    /** The language pack. */
+    /**
+     * The language pack.
+     */
     protected static LocaleDatabase langpack;
 
-    /** The target destroy checkbox. */
+    /**
+     * The target destroy checkbox.
+     */
     protected JCheckBox targetDestroyCheckbox;
 
-    /** The progress bar. */
+    /**
+     * The progress bar.
+     */
     protected JProgressBar progressBar;
 
-    /** The destroy button. */
+    /**
+     * The destroy button.
+     */
     protected JButton destroyButton;
 
-    /** The quit button. */
+    /**
+     * The quit button.
+     */
     protected JButton quitButton;
 
-    /** The buttons hover color. */
+    /**
+     * The buttons hover color.
+     */
     private Color buttonsHColor = new Color(230, 230, 230);
 
-    /** The installation path. */
+    /**
+     * The installation path.
+     */
     protected String installPath;
 
     /**
      * The constructor.
-     * 
-     * @exception Exception Description of the Exception
+     *
+     * @param displayForceOption If true, display to the user the option permitting to force
+     *                           all files deletion.
+     * @param forceOptionState   If true, force deletion is activated.
+     * @throws Exception Description of the Exception
      */
-    public UninstallerFrame() throws Exception
+    public UninstallerFrame(boolean displayForceOption, boolean forceOptionState) throws Exception
     {
         super("IzPack - Uninstaller");
 
@@ -115,7 +112,7 @@ public class UninstallerFrame extends JFrame
         setIconImage(icons.getImageIcon("JFrameIcon").getImage());
 
         // We build the GUI & show it
-        buildGUI();
+        buildGUI(displayForceOption, forceOptionState);
         addWindowListener(new WindowHandler());
         pack();
         centerFrame(this);
@@ -123,8 +120,14 @@ public class UninstallerFrame extends JFrame
         setVisible(true);
     }
 
-    /** Builds the GUI. */
-    private void buildGUI()
+    /**
+     * Builds the GUI.
+     *
+     * @param displayForceOption If true, display to the user the option permitting to force
+     *                           all files deletion.
+     * @param forceOptionState   If true, force deletion is activated.
+     */
+    private void buildGUI(boolean displayForceOption, boolean forceOptionState)
     {
         // We initialize our layout
         JPanel contentPane = (JPanel) getContentPane();
@@ -138,9 +141,15 @@ public class UninstallerFrame extends JFrame
 
         // Prepares the glass pane to block gui interaction when needed
         JPanel glassPane = (JPanel) getGlassPane();
-        glassPane.addMouseListener(new MouseAdapter() {});
-        glassPane.addMouseMotionListener(new MouseMotionAdapter() {});
-        glassPane.addKeyListener(new KeyAdapter() {});
+        glassPane.addMouseListener(new MouseAdapter()
+        {
+        });
+        glassPane.addMouseMotionListener(new MouseMotionAdapter()
+        {
+        });
+        glassPane.addKeyListener(new KeyAdapter()
+        {
+        });
 
         // We set-up the buttons factory
         ButtonFactory.useButtonIcons();
@@ -157,10 +166,13 @@ public class UninstallerFrame extends JFrame
         contentPane.add(warningLabel);
 
         targetDestroyCheckbox = new JCheckBox(langpack.getString("uninstaller.destroytarget")
-                + installPath, false);
+                + installPath, forceOptionState);
         buildConstraints(gbConstraints, 0, 1, 2, 1, 1.0, 0.0);
         layout.addLayoutComponent(targetDestroyCheckbox, gbConstraints);
-        contentPane.add(targetDestroyCheckbox);
+        if (displayForceOption)
+        {
+            contentPane.add(targetDestroyCheckbox);
+        }
         gbConstraints.fill = GridBagConstraints.HORIZONTAL;
 
         progressBar = new JProgressBar();
@@ -191,7 +203,7 @@ public class UninstallerFrame extends JFrame
 
     /**
      * Centers a window on screen.
-     * 
+     *
      * @param frame The window to center.
      */
     private void centerFrame(Window frame)
@@ -204,17 +216,17 @@ public class UninstallerFrame extends JFrame
 
     /**
      * Sets the parameters of a GridBagConstraints object.
-     * 
+     *
      * @param gbc The constraints object.
-     * @param gx The x coordinates.
-     * @param gy The y coordinates.
-     * @param gw The width.
-     * @param wx The x wheight.
-     * @param wy The y wheight.
-     * @param gh Description of the Parameter
+     * @param gx  The x coordinates.
+     * @param gy  The y coordinates.
+     * @param gw  The width.
+     * @param wx  The x wheight.
+     * @param wy  The y wheight.
+     * @param gh  Description of the Parameter
      */
     private void buildConstraints(GridBagConstraints gbc, int gx, int gy, int gw, int gh,
-            double wx, double wy)
+                                  double wx, double wy)
     {
         gbc.gridx = gx;
         gbc.gridy = gy;
@@ -226,8 +238,8 @@ public class UninstallerFrame extends JFrame
 
     /**
      * Gets the installation path from the log file.
-     * 
-     * @exception Exception Description of the Exception
+     *
+     * @throws Exception Description of the Exception
      */
     private void getInstallPath() throws Exception
     {
@@ -240,8 +252,8 @@ public class UninstallerFrame extends JFrame
 
     /**
      * Loads the icons.
-     * 
-     * @exception Exception Description of the Exception
+     *
+     * @throws Exception Description of the Exception
      */
     private void loadIcons() throws Exception
     {
@@ -268,7 +280,9 @@ public class UninstallerFrame extends JFrame
         icons.put("JFrameIcon", img);
     }
 
-    /** Blocks GUI interaction. */
+    /**
+     * Blocks GUI interaction.
+     */
     public void blockGUI()
     {
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
@@ -276,7 +290,9 @@ public class UninstallerFrame extends JFrame
         getGlassPane().setEnabled(true);
     }
 
-    /** Releases GUI interaction. */
+    /**
+     * Releases GUI interaction.
+     */
     public void releaseGUI()
     {
         getGlassPane().setEnabled(false);
@@ -286,7 +302,7 @@ public class UninstallerFrame extends JFrame
 
     /**
      * The window events handler.
-     * 
+     *
      * @author Julien Ponge
      */
     private final class WindowHandler extends WindowAdapter
@@ -294,21 +310,21 @@ public class UninstallerFrame extends JFrame
 
         /**
          * We can't avoid the exit here, so don't call exit elsewhere.
-         * 
+         *
          * @param e The event.
          */
         public void windowClosing(WindowEvent e)
         {
-            System.exit(0);
+            Housekeeper.getInstance().shutDown(0);
         }
     }
 
     /**
      * The destroyer handler.
-     * 
+     * <p/>
      * This class also implements the InstallListener because the FileExecutor needs it. TODO: get
      * rid of the InstallListener - implement generic Listener
-     * 
+     *
      * @author Julien Ponge
      * @author Tino Schwarze
      */
@@ -318,26 +334,30 @@ public class UninstallerFrame extends JFrame
 
         /**
          * The destroyer starts.
-         * 
+         *
          * @param name The name of the overall action. Not used here.
-         * @param max The maximum value of the progress.
+         * @param max  The maximum value of the progress.
          */
         public void startAction(final String name, final int max)
         {
-            SwingUtilities.invokeLater(new Runnable() {
+            SwingUtilities.invokeLater(new Runnable()
+            {
                 public void run()
                 {
                     progressBar.setMinimum(0);
                     progressBar.setMaximum(max);
-                    blockGUI();                    
+                    blockGUI();
                 }
             });
         }
 
-        /** The destroyer stops. */
+        /**
+         * The destroyer stops.
+         */
         public void stopAction()
         {
-            SwingUtilities.invokeLater(new Runnable() {
+            SwingUtilities.invokeLater(new Runnable()
+            {
                 public void run()
                 {
                     progressBar.setString(langpack.getString("InstallPanel.finished"));
@@ -350,13 +370,14 @@ public class UninstallerFrame extends JFrame
 
         /**
          * The destroyer progresses.
-         * 
-         * @param pos The actual position.
+         *
+         * @param pos     The actual position.
          * @param message The message.
          */
         public void progress(final int pos, final String message)
         {
-            SwingUtilities.invokeLater(new Runnable() {
+            SwingUtilities.invokeLater(new Runnable()
+            {
                 public void run()
                 {
                     progressBar.setValue(pos);
@@ -365,15 +386,27 @@ public class UninstallerFrame extends JFrame
             });
         }
 
+        /**
+         * {@inheritDoc}
+         */
         public void nextStep(String step_name, int step_no, int no_of_substeps)
         {
+            // not used
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        public void setSubStepNo(int no_of_substeps)
+        {
+            // not used
         }
 
         /**
          * Output a notification.
-         * 
+         * <p/>
          * Does nothing here.
-         * 
+         *
          * @param text
          */
         public void emitNotification(String text)
@@ -382,7 +415,7 @@ public class UninstallerFrame extends JFrame
 
         /**
          * Output a warning.
-         * 
+         *
          * @param text
          */
         public boolean emitWarning(String title, String text)
@@ -393,7 +426,7 @@ public class UninstallerFrame extends JFrame
 
         /**
          * The destroyer encountered an error.
-         * 
+         *
          * @param error The error message.
          */
         public void emitError(String title, String error)
@@ -401,16 +434,24 @@ public class UninstallerFrame extends JFrame
             progressBar.setString(error);
             JOptionPane.showMessageDialog(null, error, title, JOptionPane.OK_CANCEL_OPTION);
         }
+        
+        /**
+         * The destroyer encountered an error.
+         * 
+         * @param error The error message.
+         */
+        public void emitErrorAndBlockNext(String title, String error)
+        {
+            emitError(title, error);
+        }
 
         /**
          * Ask the user a question.
-         * 
-         * @param title Message title.
+         *
+         * @param title    Message title.
          * @param question The question.
-         * @param choices The set of choices to present.
-         * 
+         * @param choices  The set of choices to present.
          * @return The user's choice.
-         * 
          * @see AbstractUIHandler#askQuestion(String, String, int)
          */
         public int askQuestion(String title, String question, int choices)
@@ -420,12 +461,11 @@ public class UninstallerFrame extends JFrame
 
         /**
          * Ask the user a question.
-         * 
-         * @param title Message title.
-         * @param question The question.
-         * @param choices The set of choices to present.
+         *
+         * @param title          Message title.
+         * @param question       The question.
+         * @param choices        The set of choices to present.
          * @param default_choice The default choice. (-1 = no default choice)
-         * 
          * @return The user's choice.
          * @see AbstractUIHandler#askQuestion(String, String, int, int)
          */
@@ -434,18 +474,31 @@ public class UninstallerFrame extends JFrame
             int jo_choices = 0;
 
             if (choices == AbstractUIHandler.CHOICES_YES_NO)
+            {
                 jo_choices = JOptionPane.YES_NO_OPTION;
+            }
             else if (choices == AbstractUIHandler.CHOICES_YES_NO_CANCEL)
+            {
                 jo_choices = JOptionPane.YES_NO_CANCEL_OPTION;
+            }
 
-            int user_choice = JOptionPane.showConfirmDialog(null, (Object) question, title,
+            int user_choice = JOptionPane.showConfirmDialog(null, question, title,
                     jo_choices, JOptionPane.QUESTION_MESSAGE);
 
-            if (user_choice == JOptionPane.CANCEL_OPTION) return AbstractUIHandler.ANSWER_CANCEL;
+            if (user_choice == JOptionPane.CANCEL_OPTION)
+            {
+                return AbstractUIHandler.ANSWER_CANCEL;
+            }
 
-            if (user_choice == JOptionPane.YES_OPTION) return AbstractUIHandler.ANSWER_YES;
+            if (user_choice == JOptionPane.YES_OPTION)
+            {
+                return AbstractUIHandler.ANSWER_YES;
+            }
 
-            if (user_choice == JOptionPane.NO_OPTION) return AbstractUIHandler.ANSWER_NO;
+            if (user_choice == JOptionPane.NO_OPTION)
+            {
+                return AbstractUIHandler.ANSWER_NO;
+            }
 
             return default_choice;
         }
@@ -454,7 +507,7 @@ public class UninstallerFrame extends JFrame
 
     /**
      * The actions events handler.
-     * 
+     *
      * @author Julien Ponge
      */
     class ActionsHandler implements ActionListener
@@ -462,14 +515,16 @@ public class UninstallerFrame extends JFrame
 
         /**
          * Action handling method.
-         * 
+         *
          * @param e The event.
          */
         public void actionPerformed(ActionEvent e)
         {
             Object src = e.getSource();
             if (src == quitButton)
-                System.exit(0);
+            {
+                Housekeeper.getInstance().shutDown(0);
+            }
             else if (src == destroyButton)
             {
                 destroyButton.setEnabled(false);
@@ -482,7 +537,7 @@ public class UninstallerFrame extends JFrame
 
     /**
      * Returns the langpack.
-     * 
+     *
      * @return Returns the langpack.
      */
     public static LocaleDatabase getLangpack()

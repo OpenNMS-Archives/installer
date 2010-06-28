@@ -1,9 +1,9 @@
 /*
  * $Id: copyright-notice-template 1421 2006-03-12 16:32:32Z jponge $
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  *
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  *
  * Copyright 2006 Marc Eppelmann (marc.eppelmann&#064;gmx.de)
  *
@@ -25,17 +25,11 @@ import com.izforge.izpack.ExecutableFile;
 import com.izforge.izpack.installer.AutomatedInstallData;
 import com.izforge.izpack.installer.PanelAutomation;
 import com.izforge.izpack.installer.UninstallData;
-import com.izforge.izpack.util.Debug;
-import com.izforge.izpack.util.FileExecutor;
-import com.izforge.izpack.util.OsConstraint;
-import com.izforge.izpack.util.OsVersion;
-import com.izforge.izpack.util.TargetFactory;
+import com.izforge.izpack.util.*;
 import com.izforge.izpack.util.os.Shortcut;
-
-import net.n3.nanoxml.XMLElement;
+import com.izforge.izpack.adaptator.IXMLElement;
 
 import java.io.File;
-
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Vector;
@@ -43,7 +37,7 @@ import java.util.Vector;
 /**
  * The ShortcutPanelAutomationHelper is responsible to create Shortcuts during the automated
  * installation. Most code comes copied from the ShortcutPanel
- * 
+ *
  * @author Marc Eppelmann (marc.eppelmann&#064;gmx.de)
  * @version $Revision: 1540 $
  */
@@ -54,26 +48,25 @@ public class ShortcutPanelAutomationHelper implements PanelAutomation
 
     /**
      * dummy method
-     * 
-     * @param idata DOCUMENT ME!
+     *
+     * @param idata     DOCUMENT ME!
      * @param panelRoot DOCUMENT ME!
      */
-    public void makeXMLData(AutomatedInstallData idata, XMLElement panelRoot)
+    public void makeXMLData(AutomatedInstallData idata, IXMLElement panelRoot)
     {
         Debug.log(this.getClass().getName() + "::entering makeXMLData()");
 
-        // ShortcutPanel.getInstance().makeXMLData( idata, panelRoot );
+        // not used here - during automatic installation, no automatic
+        // installation information is generated
     }
 
     /**
      * Implementation of the Shortcut Specific Automation Code
-     * 
+     *
      * @param installData DOCUMENT ME!
-     * @param panelRoot DOCUMENT ME!
-     * 
-     * @return DOCUMENT ME!
+     * @param panelRoot   DOCUMENT ME!
      */
-    public boolean runAutomated(AutomatedInstallData installData, XMLElement panelRoot)
+    public void runAutomated(AutomatedInstallData installData, IXMLElement panelRoot)
     {
         Shortcut shortcut;
 
@@ -81,16 +74,16 @@ public class ShortcutPanelAutomationHelper implements PanelAutomation
          * A list of ShortcutData> objects. Each object is the complete specification for one
          * shortcut that must be created.
          */
-        Vector shortcuts = new Vector();
+        Vector<ShortcutData> shortcuts = new Vector<ShortcutData>();
 
-        Vector execFiles = new Vector();
+        Vector<ExecutableFile> execFiles = new Vector<ExecutableFile>();
 
         /**
          * Holds a list of all the shortcut files that have been created. Note: this variable
          * contains valid data only after createShortcuts() has been called. This list is created so
          * that the files can be added to the uninstaller.
          */
-        Vector files = new Vector();
+        Vector<String> files = new Vector<String>();
 
         Debug.log(this.getClass().getName() + " Entered runAutomated()");
 
@@ -105,7 +98,7 @@ public class ShortcutPanelAutomationHelper implements PanelAutomation
             Debug.log("Could not create shortcut instance");
             exception.printStackTrace();
 
-            return true;
+            return;
         }
 
         // ----------------------------------------------------
@@ -117,28 +110,32 @@ public class ShortcutPanelAutomationHelper implements PanelAutomation
         {
             Debug.log("shortcuts not supported here");
 
-            return true;
+            return;
         }
 
         if (!OsConstraint.oneMatchesCurrentSystem(panelRoot))
         {
             Debug.log("Shortcuts Not oneMatchesCurrentSystem");
 
-            return true;
+            return;
         }
 
-        shortcuts = new Vector();
+        shortcuts = new Vector<ShortcutData>();
 
-        Vector shortcutElements;
+        Vector<IXMLElement> shortcutElements;
         ShortcutData data;
-        XMLElement dataElement;
+        IXMLElement dataElement;
 
         // ----------------------------------------------------
         // set the name of the program group
         // ----------------------------------------------------
         dataElement = panelRoot.getFirstChildNamed(ShortcutPanel.AUTO_KEY_PROGRAM_GROUP);
+        String groupName = null;
 
-        String groupName = dataElement.getAttribute(ShortcutPanel.AUTO_ATTRIBUTE_NAME);
+        if (dataElement != null)
+        {
+            groupName = dataElement.getAttribute(ShortcutPanel.AUTO_ATTRIBUTE_NAME);
+        }
 
         if (groupName == null)
         {
@@ -154,16 +151,16 @@ public class ShortcutPanelAutomationHelper implements PanelAutomation
         {
             Debug.log(this.getClass().getName() + "runAutomated:shortcutElements " + i);
             data = new ShortcutData();
-            dataElement = (XMLElement) shortcutElements.elementAt(i);
+            dataElement = shortcutElements.elementAt(i);
 
             data.name = dataElement.getAttribute(ShortcutPanel.AUTO_ATTRIBUTE_NAME);
             data.addToGroup = Boolean.valueOf(
-                    dataElement.getAttribute(ShortcutPanel.AUTO_ATTRIBUTE_GROUP)).booleanValue();
+                    dataElement.getAttribute(ShortcutPanel.AUTO_ATTRIBUTE_GROUP));
 
             if (OsVersion.IS_WINDOWS)
             {
                 data.type = Integer.valueOf(
-                        dataElement.getAttribute(ShortcutPanel.AUTO_ATTRIBUTE_TYPE)).intValue();
+                        dataElement.getAttribute(ShortcutPanel.AUTO_ATTRIBUTE_TYPE));
             }
             else
             {
@@ -174,10 +171,9 @@ public class ShortcutPanelAutomationHelper implements PanelAutomation
             data.description = dataElement.getAttribute(ShortcutPanel.AUTO_ATTRIBUTE_DESCRIPTION);
             data.iconFile = dataElement.getAttribute(ShortcutPanel.AUTO_ATTRIBUTE_ICON);
             data.iconIndex = Integer.valueOf(
-                    dataElement.getAttribute(ShortcutPanel.AUTO_ATTRIBUTE_ICON_INDEX)).intValue();
+                    dataElement.getAttribute(ShortcutPanel.AUTO_ATTRIBUTE_ICON_INDEX));
             data.initialState = Integer.valueOf(
-                    dataElement.getAttribute(ShortcutPanel.AUTO_ATTRIBUTE_INITIAL_STATE))
-                    .intValue();
+                    dataElement.getAttribute(ShortcutPanel.AUTO_ATTRIBUTE_INITIAL_STATE));
             data.target = dataElement.getAttribute(ShortcutPanel.AUTO_ATTRIBUTE_TARGET);
             data.workingDirectory = dataElement
                     .getAttribute(ShortcutPanel.AUTO_ATTRIBUTE_WORKING_DIR);
@@ -208,11 +204,11 @@ public class ShortcutPanelAutomationHelper implements PanelAutomation
 
             data.TryExec = dataElement.getAttribute(ShortcutPanel.SPEC_TRYEXEC, "");
 
-            data.createForAll = new Boolean(dataElement.getAttribute(ShortcutPanel.CREATE_FOR_ALL,
+            data.createForAll = Boolean.valueOf(dataElement.getAttribute(ShortcutPanel.CREATE_FOR_ALL,
                     "false"));
             data.userType = Integer.valueOf(
                     dataElement.getAttribute(ShortcutPanel.USER_TYPE, Integer
-                            .toString(Shortcut.CURRENT_USER))).intValue();
+                            .toString(Shortcut.CURRENT_USER)));
             // END LINUX
             shortcuts.add(data);
         }
@@ -222,13 +218,13 @@ public class ShortcutPanelAutomationHelper implements PanelAutomation
         // ShortcutData data;
         for (int i = 0; i < shortcuts.size(); i++)
         {
-            data = (ShortcutData) shortcuts.elementAt(i);
+            data = shortcuts.elementAt(i);
 
             try
             {
-                if( data.subgroup!=null )
+                if (data.subgroup != null)
                 {
-                  groupName = groupName + data.subgroup;
+                    groupName = groupName + data.subgroup;
                 }
                 shortcut.setUserType(data.userType);
                 shortcut.setLinkName(data.name);
@@ -283,11 +279,11 @@ public class ShortcutPanelAutomationHelper implements PanelAutomation
 
                     File file = new File(fileName);
                     File base = new File(shortcut.getBasePath());
-                    Vector intermediates = new Vector();
+                    Vector<File> intermediates = new Vector<File>();
 
                     // String directoryName = shortcut.getDirectoryCreated ();
                     execFiles.add(new ExecutableFile(fileName, ExecutableFile.UNINSTALL,
-                            ExecutableFile.IGNORE, new ArrayList(), false));
+                            ExecutableFile.IGNORE, new ArrayList<OsConstraint>(), false));
 
                     files.add(fileName);
 
@@ -303,7 +299,7 @@ public class ShortcutPanelAutomationHelper implements PanelAutomation
 
                     if (file != null)
                     {
-                        Enumeration filesEnum = intermediates.elements();
+                        Enumeration<File> filesEnum = intermediates.elements();
 
                         while (filesEnum.hasMoreElements())
                         {
@@ -312,11 +308,11 @@ public class ShortcutPanelAutomationHelper implements PanelAutomation
                     }
                 }
                 catch (Exception exception)
-                {}
+                {
+                }
             }
             catch (Throwable exception)
             {
-                continue;
             }
         }
 
@@ -354,13 +350,11 @@ public class ShortcutPanelAutomationHelper implements PanelAutomation
 
         for (int i = 0; i < files.size(); i++)
         {
-            uninstallData.addFile((String) files.elementAt(i));
+            uninstallData.addFile(files.elementAt(i), true);
             System.out.print(".");
             System.out.flush();
         }
 
         System.out.println(" done. ]");
-
-        return true;
     }
 }

@@ -1,50 +1,53 @@
-/*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
- *
- * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
- *
- * Copyright 2007 Dennis Reil
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+/* 
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved. 
+ * 
+ * http://izpack.org/ 
+ * http://izpack.codehaus.org/ 
+ * 
+ * Copyright 2007 Dennis Reil 
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); 
+ * you may not use this file except in compliance with the License. 
+ * You may obtain a copy of the License at 
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0 
+ * 
+ * Unless required by applicable law or agreed to in writing, software 
+ * distributed under the License is distributed on an "AS IS" BASIS, 
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+ * See the License for the specific language governing permissions and 
+ * limitations under the License. 
  */
 package com.izforge.izpack.rules;
 
-import net.n3.nanoxml.XMLElement;
-
 import com.izforge.izpack.util.Debug;
+import com.izforge.izpack.adaptator.IXMLElement;
 
 /**
  * @author Dennis Reil, <Dennis.Reil@reddot.de>
  * @version $Id: XOrCondition.java,v 1.1 2006/09/29 14:40:38 dennis Exp $
  */
-public class XOrCondition extends OrCondition
+public class XorCondition extends OrCondition
 {
 
-    /**
-     * 
+    /** 
+      * 
      */
-    public XOrCondition()
+    private static final long serialVersionUID = 3148555083095194992L;
+
+    /** 
+    * 
+   */
+    public XorCondition()
     {
         super();
-        // TODO Auto-generated constructor stub
     }
 
     /**
      * @param operand1
      * @param operand2
      */
-    public XOrCondition(Condition operand1, Condition operand2)
+    public XorCondition(Condition operand1, Condition operand2)
     {
         super(operand1, operand2);
     }
@@ -52,28 +55,9 @@ public class XOrCondition extends OrCondition
     /*
      * (non-Javadoc)
      * 
-     * @see de.reddot.installer.util.OrCondition#isTrue()
-     */
-    /*
-    public boolean isTrue(Properties variables)
-    {
-        boolean op1true = leftoperand.isTrue(variables);
-        boolean op2true = rightoperand.isTrue(variables);
-
-        if (op1true && op2true)
-        {
-            // in case where both are true
-            return false;
-        }
-        return op1true || op2true;
-    }
-    */
-    /*
-     * (non-Javadoc)
-     * 
      * @see de.reddot.installer.rules.Condition#readFromXML(net.n3.nanoxml.XMLElement)
      */
-    public void readFromXML(XMLElement xmlcondition)
+    public void readFromXML(IXMLElement xmlcondition)
     {
         try
         {
@@ -93,6 +77,14 @@ public class XOrCondition extends OrCondition
 
     public boolean isTrue()
     {
+        if ((this.leftoperand == null) || (this.rightoperand == null))
+        {
+            Debug.trace("Operands of condition " + this.id + " not initialized correctly.");
+            return false;
+        }
+        this.leftoperand.setInstalldata(this.installdata);
+        this.rightoperand.setInstalldata(this.installdata);
+
         boolean op1true = leftoperand.isTrue();
         boolean op2true = rightoperand.isTrue();
 
@@ -105,17 +97,19 @@ public class XOrCondition extends OrCondition
     }
 
     /*
-    public boolean isTrue(Properties variables, List selectedpacks)
+     * (non-Javadoc)
+     * 
+     * @see com.izforge.izpack.rules.OrCondition#getDependenciesDetails()
+     */
+    public String getDependenciesDetails()
     {
-        boolean op1true = leftoperand.isTrue(variables, selectedpacks);
-        boolean op2true = rightoperand.isTrue(variables, selectedpacks);
-
-        if (op1true && op2true)
-        {
-            // in case where both are true
-            return false;
-        }
-        return op1true || op2true;
+        StringBuffer details = new StringBuffer();
+        details.append(this.id);
+        details.append(" depends on:<ul><li>");
+        details.append(leftoperand.getDependenciesDetails());
+        details.append("</li> XOR <li>");
+        details.append(rightoperand.getDependenciesDetails());
+        details.append("</li></ul>");
+        return details.toString();
     }
-    */
 }

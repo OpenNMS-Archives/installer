@@ -1,9 +1,9 @@
 /*
- * $Id: IzPanel.java 1816 2007-04-23 19:57:27Z jponge $
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * $Id: IzPanel.java 2692 2009-03-25 09:29:40Z fbuehlmann $
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,31 +19,41 @@
  */
 package com.izforge.izpack.installer;
 
+import java.awt.*;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.LookAndFeel;
+import javax.swing.SwingConstants;
+import javax.swing.UIManager;
+import javax.swing.plaf.metal.MetalLookAndFeel;
+
 import com.izforge.izpack.Panel;
 import com.izforge.izpack.gui.LabelFactory;
 import com.izforge.izpack.gui.LayoutConstants;
+import com.izforge.izpack.panels.HelpWindow;
 import com.izforge.izpack.util.AbstractUIHandler;
 import com.izforge.izpack.util.Debug;
 import com.izforge.izpack.util.MultiLineLabel;
 import com.izforge.izpack.util.VariableSubstitutor;
-import net.n3.nanoxml.XMLElement;
-
-import javax.swing.*;
-import javax.swing.plaf.metal.MetalLookAndFeel;
-import java.awt.*;
+import com.izforge.izpack.adaptator.IXMLElement;
 
 /**
  * Defines the base class for the IzPack panels. Any panel should be a subclass of it and should
- * belong to the <code>com.izforge.izpack.panels</code> package.
- * Since IzPack version 3.9 the layout handling will be delegated to the class
- * LayoutHelper which can be accessed by <code>getLayoutHelper</code>.
- * There are some layout helper methods in this class which will be exist some time longer,
- * but they are deprecated. At a redesign or new panel use the layout helper.
- * There is a special layout manager for IzPanels. This layout manager will be supported
- * by the layout helper. There are some points which should be observed at layouting.
- * One point e.g. is the anchor. All IzPanels have to be able to use different anchors, as
- * minimum CENTER and NORTHWEST. 
- * To use a consistent appearance use this special layout manger and not others.
+ * belong to the <code>com.izforge.izpack.panels</code> package. Since IzPack version 3.9 the
+ * layout handling will be delegated to the class LayoutHelper which can be accessed by
+ * <code>getLayoutHelper</code>. There are some layout helper methods in this class which will be
+ * exist some time longer, but they are deprecated. At a redesign or new panel use the layout
+ * helper. There is a special layout manager for IzPanels. This layout manager will be supported by
+ * the layout helper. There are some points which should be observed at layouting. One point e.g. is
+ * the anchor. All IzPanels have to be able to use different anchors, as minimum CENTER and
+ * NORTHWEST. To use a consistent appearance use this special layout manger and not others.
  * 
  * @author Julien Ponge
  * @author Klaus Bartz
@@ -53,10 +63,14 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
 
     private static final long serialVersionUID = 3256442495255786038L;
 
-    /** The helper object which handles layout */
+    /**
+     * The helper object which handles layout
+     */
     protected LayoutHelper layoutHelper;
-    
-    /** The component which should get the focus at activation */
+
+    /**
+     * The component which should get the focus at activation
+     */
     protected Component initialFocus = null;
 
     /**
@@ -64,45 +78,82 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
      */
     protected InstallData idata;
 
-    /** The parent IzPack installer frame. */
+    /**
+     * The parent IzPack installer frame.
+     */
     protected InstallerFrame parent;
-    
-    /** i.e. "com.izforge.izpack.panels.HelloPanel" */
+
+    /**
+     * i.e. "com.izforge.izpack.panels.HelloPanel"
+     */
     protected String myFullClassname;
 
-    /** myClassname=i.e "FinishPanel" */
+    /**
+     * myClassname=i.e "FinishPanel"
+     */
     protected String myClassname;
 
-    /** i.e. "FinishPanel." useFull for getString() */
+    /**
+     * i.e. "FinishPanel." useFull for getString()
+     */
     protected String myPrefix;
 
-    /** internal headline string */
+    /**
+     * internal headline string
+     */
     protected String headline;
-    
-    /** internal headline Label */
+
+    /**
+     * internal headline Label
+     */
     protected JLabel headLineLabel;
-    
-    /** Is this panel general hidden or not */
+
+    /**
+     * Is this panel general hidden or not
+     */
     protected boolean hidden;
-    
-    /** HEADLINE = "headline" */
+
+    /**
+     * HEADLINE = "headline"
+     */
     public final static String HEADLINE = "headline";
+
+    private DataValidator validationService = null;
+
+    private java.util.List<PanelAction> preActivateActions = null;
     
-    /** X_ORIGIN = 0 */
+    private java.util.List<PanelAction> preValidateActions = null;
+    
+    private java.util.List<PanelAction> postValidateActions = null;
+    
+    /**
+     * X_ORIGIN = 0
+     */
     public final static int X_ORIGIN = 0;
 
-    /** Y_ORIGIN = 0 */
+    /**
+     * Y_ORIGIN = 0
+     */
     public final static int Y_ORIGIN = 0;
-    /** D = "." ( dot ) */
+
+    /**
+     * D = "." ( dot )
+     */
     public final static String D = ".";
 
-    /** d = D */
+    /**
+     * d = D
+     */
     public final static String d = D;
-    
-    /** COLS_1 = 1 */
+
+    /**
+     * COLS_1 = 1
+     */
     public final static int COLS_1 = 1;
 
-    /** ROWS_1 = 1 */
+    /**
+     * ROWS_1 = 1
+     */
     public final static int ROWS_1 = 1;
 
     /**
@@ -118,166 +169,163 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
      */
     public IzPanel(InstallerFrame parent, InstallData idata)
     {
-      this( parent, idata, (LayoutManager2) null);  
+        this(parent, idata, (LayoutManager2) null);
     }
-    
+
     /**
      * Creates a new IzPanel object with the given layout manager. Valid layout manager are the
-     * IzPanelLayout and the GridBagLayout. New panels should be use the IzPanelLaout.
-     * If lm is null, no layout manager will be created or initialized. 
+     * IzPanelLayout and the GridBagLayout. New panels should be use the IzPanelLaout. If lm is
+     * null, no layout manager will be created or initialized.
+     * 
      * @param parent The parent IzPack installer frame.
      * @param idata The installer internal data.
      * @param lm layout manager to be used with this IzPanel
      */
     public IzPanel(InstallerFrame parent, InstallData idata, LayoutManager2 lm)
     {
-      super();
-      init( parent, idata );
-      if( lm != null )
-          getLayoutHelper().startLayout(lm);
+        super();
+        init(parent, idata);
+        if (lm != null)
+        {
+            getLayoutHelper().startLayout(lm);
+        }
     }
-    
+
     /**
      * Creates a new IzPanel object.
-     *
+     * 
      * @param parent the Parent Frame
      * @param idata Installers Runtime Data Set
      * @param iconName The Headline IconName
      */
-    public IzPanel( InstallerFrame parent, InstallData idata, String iconName )
+    public IzPanel(InstallerFrame parent, InstallData idata, String iconName)
     {
-      this( parent, idata, iconName, -1 );
-    }    
-    
+        this(parent, idata, iconName, -1);
+    }
+
     /**
      * The constructor with Icon.
-     *
+     * 
      * @param parent The parent IzPack installer frame.
      * @param idata The installer internal data.
      * @param iconName A iconname to show as left oriented headline-leading Icon.
      * @param instance An instance counter
      */
-    public IzPanel( InstallerFrame parent, InstallData idata, String iconName, int instance )
+    public IzPanel(InstallerFrame parent, InstallData idata, String iconName, int instance)
     {
-      this(parent, idata);
-      buildHeadline( iconName, instance );
+        this(parent, idata);
+        buildHeadline(iconName, instance);
     }
-    
-    /** 
-     * Build the IzPanel internal Headline. If an external headline#
-     * is used, this method returns immediately with false.
-     * Allows also to display a leading Icon for the PanelHeadline.
-     * This Icon can also be different if the panel has more than one Instances. 
-     * The UserInputPanel is one of these Candidates.
+
+    /**
+     * Build the IzPanel internal Headline. If an external headline# is used, this method returns
+     * immediately with false. Allows also to display a leading Icon for the PanelHeadline. This
+     * Icon can also be different if the panel has more than one Instances. The UserInputPanel is
+     * one of these Candidates. <p/> by marc.eppelmann&#064;gmx.de
      * 
-     * by marc.eppelmann&#064;gmx.de
-     *
      * @param imageIconName an Iconname
      * @param instanceNumber an panel instance
-     *
      * @return true if successful build
      */
-    protected boolean buildHeadline( String imageIconName, int instanceNumber )
+    protected boolean buildHeadline(String imageIconName, int instanceNumber)
     {
-      boolean result = false;
-      if( parent.isHeading(this))
-          return(false);
+        boolean result = false;
+        if (parent.isHeading(this)) { return (false); }
 
-      // TODO: proteced instancenumber
-      // TODO: is to be validated
-      // TODO: 
-      // TODO: first Test if a Resource for your protected Instance exists.
-      String headline;
-      String headlineSearchBaseKey = myClassname + d + "headline"; // Results for example in "ShortcutPanel.headline" : 
+        // TODO: proteced instancenumber
+        // TODO: is to be validated
+        // TODO:
+        // TODO: first Test if a Resource for your protected Instance exists.
+        String headline;
+        String headlineSearchBaseKey = myClassname + d + "headline"; // Results for example in
+        // "ShortcutPanel.headline"
+        // :
 
-      if( instanceNumber > -1 )  // Search for Results for example in "ShortcutPanel.headline.1, 2, 3 etc." :
-      {
-        String instanceSearchKey = headlineSearchBaseKey + d +
-                                   Integer.toString( instanceNumber );
-
-        String instanceHeadline = getString( instanceSearchKey );
-
-        if( Debug.isLOG() ) 
-        { 
-          System.out.println( "found headline: " + instanceHeadline  +  d + " for instance # " +  instanceNumber ); 
-        }
-        if( ! instanceSearchKey.equals( instanceHeadline ) )
+        if (instanceNumber > -1) // Search for Results for example in "ShortcutPanel.headline.1,
+        // 2, 3 etc." :
         {
-          headline = instanceHeadline;
+            String instanceSearchKey = headlineSearchBaseKey + d + Integer.toString(instanceNumber);
+
+            String instanceHeadline = getString(instanceSearchKey);
+
+            if (Debug.isLOG())
+            {
+                System.out.println("found headline: " + instanceHeadline + d + " for instance # "
+                        + instanceNumber);
+            }
+            if (!instanceSearchKey.equals(instanceHeadline))
+            {
+                headline = instanceHeadline;
+            }
+            else
+            {
+                headline = getString(headlineSearchBaseKey);
+            }
         }
         else
         {
-          headline = getString( headlineSearchBaseKey );
+            headline = getString(headlineSearchBaseKey);
         }
-      }
-      else
-      {
-        headline = getString( headlineSearchBaseKey );
-      }
 
-      if( headline != null )
-      {
-        if( ( imageIconName != null ) && ! "".equals( imageIconName ) )
+        if (headline != null)
         {
-          headLineLabel = new JLabel( headline, getImageIcon( imageIconName ),
-                                      SwingConstants.LEADING );
+            if ((imageIconName != null) && !"".equals(imageIconName))
+            {
+                headLineLabel = new JLabel(headline, getImageIcon(imageIconName),
+                        SwingConstants.LEADING);
+            }
+            else
+            {
+                headLineLabel = new JLabel(headline);
+            }
+
+            Font font = headLineLabel.getFont();
+            float size = font.getSize();
+            int style = 0;
+            font = font.deriveFont(style, (size * 1.5f));
+            headLineLabel.setFont(font);
+
+            GridBagConstraints gbc = new GridBagConstraints();
+
+            gbc.gridx = 0;
+            gbc.gridy = 0;
+            gbc.gridwidth = 1;
+            gbc.gridheight = 1;
+
+            gbc.fill = GridBagConstraints.HORIZONTAL;
+            gbc.anchor = GridBagConstraints.WEST;
+            gbc.insets = new Insets(0, 0, 0, 0);
+            headLineLabel.setName(HEADLINE);
+            ((GridBagLayout) getLayout()).addLayoutComponent(headLineLabel, gbc);
+
+            add(headLineLabel);
         }
-        else
-        {
-          headLineLabel = new JLabel( headline );
-        }
 
-        Font  font  = headLineLabel.getFont(  );
-        float size  = font.getSize(  );
-        int   style = 0;
-        font = font.deriveFont( style, ( size * 1.5f ) );
-        headLineLabel.setFont( font );
-
-        GridBagConstraints gbc = new GridBagConstraints(  );
-
-        gbc.gridx      = 0;
-        gbc.gridy      = 0;
-        gbc.gridwidth  = 1;
-        gbc.gridheight = 1;
-
-        gbc.fill   = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets( 0, 0, 0, 0 );
-        headLineLabel.setName( HEADLINE );
-        ((GridBagLayout) getLayout()).addLayoutComponent( headLineLabel, gbc );
-
-        add( headLineLabel );
-      }
-
-      return result;
+        return result;
     }
-    
-    /** 
-     * Gets a language Resource String from the parent, which  holds these global resource.
-     *
+
+    /**
+     * Gets a language Resource String from the parent, which holds these global resource.
+     * 
      * @param key The Search key
-     *
      * @return The Languageresource or the key if not found.
      */
-    public String getString( String key )
+    public String getString(String key)
     {
-      return parent.langpack.getString( key );
+        return parent.langpack.getString(key);
     }
-    
-    /** 
+
+    /**
      * Gets a named image icon
-     *
+     * 
      * @param iconName a valid image icon
-     *
      * @return the icon
      */
-    public ImageIcon getImageIcon( String iconName )
+    public ImageIcon getImageIcon(String iconName)
     {
-      return parent.icons.getImageIcon( iconName );
+        return parent.icons.getImageIcon(iconName);
     }
 
-
-    
     /**
      * Inits and sets the internal layout helper object.
      */
@@ -285,41 +333,40 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
     {
         layoutHelper = new LayoutHelper(this);
     }
-    
 
-    /** 
+    /**
      * Gets and fills the classname fields
      */
-    protected void getClassName(  )
+    protected void getClassName()
     {
-      myFullClassname = getClass(  ).getName(  );
-      myClassname     = myFullClassname.substring( myFullClassname.lastIndexOf( "." ) + 1 );
-      myPrefix        = myClassname + ".";
+        myFullClassname = getClass().getName();
+        myClassname = myFullClassname.substring(myFullClassname.lastIndexOf(".") + 1);
+        myPrefix = myClassname + ".";
     }
-    
-    /** 
+
+    /**
      * Internal init method
-     *
+     * 
      * @param parent the parent frame
      * @param idata installers runtime dataset
      */
-    protected void init( InstallerFrame parent, InstallData idata )
-    { 
-      getClassName(  );
-      
-      this.idata           = idata;
-      this.parent          = parent;
-      // To get the Panel object via idata is a hack because InstallData will
-      // be hold global data, not panel specific data. But the Panel object will
-      // be needed in the constructor of some derived classes. And to expand the
-      // constructor is also not a good way because all derived classes have to
-      // change then the signature. Also the custem IzPanels elswhere. Therefore
-      // this hack...
-      // Problems with this hack will be exist if more than one threads calls the
-      // constructors of derived clases. This is not the case.
-      this.metadata = idata.currentPanel;
-      idata.currentPanel = null;
-      initLayoutHelper(  );
+    protected void init(InstallerFrame parent, InstallData idata)
+    {
+        getClassName();
+
+        this.idata = idata;
+        this.parent = parent;
+        // To get the Panel object via idata is a hack because InstallData will
+        // be hold global data, not panel specific data. But the Panel object will
+        // be needed in the constructor of some derived classes. And to expand the
+        // constructor is also not a good way because all derived classes have to
+        // change then the signature. Also the custem IzPanels elswhere. Therefore
+        // this hack...
+        // Problems with this hack will be exist if more than one threads calls the
+        // constructors of derived clases. This is not the case.
+        this.metadata = idata.currentPanel;
+        idata.currentPanel = null;
+        initLayoutHelper();
 
     }
 
@@ -328,11 +375,16 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
      * further through the installation process until the panel is validated. Default behaviour is
      * to return <code>true</code>.
      * 
-     * @return A boolean stating wether the panel has been validated or not.
+     * @return A boolean stating whether the panel has been validated or not.
      */
-    public boolean isValidated()
+    protected boolean isValidated()
     {
         return true;
+    }
+
+    public boolean panelValidated()
+    {
+        return isValidated() && validatePanel();
     }
 
     /**
@@ -358,7 +410,7 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
      * 
      * @param panelRoot The XML root element of the panels blackbox tree.
      */
-    public void makeXMLData(XMLElement panelRoot)
+    public void makeXMLData(IXMLElement panelRoot)
     {
     }
 
@@ -368,9 +420,7 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
      * @param title Message title.
      * @param question The question.
      * @param choices The set of choices to present.
-     * 
      * @return The user's choice.
-     * 
      * @see AbstractUIHandler#askQuestion(String, String, int)
      */
     public int askQuestion(String title, String question, int choices)
@@ -385,7 +435,6 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
      * @param question The question.
      * @param choices The set of choices to present.
      * @param default_choice The default choice. (-1 = no default choice)
-     * 
      * @return The user's choice.
      * @see AbstractUIHandler#askQuestion(String, String, int, int)
      */
@@ -394,28 +443,33 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
         int jo_choices = 0;
 
         if (choices == AbstractUIHandler.CHOICES_YES_NO)
+        {
             jo_choices = JOptionPane.YES_NO_OPTION;
+        }
         else if (choices == AbstractUIHandler.CHOICES_YES_NO_CANCEL)
+        {
             jo_choices = JOptionPane.YES_NO_CANCEL_OPTION;
+        }
 
-        int user_choice = JOptionPane.showConfirmDialog(this, (Object) question, title, jo_choices,
+        int user_choice = JOptionPane.showConfirmDialog(this, question, title, jo_choices,
                 JOptionPane.QUESTION_MESSAGE);
 
-        if (user_choice == JOptionPane.CANCEL_OPTION) return AbstractUIHandler.ANSWER_CANCEL;
+        if (user_choice == JOptionPane.CANCEL_OPTION) { return AbstractUIHandler.ANSWER_CANCEL; }
 
-        if (user_choice == JOptionPane.YES_OPTION) return AbstractUIHandler.ANSWER_YES;
+        if (user_choice == JOptionPane.YES_OPTION) { return AbstractUIHandler.ANSWER_YES; }
 
-		if (user_choice == JOptionPane.CLOSED_OPTION) return AbstractUIHandler.ANSWER_NO;
+        if (user_choice == JOptionPane.CLOSED_OPTION) { return AbstractUIHandler.ANSWER_NO; }
 
-        if (user_choice == JOptionPane.NO_OPTION) return AbstractUIHandler.ANSWER_NO;
+        if (user_choice == JOptionPane.NO_OPTION) { return AbstractUIHandler.ANSWER_NO; }
 
         return default_choice;
     }
 
-	public boolean emitNotificationFeedback(String message)
+    public boolean emitNotificationFeedback(String message)
     {
-       return (JOptionPane.showConfirmDialog(this, message, idata.langpack.getString("installer.Message"), JOptionPane.WARNING_MESSAGE,
-             JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION);
+        return (JOptionPane.showConfirmDialog(this, message, idata.langpack
+                .getString("installer.Message"), JOptionPane.WARNING_MESSAGE,
+                JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION);
     }
 
     /**
@@ -451,6 +505,17 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
     }
 
     /**
+     * Notify the user of some error and block the next button.
+     * 
+     * @param message The error message.
+     */
+    public void emitErrorAndBlockNext(String title, String message)
+    {
+        emitError(title, message);
+        parent.lockNextButton();
+    }
+    
+    /**
      * Returns the component which should be get the focus at activation of this panel.
      * 
      * @return the component which should be get the focus at activation of this panel
@@ -472,9 +537,9 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
 
     /**
      * Calls the langpack of parent InstallerFrame for the String <tt>RuntimeClassName.subkey</tt>.
-     * Do not add a point infront of subkey, it is always added in this method.
-     * If <tt>RuntimeClassName.subkey</tt> is not found, the super class name will be used
-     * until it is <tt>IzPanel</tt>. If no key will be found, null returns.
+     * Do not add a point infront of subkey, it is always added in this method. If
+     * <tt>RuntimeClassName.subkey</tt> is not found, the super class name will be used until it
+     * is <tt>IzPanel</tt>. If no key will be found, null returns.
      * 
      * @param subkey the subkey for the string which should be returned
      * @return the founded string
@@ -493,8 +558,8 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
 
     /**
      * Calls the langpack of parent InstallerFrame for the String <tt>RuntimeClassName.subkey</tt>.
-     * Do not add a point infront of subkey, it is always added in this method.
-     * If no key will be found the key or - if alternate class is null - null returns.
+     * Do not add a point infront of subkey, it is always added in this method. If no key will be
+     * found the key or - if alternate class is null - null returns.
      * 
      * @param subkey the subkey for the string which should be returned
      * @param alternateClass the short name of the class which should be used if no string is
@@ -503,7 +568,7 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
      */
     public String getI18nStringForClass(String subkey, String alternateClass)
     {
-        return( getI18nStringForClass(getClass().getName(), subkey, alternateClass));
+        return (getI18nStringForClass(getClass().getName(), subkey, alternateClass));
 
     }
 
@@ -516,7 +581,7 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
         buf.append(curClassName).append(".").append(subkey);
         String fullkey = buf.toString();
         String panelid = null;
-        if( getMetadata() != null )
+        if (getMetadata() != null)
         {
             panelid = getMetadata().getPanelid();
         }
@@ -528,10 +593,12 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
             retval = parent.langpack.getString(buf.toString());
         }
         if (retval == null || retval.startsWith(fullkey))
+        {
             retval = parent.langpack.getString(fullkey);
+        }
         if (retval == null || retval.startsWith(fullkey))
         {
-            if (alternateClass == null) return (null);
+            if (alternateClass == null) { return (null); }
             buf.delete(0, buf.length());
             buf.append(alternateClass).append(".").append(subkey);
             retval = parent.langpack.getString(buf.toString());
@@ -543,8 +610,7 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
         }
         return (retval);
     }
-    
-        
+
     /**
      * Returns the parent of this IzPanel (which is a InstallerFrame).
      * 
@@ -573,7 +639,10 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
         ImageIcon ii = (iconId != null) ? parent.icons.getImageIcon(iconId) : null;
         String msg = getI18nStringForClass(subkey, alternateClass);
         JLabel label = LabelFactory.create(msg, ii, pos);
-        if (label != null) label.setFont(getControlTextFont());
+        if (label != null)
+        {
+            label.setFont(getControlTextFont());
+        }
         return (label);
 
     }
@@ -598,7 +667,10 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
         ImageIcon ii = (iconId != null) ? parent.icons.getImageIcon(iconId) : null;
         String msg = getI18nStringForClass(subkey, alternateClass);
         JLabel label = LabelFactory.create(msg, ii, pos, isFullLine);
-        if (label != null) label.setFont(getControlTextFont());
+        if (label != null)
+        {
+            label.setFont(getControlTextFont());
+        }
         return (label);
 
     }
@@ -635,7 +707,10 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
     {
         ImageIcon ii = (iconId != null) ? parent.icons.getImageIcon(iconId) : null;
         JLabel label = LabelFactory.create(parent.langpack.getString(textId), ii, pos, isFullLine);
-        if (label != null) label.setFont(getControlTextFont());
+        if (label != null)
+        {
+            label.setFont(getControlTextFont());
+        }
         return (label);
 
     }
@@ -678,7 +753,10 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
     {
         MultiLineLabel mll = null;
         mll = new MultiLineLabel(text, 0, 0);
-        if (mll != null) mll.setFont(getControlTextFont());
+        if (mll != null)
+        {
+            mll.setFont(getControlTextFont());
+        }
         return (mll);
     }
 
@@ -687,13 +765,20 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
      */
     public Font getControlTextFont()
     {
-        return (getLAF() != null ? MetalLookAndFeel.getControlTextFont() : getFont());
+        Font fontObj = (getLAF() != null) ?
+                          MetalLookAndFeel.getControlTextFont() : getFont();
+              //if guiprefs 'labelFontSize' multiplier value
+              // has been setup then apply it to the font:
+        final float val;
+        if ((val=LabelFactory.getLabelFontSize()) != 1.0f)
+            fontObj = fontObj.deriveFont(fontObj.getSize2D()*val);
+        return fontObj;
     }
 
     protected static MetalLookAndFeel getLAF()
     {
         LookAndFeel laf = UIManager.getLookAndFeel();
-        if (laf instanceof MetalLookAndFeel) return ((MetalLookAndFeel) laf);
+        if (laf instanceof MetalLookAndFeel) { return ((MetalLookAndFeel) laf); }
         return (null);
     }
 
@@ -707,7 +792,7 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
      */
     public GridBagConstraints getDefaultGridBagConstraints()
     {
-        return(GridBagConstraints) ( layoutHelper.getDefaultConstraints());
+        return (GridBagConstraints) (layoutHelper.getDefaultConstraints());
     }
 
     /**
@@ -724,6 +809,7 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
     /**
      * Resets the grid counters which are used at getNextXGridBagConstraints and
      * getNextYGridBagConstraints.
+     * 
      * @deprecated use <code>getLayoutHelper().resetGridCounter</code> instead
      */
     public void resetGridCounter()
@@ -743,7 +829,7 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
      */
     public GridBagConstraints getNewGridBagConstraints(int gridx, int gridy)
     {
-        return(GridBagConstraints) ( layoutHelper.getNewConstraints(gridx, gridy));
+        return (GridBagConstraints) (layoutHelper.getNewConstraints(gridx, gridy));
     }
 
     /**
@@ -761,31 +847,30 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
     public GridBagConstraints getNewGridBagConstraints(int gridx, int gridy, int gridwidth,
             int gridheight)
     {
-        return(GridBagConstraints) (layoutHelper.getNewConstraints(gridx, gridy, gridwidth, gridheight));
+        return (GridBagConstraints) (layoutHelper.getNewConstraints(gridx, gridy, gridwidth,
+                gridheight));
     }
 
     /**
      * Returns a newly created GridBagConstraints for the next column of the current layout row.
      * 
      * @return a newly created GridBagConstraints for the next column of the current layout row
-     * 
      * @deprecated use <code>getLayoutHelper().getNextXConstraints</code> instead
      */
     public GridBagConstraints getNextXGridBagConstraints()
     {
-        return(GridBagConstraints) (layoutHelper.getNextXConstraints());
+        return (GridBagConstraints) (layoutHelper.getNextXConstraints());
     }
 
     /**
      * Returns a newly created GridBagConstraints with column 0 for the next row.
      * 
      * @return a newly created GridBagConstraints with column 0 for the next row
-     * 
      * @deprecated use <code>getLayoutHelper().getNextYConstraints</code> instead
      */
     public GridBagConstraints getNextYGridBagConstraints()
     {
-        return(GridBagConstraints) (layoutHelper.getNextYConstraints());
+        return (GridBagConstraints) (layoutHelper.getNextYConstraints());
     }
 
     /**
@@ -800,7 +885,7 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
      */
     public GridBagConstraints getNextYGridBagConstraints(int gridwidth, int gridheight)
     {
-        return(GridBagConstraints) (layoutHelper.getNextYConstraints(gridwidth, gridheight));
+        return (GridBagConstraints) (layoutHelper.getNextYConstraints(gridwidth, gridheight));
     }
 
     /**
@@ -808,6 +893,7 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
      * This will be done, if the IzPack guiprefs modifier with the key "layoutAnchor" has the value
      * "SOUTH" or "SOUTHWEST". The earlier used value "BOTTOM" and the declaration via the IzPack
      * variable <code>IzPanel.LayoutType</code> are also supported.
+     * 
      * @deprecated use <code>getLayoutHelper().startLayout</code> instead
      */
     public void startGridBagLayout()
@@ -820,6 +906,7 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
      * This will be done, if the IzPack guiprefs modifier with the key "layoutAnchor" has the value
      * "NORTH" or "NORTHWEST". The earlier used value "TOP" and the declaration via the IzPack
      * variable <code>IzPanel.LayoutType</code> are also supported.
+     * 
      * @deprecated use <code>getLayoutHelper().completeLayout</code> instead
      */
     public void completeGridBagLayout()
@@ -830,6 +917,7 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
     // ------------------- Layout stuff -------------------- END ---
 
     // ------------------- Summary stuff -------------------- START ---
+
     /**
      * This method will be called from the SummaryPanel to get the summary of this class which
      * should be placed in the SummaryPanel. The returned text should not contain a caption of this
@@ -856,15 +944,15 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
     public String getSummaryCaption()
     {
         String caption;
-        if (parent.isHeading(this)
-                && idata.guiPrefs.modifier.containsKey("useHeadingForSummary")
-                && ((String) idata.guiPrefs.modifier.get("useHeadingForSummary"))
-                        .equalsIgnoreCase("yes"))
+        if (parent.isHeading(this) && idata.guiPrefs.modifier.containsKey("useHeadingForSummary")
+                && (idata.guiPrefs.modifier.get("useHeadingForSummary")).equalsIgnoreCase("yes"))
         {
             caption = getI18nStringForClass("headline", this.getClass().getName());
         }
         else
+        {
             caption = getI18nStringForClass("summaryCaption", this.getClass().getName());
+        }
 
         return (caption);
     }
@@ -872,19 +960,20 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
     // ------------------- Summary stuff -------------------- END ---
 
     // ------------------- Inner classes ------------------- START ---
+
     public static class Filler extends JComponent
     {
 
         private static final long serialVersionUID = 3258416144414095153L;
 
     }
+
     // ------------------- Inner classes ------------------- END ---
 
-    
     /**
-     * Returns whether this panel will be hidden general or not.
-     * A hidden panel will be not counted  in the step counter and
-     * for panel icons.
+     * Returns whether this panel will be hidden general or not. A hidden panel will be not counted
+     * in the step counter and for panel icons.
+     * 
      * @return whether this panel will be hidden general or not
      */
     public boolean isHidden()
@@ -892,11 +981,10 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
         return hidden;
     }
 
-    
     /**
-     * Set whether this panel should be hidden or not.
-     * A hidden panel will be not counted  in the step counter and
-     * for panel icons.
+     * Set whether this panel should be hidden or not. A hidden panel will be not counted in the
+     * step counter and for panel icons.
+     * 
      * @param hidden flag to be set
      */
     public void setHidden(boolean hidden)
@@ -904,10 +992,9 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
         this.hidden = hidden;
     }
 
-    
     /**
-     * Returns the used layout helper. Can be used in a derived class
-     * to create custom layout.
+     * Returns the used layout helper. Can be used in a derived class to create custom layout.
+     * 
      * @return the used layout helper
      */
     public LayoutHelper getLayoutHelper()
@@ -918,14 +1005,225 @@ public class IzPanel extends JPanel implements AbstractUIHandler, LayoutConstant
     /**
      * @return the metadata
      */
-    public Panel getMetadata() {
-      return this.metadata;
+    public Panel getMetadata()
+    {
+        return this.metadata;
     }
 
     /**
      * @param p the metadata to set
      */
-    public void setMetadata(Panel p) {
-      this.metadata = p;
+    public void setMetadata(Panel p)
+    {
+        this.metadata = p;
     }
+
+    public DataValidator getValidationService()
+    {
+        return validationService;
+    }
+
+    public void setValidationService(DataValidator validationService)
+    {
+        this.validationService = validationService;
+    }
+
+    /*--------------------------------------------------------------------------*/
+    /**
+     * This method validates the field content. Validating is performed through a user supplied
+     * service class that provides the validation rules.
+     * 
+     * @return <code>true</code> if the validation passes or no implementation of a validation
+     * rule exists. Otherwise <code>false</code> is returned.
+     */
+    /*--------------------------------------------------------------------------*/
+    private final boolean validatePanel()
+    {
+        boolean returnValue = false;
+        if (this.validationService != null)
+        {
+            Component guiComponent = getTopLevelAncestor();
+            Cursor originalCursor = guiComponent.getCursor();
+            Cursor newCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
+            try
+            {
+                guiComponent.setCursor(newCursor);
+                // validating the data
+                DataValidator.Status returnStatus = this.validationService.validateData(this.idata);
+                if (returnStatus == DataValidator.Status.OK)
+                {
+                    returnValue = true;
+                }
+                else
+                {
+                    Debug.trace("Validation did not pass!");
+                    // try to parse the text, and substitute any variable it finds
+                    VariableSubstitutor vs = new VariableSubstitutor(idata.getVariables());
+                    if (this.validationService.getWarningMessageId() != null
+                            && returnStatus == DataValidator.Status.WARNING)
+                    {
+
+                        String warningMessage = parent.langpack.getString(this.validationService
+                                .getWarningMessageId());
+                        if (this.emitWarning(getString("data.validation.warning.title"), vs
+                                .substitute(warningMessage, null)))
+                        {
+                            returnValue = true;
+                            Debug.trace("... but user decided to go on!");
+                        }
+                    }
+                    else
+                    {
+                        String errorMessage = parent.langpack.getString(this.validationService
+                                .getErrorMessageId());
+                        this.emitError(getString("data.validation.error.title"), vs.substitute(
+                                errorMessage, null));
+
+                    }
+                }
+            }
+            finally
+            {
+                guiComponent.setCursor(originalCursor);
+            }
+        }
+        else
+        {
+            returnValue = true;
+        }
+        return returnValue;
+    }
+
+    /**
+     * Parses the text for special variables.
+     */
+    protected String parseText(String string_to_parse)
+    {
+        try
+        {
+            // Initialize the variable substitutor
+            VariableSubstitutor vs = new VariableSubstitutor(idata.getVariables());
+
+            // Parses the info text
+            string_to_parse = vs.substitute(string_to_parse, null);
+        }
+        catch (Exception err)
+        {
+            err.printStackTrace();
+        }
+        return string_to_parse;
+    }
+
+    private HashMap<String, String> helps = null;
+
+    public void setHelps(HashMap helps)
+    {
+        this.helps = helps;
+    }
+
+    public String getHelpUrl(String isoCode)
+    {
+        String url = null;
+        if (this.helps != null)
+        {
+            url = helps.get(isoCode);
+        }
+        return url;
+    }
+
+    /**
+     * Indicates wether the panel can display help. The installer will hide Help button if current
+     * panel does not support help functions. Default behaviour is to return <code>false</code>.
+     * 
+     * @return A boolean stating wether the panel supports Help function.
+     */
+    public boolean canShowHelp()
+    {
+        return getHelpUrl(this.idata.localeISO3) != null;
+    }
+
+    /**
+     * This method is called when Help button has been clicked. By default it doesn't do anything.
+     */
+    public void showHelp()
+    {
+        String helpName = getHelpUrl(this.idata.localeISO3);
+        // System.out.println("Help function called, helpName: " + helpName);
+        if (helpName != null)
+        {
+            URL helpUrl = getClass().getResource("/res/" + helpName);
+            getHelpWindow().showHelp(getString("installer.help"), helpUrl);
+        }
+    }
+
+    private HelpWindow helpWindow = null;
+
+    private HelpWindow getHelpWindow()
+    {
+        if (this.helpWindow != null) { return this.helpWindow; }
+
+        this.helpWindow = new HelpWindow(parent, getString("installer.prev"));
+        return this.helpWindow;
+    }
+
+    public void addPreActivationAction(PanelAction preActivateAction)
+    {
+        if (preActivateActions == null)
+        {
+            preActivateActions = new ArrayList<PanelAction>();
+        }
+        this.preActivateActions.add(preActivateAction);
+    }
+
+    public void addPreValidationAction(PanelAction preValidateAction)
+    {
+        if (preValidateActions == null)
+        {
+            preValidateActions = new ArrayList<PanelAction>();
+        }
+        this.preValidateActions.add(preValidateAction);
+    }
+
+    public void addPostValidationAction(PanelAction postValidateAction)
+    {
+        if (postValidateActions == null)
+        {
+            postValidateActions = new ArrayList<PanelAction>();
+        }
+        this.postValidateActions.add(postValidateAction);
+    }
+    
+    protected final void executePreActivationActions()
+    {
+        if (preActivateActions != null)
+        {
+            for (int actionIndex = 0; actionIndex < preActivateActions.size(); actionIndex++)
+            {
+                preActivateActions.get(actionIndex).executeAction(idata, this);
+            }
+        }
+    }
+
+    protected final void executePreValidationActions()
+    {
+        if (preValidateActions != null)
+        {
+            for (int actionIndex = 0; actionIndex < preValidateActions.size(); actionIndex++)
+            {
+                preValidateActions.get(actionIndex).executeAction(idata, this);
+            }
+        }
+    }
+
+    protected final void executePostValidationActions()
+    {
+        if (postValidateActions != null)
+        {
+            for (int actionIndex = 0; actionIndex < postValidateActions.size(); actionIndex++)
+            {
+                postValidateActions.get(actionIndex).executeAction(idata, this);
+            }
+        }
+    }
+
 }

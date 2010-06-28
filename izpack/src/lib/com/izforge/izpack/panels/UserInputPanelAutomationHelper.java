@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2003 Jonathan Halliday
  * Copyright 2002 Elmar Grom
@@ -22,19 +22,20 @@
 
 package com.izforge.izpack.panels;
 
+import com.izforge.izpack.installer.AutomatedInstallData;
+import com.izforge.izpack.installer.PanelAutomation;
+import com.izforge.izpack.installer.InstallerException;
+import com.izforge.izpack.util.Debug;
+import com.izforge.izpack.adaptator.IXMLElement;
+import com.izforge.izpack.adaptator.impl.XMLElementImpl;
+
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
 
-import net.n3.nanoxml.XMLElement;
-
-import com.izforge.izpack.installer.AutomatedInstallData;
-import com.izforge.izpack.installer.PanelAutomation;
-import com.izforge.izpack.util.Debug;
-
 /**
  * Functions to support automated usage of the UserInputPanel
- * 
+ *
  * @author Jonathan Halliday
  * @author Elmar Grom
  */
@@ -58,7 +59,7 @@ public class UserInputPanelAutomationHelper implements PanelAutomation
     // ------------------------------------------------------
     // String-String key-value pairs
     // ------------------------------------------------------
-    private Map entries;
+    private Map<String, String> entries;
 
     /**
      * Default constructor, used during automated installation.
@@ -69,41 +70,39 @@ public class UserInputPanelAutomationHelper implements PanelAutomation
     }
 
     /**
-     * 
      * @param entries String-String key-value pairs representing the state of the Panel
      */
-    public UserInputPanelAutomationHelper(Map entries)
+    public UserInputPanelAutomationHelper(Map<String, String> entries)
     {
         this.entries = entries;
     }
 
     /**
      * Serialize state to XML and insert under panelRoot.
-     * 
-     * @param idata The installation data.
+     *
+     * @param idata     The installation data.
      * @param panelRoot The XML root element of the panels blackbox tree.
      */
-    public void makeXMLData(AutomatedInstallData idata, XMLElement panelRoot)
+    public void makeXMLData(AutomatedInstallData idata, IXMLElement panelRoot)
     {
-        XMLElement userInput;
-        XMLElement dataElement;
+        IXMLElement userInput;
+        IXMLElement dataElement;
 
         // ----------------------------------------------------
         // add the item that combines all entries
         // ----------------------------------------------------
-        userInput = new XMLElement(AUTO_KEY_USER_INPUT);
+        userInput = new XMLElementImpl(AUTO_KEY_USER_INPUT,panelRoot);
         panelRoot.addChild(userInput);
 
         // ----------------------------------------------------
         // add all entries
         // ----------------------------------------------------
-        Iterator keys = this.entries.keySet().iterator();
+        Iterator<String> keys = this.entries.keySet().iterator();
         while (keys.hasNext())
         {
-            String key = (String) keys.next();
-            String value = (String) this.entries.get(key);
-
-            dataElement = new XMLElement(AUTO_KEY_ENTRY);
+            String key = keys.next();
+            String value = this.entries.get(key);
+            dataElement = new XMLElementImpl(AUTO_KEY_ENTRY,userInput);
             dataElement.setAttribute(AUTO_ATTRIBUTE_KEY, key);
             dataElement.setAttribute(AUTO_ATTRIBUTE_VALUE, value);
 
@@ -113,16 +112,15 @@ public class UserInputPanelAutomationHelper implements PanelAutomation
 
     /**
      * Deserialize state from panelRoot and set idata variables accordingly.
-     * 
-     * @param idata The installation data.
+     *
+     * @param idata     The installation data.
      * @param panelRoot The XML root element of the panels blackbox tree.
-     * 
-     * @return true if the variables were found and set.
+     * @throws InstallerException if some elements are missing.
      */
-    public boolean runAutomated(AutomatedInstallData idata, XMLElement panelRoot)
+    public void runAutomated(AutomatedInstallData idata, IXMLElement panelRoot) throws InstallerException
     {
-        XMLElement userInput;
-        XMLElement dataElement;
+        IXMLElement userInput;
+        IXMLElement dataElement;
         String variable;
         String value;
 
@@ -131,11 +129,17 @@ public class UserInputPanelAutomationHelper implements PanelAutomation
         // ----------------------------------------------------
         userInput = panelRoot.getFirstChildNamed(AUTO_KEY_USER_INPUT);
 
-        if (userInput == null) { return false; }
+        if (userInput == null)
+        {
+            throw new InstallerException("Missing userInput element on line " + panelRoot.getLineNr());
+        }
 
-        Vector userEntries = userInput.getChildrenNamed(AUTO_KEY_ENTRY);
+        Vector<IXMLElement> userEntries = userInput.getChildrenNamed(AUTO_KEY_ENTRY);
 
-        if (userEntries == null) { return false; }
+        if (userEntries == null)
+        {
+            throw new InstallerException("Missing entry element(s) on line " + panelRoot.getLineNr());
+        }
 
         // ----------------------------------------------------
         // retieve each entry and substitute the associated
@@ -143,14 +147,12 @@ public class UserInputPanelAutomationHelper implements PanelAutomation
         // ----------------------------------------------------
         for (int i = 0; i < userEntries.size(); i++)
         {
-            dataElement = (XMLElement) userEntries.elementAt(i);
+            dataElement = userEntries.elementAt(i);
             variable = dataElement.getAttribute(AUTO_ATTRIBUTE_KEY);
             value = dataElement.getAttribute(AUTO_ATTRIBUTE_VALUE);
 
             Debug.trace("UserInputPanel: setting variable " + variable + " to " + value);
             idata.setVariable(variable, value);
         }
-        
-        return true;
     }
 }

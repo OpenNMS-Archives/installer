@@ -1,9 +1,9 @@
 /*
- * $Id: Librarian.java 1816 2007-04-23 19:57:27Z jponge $ 
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * $Id: Librarian.java 2649 2009-03-11 13:16:44Z d.duponchel $ 
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2002 Elmar Grom
  * 
@@ -22,12 +22,7 @@
 
 package com.izforge.izpack.util;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URL;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
@@ -45,9 +40,9 @@ import java.util.Vector;
  * source locations. However, you should place your library files in the 'native' directory. The
  * primary reason for supporting different source locations is to facilitate testing in a
  * development environment, without the need to actually packing the application into a *.jar file.
- * 
- * @version 1.0 / 1/30/02
+ *
  * @author Elmar Grom
+ * @version 1.0 / 1/30/02
  */
 /*---------------------------------------------------------------------------*/
 public class Librarian implements CleanupClient
@@ -57,10 +52,14 @@ public class Librarian implements CleanupClient
     // Constant Definitions
     // ------------------------------------------------------------------------
 
-    /** Used to identify jar URL protocols */
+    /**
+     * Used to identify jar URL protocols
+     */
     private static final String JAR_PROTOCOL = "jar";
 
-    /** Used to identify file URL protocols */
+    /**
+     * Used to identify file URL protocols
+     */
     private static final String FILE_PROTOCOL = "file";
 
     /**
@@ -74,15 +73,15 @@ public class Librarian implements CleanupClient
      */
     private static final String CLIENT_EXTENSION = ".class";
 
-    /** The default directory for native library files. */
+    /**
+     * The default directory for native library files.
+     */
     private static final String NATIVE = "native";
 
-    /** The block size used for reading and writing data, 4k. */
+    /**
+     * The block size used for reading and writing data, 4k.
+     */
     private static final int BLOCK_SIZE = 4096;
-
-    /** VM version needed to select clean up method. */
-    private static final float JAVA_SPECIFICATION_VERSION = Float.parseFloat(System
-            .getProperty("java.specification.version"));
 
     // ------------------------------------------------------------------------
     // Variable Declarations
@@ -98,32 +97,36 @@ public class Librarian implements CleanupClient
      * A list that is used to track all libraries that have been loaded. This list is used to ensure
      * that each library is loaded only once.
      */
-    private Vector trackList = new Vector();
+    private Vector<String> trackList = new Vector<String>();
 
     /**
      * A list of references to clients that use libraries that were extracted from a *.jar file.
      * This is needed because the clients need to be called for freeing their libraries.
      */
-    private Vector clients = new Vector();
+    private Vector<NativeLibraryClient> clients = new Vector<NativeLibraryClient>();
 
     /**
      * A list of library names as they appear in the temporary directory. This is needed to free
      * each library through the client. The index of each name corresponds to the index of the
      * respective client in the <code>clients</code> list.
      */
-    private Vector libraryNames = new Vector();
+    private Vector<String> libraryNames = new Vector<String>();
 
     /**
      * A list of fully qualified library names. This is needed to delete the temporary library files
      * after use. The index of each name corresponds to the index of the respective client in the
      * <code>clients</code> list.
      */
-    private Vector temporaryFileNames = new Vector();
+    private Vector<String> temporaryFileNames = new Vector<String>();
 
-    /** The extension to use for native libraries. */
+    /**
+     * The extension to use for native libraries.
+     */
     private String extension = "";
 
-    /** The directory that is used to hold all native libraries. */
+    /**
+     * The directory that is used to hold all native libraries.
+     */
     private String nativeDirectory = NATIVE;
 
     /*--------------------------------------------------------------------------*/
@@ -145,7 +148,7 @@ public class Librarian implements CleanupClient
     /*--------------------------------------------------------------------------*/
     /**
      * Returns an instance of <code>Librarian</code> to use.
-     * 
+     *
      * @return an instance of <code>Librarian</code>.
      */
     /*--------------------------------------------------------------------------*/
@@ -157,6 +160,18 @@ public class Librarian implements CleanupClient
         }
 
         return (me);
+    }
+
+    public synchronized void loadLibrary(String name, NativeLibraryClient client) throws Exception
+    {
+        try
+        {
+            loadArchSpecificLibrary(name, client);
+        }
+        catch (Exception ex)
+        {
+            loadArchSpecificLibrary(name + "_x64", client);
+        }
     }
 
     /*--------------------------------------------------------------------------*/
@@ -190,17 +205,15 @@ public class Librarian implements CleanupClient
      * <li>The same directory where the client is located
      * <li>The native library directory
      * </ol>
-     * 
-     * @param name the name of the library. A file extension and path are not needed, in fact if
-     * supplied, both is stripped off. A specific extension is appended.
+     *
+     * @param name   the name of the library. A file extension and path are not needed, in fact if
+     *               supplied, both is stripped off. A specific extension is appended.
      * @param client the object that made the load request
-     * 
+     * @throws Exception if all attempts to load the library fail.
      * @see #setNativeDirectory
-     * 
-     * @exception Exception if all attempts to load the library fail.
      */
     /*--------------------------------------------------------------------------*/
-    public synchronized void loadLibrary(String name, NativeLibraryClient client) throws Exception
+    public synchronized void loadArchSpecificLibrary(String name, NativeLibraryClient client) throws Exception
     {
         String libraryName = strip(name);
         String tempFileName = "";
@@ -208,17 +221,20 @@ public class Librarian implements CleanupClient
         // ----------------------------------------------------
         // Return if the library is already loaded
         // ----------------------------------------------------
-        if (loaded(libraryName)) { return; }
+        if (loaded(libraryName))
+        {
+            return;
+        }
 
-        
-        if( System.getProperty("DLL_PATH") != null )
+
+        if (System.getProperty("DLL_PATH") != null)
         {
             String path = System.getProperty("DLL_PATH") + "/" + name + extension;
             path = path.replace('/', File.separatorChar);
             Debug.trace("Try to load library " + path);
             System.load(path);
             return;
-            
+
         }
         // ----------------------------------------------------
         // First try a straight load
@@ -229,9 +245,11 @@ public class Librarian implements CleanupClient
             return;
         }
         catch (UnsatisfiedLinkError exception)
-        {}
+        {
+        }
         catch (SecurityException exception)
-        {}
+        {
+        }
 
         // ----------------------------------------------------
         // Next, try to get the protocol for loading the resource.
@@ -241,8 +259,11 @@ public class Librarian implements CleanupClient
         int nameStart = resourceName.lastIndexOf('.') + 1;
         resourceName = resourceName.substring(nameStart, resourceName.length()) + CLIENT_EXTENSION;
         URL url = clientClass.getResource(resourceName);
-        if (url == null) { throw (new Exception("can't identify load protocol for " + libraryName
-                + extension)); }
+        if (url == null)
+        {
+            throw (new Exception("can't identify load protocol for " + libraryName
+                    + extension));
+        }
         String protocol = url.getProtocol();
 
         // ----------------------------------------------------
@@ -299,11 +320,10 @@ public class Librarian implements CleanupClient
     /**
      * Verifies if the library has already been loaded and keeps track of all libraries that are
      * verified.
-     * 
+     *
      * @param name name of the library to verify
-     * 
      * @return <code>true</code> if the library had already been loaded, otherwise
-     * <code>false</code>.
+     *         <code>false</code>.
      */
     /*--------------------------------------------------------------------------*/
     private boolean loaded(String name)
@@ -322,9 +342,8 @@ public class Librarian implements CleanupClient
     /*--------------------------------------------------------------------------*/
     /**
      * Strips the extension of the library name, if it has one.
-     * 
+     *
      * @param name the name of the library
-     * 
      * @return the name without an extension
      */
     /*--------------------------------------------------------------------------*/
@@ -357,14 +376,13 @@ public class Librarian implements CleanupClient
      * Makes an attempt to extract the named library from the jar file and to store it on the local
      * file system for temporary use. If the attempt is successful, the fully qualified file name of
      * the library on the local file system is returned.
-     * 
-     * @param name the simple name of the library
+     *
+     * @param name        the simple name of the library
      * @param destination the fully qualified name of the destination file.
-     * @param client the class that made the load request.
-     * 
-     * @exception Exception if the library can not be extracted from the *.jar file.
-     * @exception FileNotFoundException if the *.jar file does not exist. The way things operate
-     * here, this should actually never happen.
+     * @param client      the class that made the load request.
+     * @throws Exception             if the library can not be extracted from the *.jar file.
+     * @throws FileNotFoundException if the *.jar file does not exist. The way things operate
+     *                               here, this should actually never happen.
      */
     /*--------------------------------------------------------------------------*/
     private void extractFromJar(String name, String destination, NativeLibraryClient client)
@@ -438,10 +456,9 @@ public class Librarian implements CleanupClient
     /**
      * Returns the complete path (including file name) for the native library, assuming the native
      * library is located in the same directory from which the client was loaded.
-     * 
-     * @param name the simple name of the library
+     *
+     * @param name      the simple name of the library
      * @param clientURL a URL that points to the client class
-     * 
      * @return the path to the client
      */
     /*--------------------------------------------------------------------------*/
@@ -466,10 +483,9 @@ public class Librarian implements CleanupClient
     /**
      * Returns the complete path (including file name) for the native library, assuming the native
      * library is located in a directory where native libraries are ordinarily expected.
-     * 
-     * @param name the simple name of the library
+     *
+     * @param name   the simple name of the library
      * @param client the class that made the load request.
-     * 
      * @return the path to the location of the native libraries.
      */
     /*--------------------------------------------------------------------------*/
@@ -493,7 +509,7 @@ public class Librarian implements CleanupClient
     /**
      * Revises the given path to a file compatible path. In fact this method replaces URI-like
      * entries with it chars (e.g. %20 with a space).
-     * 
+     *
      * @param in path to be revised
      * @return revised path
      */
@@ -532,13 +548,11 @@ public class Librarian implements CleanupClient
     /*--------------------------------------------------------------------------*/
     /**
      * Opens an <code>InputStream</code> to the native library.
-     * 
-     * @param name the simple name of the library
+     *
+     * @param name   the simple name of the library
      * @param client the class that made the load request.
-     * 
      * @return an <code>InputStream</code> from which the library can be read.
-     * 
-     * @exception Exception if the library can not be located.
+     * @throws Exception if the library can not be located.
      */
     /*--------------------------------------------------------------------------*/
     private InputStream openInputStream(String name, NativeLibraryClient client) throws Exception
@@ -576,11 +590,10 @@ public class Librarian implements CleanupClient
     /*--------------------------------------------------------------------------*/
     /**
      * Builds a temporary file name for the native library.
-     * 
+     *
      * @param name the file name of the library
-     * 
      * @return a fully qualified file name that can be used to store the file on the local file
-     * system.
+     *         system.
      */
     /*--------------------------------------------------------------------------*/
     /*
@@ -628,7 +641,7 @@ public class Librarian implements CleanupClient
      * are denoted relative to the root, where the root is the same location where the top level
      * Java package directory is located (usually called <code>com</code>). The default directory
      * is <code>native</code>.
-     * 
+     *
      * @param directory the directory where native files are located.
      */
     /*--------------------------------------------------------------------------*/
@@ -648,11 +661,12 @@ public class Librarian implements CleanupClient
     /**
      * This method attempts to remove all native libraries that have been temporarily created from
      * the system.
-     * The used method for clean up depends on the VM version.
+     * This method calls LibraryRemover which starts a new process which
+     * waits a little bit for exit of this process and tries than to delete the given files.
      * If the ersion is 1.5.x or higher this process should be exit in one second, else
      * the native libraries will be not deleted.
      * Tests with the different methods produces hinds that the
-     * FreeLibraryAndExitThread (handle, 0) call in the dlls are the 
+     * FreeLibraryAndExitThread (handle, 0) call in the dlls are the
      * reason for VM crashes (version 1.5.x). May be this is a bug in the VM.
      * But never seen a docu that this behavior is compatible with a VM.
      * Since more than a year all 1.5 versions produce this crash. Therfore we make
@@ -664,70 +678,8 @@ public class Librarian implements CleanupClient
     /*--------------------------------------------------------------------------*/
     public void cleanUp()
     {
-        if (JAVA_SPECIFICATION_VERSION < 1.5)
-            oldCleanUp();
-        else
-            newCleanUp();
-
-    }
-
-    /*--------------------------------------------------------------------------*/
-    /**
-     * This method attempts to remove all native libraries that have been temporarily created from
-     * the system.
-     * This method will be invoked if the VM has version 1.4.x or less. Version 1.5.x or higher
-     * uses newCleanUp.
-     * This method starts a new thread which calls a method in the dll which should unload the
-     * dll. The thread never returns. 
-     */
-    /*--------------------------------------------------------------------------*/
-    private void oldCleanUp()
-    {
-        for (int i = 0; i < clients.size(); i++)
-        {
-            // --------------------------------------------------
-            // free the library
-            // --------------------------------------------------
-            NativeLibraryClient client = (NativeLibraryClient) clients.elementAt(i);
-            String libraryName = (String) libraryNames.elementAt(i);
-
-            FreeThread free = new FreeThread(libraryName, client);
-            free.start();
-            try
-            {
-                // give the thread some time to get the library
-                // freed before attempting to delete it.
-                free.join(50);
-            }
-            catch (Throwable exception)
-            {} // nothing I can do
-
-            // --------------------------------------------------
-            // delete the library
-            // --------------------------------------------------
-            String tempFileName = (String) temporaryFileNames.elementAt(i);
-            try
-            {
-                File file = new File(tempFileName);
-                file.delete();
-            }
-            catch (Throwable exception)
-            {} // nothing I can do
-        }
-    }
-
-    /*--------------------------------------------------------------------------*/
-    /**
-     * This method attempts to remove all native libraries that have been temporarily created from
-     * the system. This method will be invoked if the VM has version 1.5.x or higher. Version 1.4.x
-     * or less uses oldCleanUp. This method calls LibraryRemover which starts a new process which
-     * waits a little bit for exit of this process and tries than to delete the given files.
-     */
-    /*--------------------------------------------------------------------------*/
-    private void newCleanUp()
-    {
-        // This method will be used the SelfModifier stuff of uninstall 
-        // instead of killing the thread in the dlls which provokes a 
+        // This method will be used the SelfModifier stuff of uninstall
+        // instead of killing the thread in the dlls which provokes a
         // segmentation violation with a 1.5 (also known as 5.0) VM.
 
         try

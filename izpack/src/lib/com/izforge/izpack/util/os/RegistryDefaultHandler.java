@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2005 Klaus Bartz
  * 
@@ -26,9 +26,8 @@ import com.izforge.izpack.util.TargetFactory;
 /**
  * This class provides on windows a registry handler. All classes which needs registry access should
  * be use only one handler.
- * 
+ *
  * @author Klaus Bartz
- * 
  */
 public class RegistryDefaultHandler
 {
@@ -64,7 +63,9 @@ public class RegistryDefaultHandler
             initialized = true;
         }
         if (registryHandler != null && (!registryHandler.good() || !registryHandler.doPerform()))
+        {
             registryHandler = null;
+        }
 
         return (registryHandler);
     }

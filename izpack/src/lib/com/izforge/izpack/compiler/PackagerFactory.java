@@ -1,9 +1,9 @@
 /*
  * $Id: Packager.java 1671 2007-01-02 10:28:58Z dreil $
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  *
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  *
  * Copyright 2006 Dennis Reil
  *
@@ -23,20 +23,23 @@
 package com.izforge.izpack.compiler;
 
 /**
- * Factory class for handling the packager classes 
+ * Factory class for handling the packager classes
+ *
  * @author Dennis Reil, <Dennis.Reil@reddot.de>
  */
 public class PackagerFactory
 {
     /**
      * Returns a new instantiation of the specified packager
-     * @param classname
-     * @return
+     *
+     * @param classname the class name
+     * @return a new packager instance
      * @throws InstantiationException
      * @throws IllegalAccessException
      * @throws ClassNotFoundException
      */
-    public static IPackager getPackager(String classname) throws InstantiationException, IllegalAccessException, ClassNotFoundException{
+    public static IPackager getPackager(String classname) throws InstantiationException, IllegalAccessException, ClassNotFoundException
+    {
         return (IPackager) Class.forName(classname).newInstance();
     }
 }

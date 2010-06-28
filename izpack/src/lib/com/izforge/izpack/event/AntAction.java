@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2004 Klaus Bartz
  * Copyright 2004 Thomas Guenter
@@ -22,31 +22,22 @@
 
 package com.izforge.izpack.event;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
+import org.apache.tools.ant.*;
+import org.apache.tools.ant.input.DefaultInputHandler;
+import org.apache.tools.ant.taskdefs.Ant;
+import org.apache.tools.ant.util.JavaEnvUtils;
+
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
-import org.apache.tools.ant.BuildLogger;
-import org.apache.tools.ant.DefaultLogger;
-import org.apache.tools.ant.DemuxOutputStream;
-import org.apache.tools.ant.Project;
-import org.apache.tools.ant.Target;
-import org.apache.tools.ant.input.DefaultInputHandler;
-import org.apache.tools.ant.taskdefs.Ant;
-import org.apache.tools.ant.util.JavaEnvUtils;
-
 /**
  * This class contains data and 'perform' logic for ant action listeners.
- * 
+ *
  * @author Thomas Guenter
  * @author Klaus Bartz
- * 
  */
 public class AntAction extends ActionBase
 {
@@ -68,15 +59,15 @@ public class AntAction extends ActionBase
 
     private Properties properties = null;
 
-    private List targets = null;
+    private List<String> targets = null;
 
-    private List uninstallTargets = null;
+    private List<String> uninstallTargets = null;
 
     private String logFile = null;
 
     private String buildFile = null;
 
-    private List propertyFiles = null;
+    private List<String> propertyFiles = null;
 
     /**
      * Default constructor
@@ -85,16 +76,16 @@ public class AntAction extends ActionBase
     {
         super();
         properties = new Properties();
-        targets = new ArrayList();
-        uninstallTargets = new ArrayList();
-        propertyFiles = new ArrayList();
+        targets = new ArrayList<String>();
+        uninstallTargets = new ArrayList<String>();
+        propertyFiles = new ArrayList<String>();
     }
 
     /**
      * Performs all defined install actions.
-     * 
+     * <p/>
      * Calls {#performAction performAction(false)}.
-     * 
+     *
      * @throws Exception
      */
     public void performInstallAction() throws Exception
@@ -104,9 +95,9 @@ public class AntAction extends ActionBase
 
     /**
      * Performs all defined uninstall actions.
-     * 
+     * <p/>
      * Calls {#performAction performAction(true)}.
-     * 
+     *
      * @throws Exception
      */
     public void performUninstallAction() throws Exception
@@ -116,21 +107,24 @@ public class AntAction extends ActionBase
 
     /**
      * Performs all defined actions.
-     * 
+     *
      * @param uninstall An install/uninstall switch. If this is <tt>true</tt> only the uninstall
-     * actions, otherwise only the install actions are being performed.
-     * 
+     *                  actions, otherwise only the install actions are being performed.
+     * @throws Exception
      * @see #performInstallAction() for calling all install actions.
      * @see #performUninstallAction() for calling all uninstall actions.
-     * 
-     * @throws Exception
      */
     public void performAction(boolean uninstall) throws Exception
     {
-        if (verbose) System.out.println("Calling ANT with buildfile: " + buildFile);
+        if (verbose)
+        {
+            System.out.println("Calling ANT with buildfile: " + buildFile);
+        }
         SecurityManager oldsm = null;
         if (!JavaEnvUtils.isJavaVersion("1.0") && !JavaEnvUtils.isJavaVersion("1.1"))
+        {
             oldsm = System.getSecurityManager();
+        }
         PrintStream err = System.err;
         PrintStream out = System.out;
         try
@@ -145,25 +139,25 @@ public class AntAction extends ActionBase
             // TODO: propertyfiles, logFile
             antProj.fireBuildStarted();
             antProj.init();
-            List antcalls = new ArrayList();
-            List choosenTargets = (uninstall) ? uninstallTargets : targets;
+            List<Ant> antcalls = new ArrayList<Ant>();
+            List<String> choosenTargets = (uninstall) ? uninstallTargets : targets;
             if (choosenTargets.size() > 0)
             {
                 Ant antcall = null;
-                for (int i = 0; i < choosenTargets.size(); i++)
+                for (String choosenTarget : choosenTargets)
                 {
                     antcall = (Ant) antProj.createTask("ant");
                     antcall.setAntfile(getBuildFile());
-                    antcall.setTarget((String) choosenTargets.get(i));
+                    antcall.setTarget(choosenTarget);
                     antcalls.add(antcall);
                 }
             }
             Target target = new Target();
             target.setName("calltarget");
 
-            for (int i = 0; i < antcalls.size(); i++)
+            for (Ant antcall : antcalls)
             {
-                target.addTask((Ant) antcalls.get(i));
+                target.addTask(antcall);
             }
             antProj.addTarget(target);
             System.setOut(new PrintStream(new DemuxOutputStream(antProj, false)));
@@ -172,7 +166,10 @@ public class AntAction extends ActionBase
         }
         finally
         {
-            if (oldsm != null) System.setSecurityManager(oldsm);
+            if (oldsm != null)
+            {
+                System.setSecurityManager(oldsm);
+            }
             System.setOut(out);
             System.setErr(err);
         }
@@ -180,7 +177,7 @@ public class AntAction extends ActionBase
 
     /**
      * Returns the build file.
-     * 
+     *
      * @return the build file
      */
     public String getBuildFile()
@@ -190,7 +187,7 @@ public class AntAction extends ActionBase
 
     /**
      * Sets the build file to be used to the given string.
-     * 
+     *
      * @param buildFile build file path to be used
      */
     public void setBuildFile(String buildFile)
@@ -200,7 +197,7 @@ public class AntAction extends ActionBase
 
     /**
      * Returns the current logfile path as string.
-     * 
+     *
      * @return current logfile path
      */
     public String getLogFile()
@@ -210,7 +207,7 @@ public class AntAction extends ActionBase
 
     /**
      * Sets the logfile path to the given string.
-     * 
+     *
      * @param logFile to be set
      */
     public void setLogFile(String logFile)
@@ -220,17 +217,17 @@ public class AntAction extends ActionBase
 
     /**
      * Returns the property file paths as list of strings.
-     * 
+     *
      * @return the property file paths
      */
-    public List getPropertyFiles()
+    public List<String> getPropertyFiles()
     {
         return propertyFiles;
     }
 
     /**
      * Adds one property file path to the internal list of property file paths.
-     * 
+     *
      * @param propertyFile to be added
      */
     public void addPropertyFile(String propertyFile)
@@ -240,17 +237,17 @@ public class AntAction extends ActionBase
 
     /**
      * Sets the property file path list to the given list. Old settings will be lost.
-     * 
+     *
      * @param propertyFiles list of property file paths to be set
      */
-    public void setPropertyFiles(List propertyFiles)
+    public void setPropertyFiles(List<String> propertyFiles)
     {
         this.propertyFiles = propertyFiles;
     }
 
     /**
      * Returns the properties.
-     * 
+     *
      * @return the properties
      */
     public Properties getProperties()
@@ -260,7 +257,7 @@ public class AntAction extends ActionBase
 
     /**
      * Sets the internal properties to the given properties. Old settings will be lost.
-     * 
+     *
      * @param properties properties to be set
      */
     public void setProperties(Properties properties)
@@ -270,8 +267,8 @@ public class AntAction extends ActionBase
 
     /**
      * Sets the given value to the property identified by the given name.
-     * 
-     * @param name key of the property
+     *
+     * @param name  key of the property
      * @param value value to be used for the property
      */
     public void setProperty(String name, String value)
@@ -281,7 +278,7 @@ public class AntAction extends ActionBase
 
     /**
      * Returns the value for the property identified by the given name.
-     * 
+     *
      * @param name name of the property
      * @return value of the property
      */
@@ -292,7 +289,7 @@ public class AntAction extends ActionBase
 
     /**
      * Returns the quiet state.
-     * 
+     *
      * @return quiet state
      */
     public boolean isQuiet()
@@ -302,7 +299,7 @@ public class AntAction extends ActionBase
 
     /**
      * Sets whether the associated ant task should be performed quiet or not.
-     * 
+     *
      * @param quiet quiet state to set
      */
     public void setQuiet(boolean quiet)
@@ -312,27 +309,27 @@ public class AntAction extends ActionBase
 
     /**
      * Returns the targets.
-     * 
+     *
      * @return the targets
      */
-    public List getTargets()
+    public List<String> getTargets()
     {
         return targets;
     }
 
     /**
      * Sets the targets which should be performed at installation time. Old settings are lost.
-     * 
+     *
      * @param targets list of targets
      */
-    public void setTargets(ArrayList targets)
+    public void setTargets(ArrayList<String> targets)
     {
         this.targets = targets;
     }
 
     /**
      * Adds the given target to the target list which should be performed at installation time.
-     * 
+     *
      * @param target target to be add
      */
     public void addTarget(String target)
@@ -342,27 +339,27 @@ public class AntAction extends ActionBase
 
     /**
      * Returns the uninstaller targets.
-     * 
+     *
      * @return the uninstaller targets
      */
-    public List getUninstallTargets()
+    public List<String> getUninstallTargets()
     {
         return uninstallTargets;
     }
 
     /**
      * Sets the targets which should be performed at uninstallation time. Old settings are lost.
-     * 
+     *
      * @param targets list of targets
      */
-    public void setUninstallTargets(ArrayList targets)
+    public void setUninstallTargets(ArrayList<String> targets)
     {
         this.uninstallTargets = targets;
     }
 
     /**
      * Adds the given target to the target list which should be performed at uninstallation time.
-     * 
+     *
      * @param target target to be add
      */
     public void addUninstallTarget(String target)
@@ -372,7 +369,7 @@ public class AntAction extends ActionBase
 
     /**
      * Returns the verbose state.
-     * 
+     *
      * @return verbose state
      */
     public boolean isVerbose()
@@ -382,7 +379,7 @@ public class AntAction extends ActionBase
 
     /**
      * Sets the verbose state.
-     * 
+     *
      * @param verbose state to be set
      */
     public void setVerbose(boolean verbose)
@@ -394,8 +391,13 @@ public class AntAction extends ActionBase
     {
         int msgOutputLevel = 2;
         if (verbose)
+        {
             msgOutputLevel = 4;
-        else if (quiet) msgOutputLevel = 1;
+        }
+        else if (quiet)
+        {
+            msgOutputLevel = 1;
+        }
         BuildLogger logger = new DefaultLogger();
         logger.setMessageOutputLevel(msgOutputLevel);
         if (logFile != null)
@@ -423,7 +425,10 @@ public class AntAction extends ActionBase
 
     private void addProperties(Project proj, Properties props)
     {
-        if (proj == null) return;
+        if (proj == null)
+        {
+            return;
+        }
         if (props.size() > 0)
         {
             Iterator iter = props.keySet().iterator();
@@ -438,15 +443,18 @@ public class AntAction extends ActionBase
 
     private void addPropertiesFromPropertyFiles(Project proj) throws Exception
     {
-        if (proj == null) return;
+        if (proj == null)
+        {
+            return;
+        }
         Properties props = new Properties();
         File pf = null;
         FileInputStream fis = null;
         try
         {
-            for (int i = 0; i < propertyFiles.size(); i++)
+            for (String propertyFile : propertyFiles)
             {
-                pf = new File((String) propertyFiles.get(i));
+                pf = new File(propertyFile);
                 if (pf.exists())
                 {
                     fis = new FileInputStream(pf);
@@ -462,7 +470,10 @@ public class AntAction extends ActionBase
         }
         finally
         {
-            if (fis != null) fis.close();
+            if (fis != null)
+            {
+                fis.close();
+            }
         }
         addProperties(proj, props);
     }

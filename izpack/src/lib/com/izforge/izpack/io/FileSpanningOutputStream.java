@@ -1,7 +1,7 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
- * http://izpack.org/ http://developer.berlios.de/projects/izpack/
+ * http://izpack.org/ http://izpack.codehaus.org/
  * 
  * Copyright 2007 Dennis Reil
  * 
@@ -17,26 +17,28 @@
  */
 package com.izforge.izpack.io;
 
+import com.izforge.izpack.util.Debug;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Date;
+import java.util.Random;
 import java.util.zip.GZIPOutputStream;
-
-import com.izforge.izpack.util.Debug;
 
 /**
  * An outputstream which transparently spans over multiple volumes. The size of the volumes and an
  * additonal space for the first volume can be specified.
- * 
+ *
  * @author Dennis Reil, <Dennis.Reil@reddot.de>
  */
 public class FileSpanningOutputStream extends OutputStream
 {
 
-    public static final long KB = 1024;
+    public static final long KB = 1000;
 
-    public static final long MB = 1024 * KB;
+    public static final long MB = 1000 * KB;
 
     // the default size of a volume
     public static final long DEFAULT_VOLUME_SIZE = 650 * MB;
@@ -47,7 +49,7 @@ public class FileSpanningOutputStream extends OutputStream
     public static final long DEFAULT_ADDITIONAL_FIRST_VOLUME_FREE_SPACE_SIZE = 0;
 
     // the default volume name
-    protected static final String DEFAULT_VOLUME_NAME = "installer";
+    protected static final String DEFAULT_VOLUME_NAME = "rdpack";
 
     protected static final long FILE_NOT_AVAILABLE = -1;
 
@@ -56,8 +58,9 @@ public class FileSpanningOutputStream extends OutputStream
 
     // the addition free space of volume 0
     protected long firstvolumefreespacesize = DEFAULT_ADDITIONAL_FIRST_VOLUME_FREE_SPACE_SIZE;
-    
-    public static final String VOLUMES_INFO = "/volumes.info";  
+    public static final String VOLUMES_INFO = "/volumes.info";
+
+    public static final int MAGIC_NUMER_LENGTH = 10;
 
     // the current file this stream writes to
     protected File currentfile;
@@ -73,6 +76,9 @@ public class FileSpanningOutputStream extends OutputStream
 
     private GZIPOutputStream zippedoutputstream;
 
+    // 
+    private byte[] magicnumber;
+
     // the current position in the open file
     protected long filepointer;
 
@@ -80,8 +86,8 @@ public class FileSpanningOutputStream extends OutputStream
 
     /**
      * Creates a new spanning output stream with specified volume names and a maximum volume size
-     * 
-     * @param volumename - the name of the volumes
+     *
+     * @param volumename    - the name of the volumes
      * @param maxvolumesize - the maximum volume size
      * @throws IOException
      */
@@ -92,8 +98,8 @@ public class FileSpanningOutputStream extends OutputStream
 
     /**
      * Creates a new spanning output stream with specified volume names and a maximum volume size
-     * 
-     * @param volume - the first volume
+     *
+     * @param volume        - the first volume
      * @param maxvolumesize - the maximum volume size
      * @throws IOException
      */
@@ -104,8 +110,8 @@ public class FileSpanningOutputStream extends OutputStream
 
     /**
      * Creates a new spanning output stream with specified volume names and a maximum volume size
-     * 
-     * @param volume - the first volume
+     *
+     * @param volume        - the first volume
      * @param maxvolumesize - the maximum volume size
      * @param currentvolume - the current volume
      * @throws IOException
@@ -113,14 +119,36 @@ public class FileSpanningOutputStream extends OutputStream
     protected FileSpanningOutputStream(File volume, long maxvolumesize, int currentvolume)
             throws IOException
     {
+        this.generateMagicNumber();
         this.createVolumeOutputStream(volume, maxvolumesize, currentvolume);
+    }
+
+    private void generateMagicNumber()
+    {
+        // only create a magic number, if not already done
+        if (magicnumber == null)
+        {
+            // create empty magic number
+            magicnumber = new byte[MAGIC_NUMER_LENGTH];
+            Date currenttime = new Date();
+            long currenttimeseconds = currenttime.getTime();
+            // create random number generator
+            Random random = new Random(currenttimeseconds);
+            random.nextBytes(magicnumber);
+            Debug.trace("created new magic number for FileOutputstream: "
+                    + new String(magicnumber));
+            for (int i = 0; i < magicnumber.length; i++)
+            {
+                Debug.trace(i + " - " + magicnumber[i]);
+            }
+        }
     }
 
     /**
      * Actually creates the outputstream for writing a volume with index currentvolume and a maximum
      * of maxvolumesize
-     * 
-     * @param volume - the volume to write to
+     *
+     * @param volume        - the volume to write to
      * @param maxvolumesize - the maximum volume size
      * @param currentvolume - the currentvolume index
      * @throws IOException
@@ -145,10 +173,14 @@ public class FileSpanningOutputStream extends OutputStream
         {
             volumename = volabsolutePath;
         }
+        long oldfilepointer = filepointer;
+        // write magic number into output stream
+        this.write(magicnumber);
+        // reset filepointer
+        filepointer = oldfilepointer;
     }
 
     /**
-     * 
      * @param volume
      * @throws IOException
      */
@@ -158,7 +190,6 @@ public class FileSpanningOutputStream extends OutputStream
     }
 
     /**
-     * 
      * @param volumename
      * @throws IOException
      */
@@ -168,7 +199,6 @@ public class FileSpanningOutputStream extends OutputStream
     }
 
     /**
-     * 
      * @throws IOException
      */
     public FileSpanningOutputStream() throws IOException
@@ -178,12 +208,15 @@ public class FileSpanningOutputStream extends OutputStream
 
     /**
      * Returns the size of the current volume
-     * 
+     *
      * @return the size of the current volume FILE_NOT_AVAILABLE, if there's no current volume
      */
     protected long getCurrentVolumeSize()
     {
-        if (currentfile == null) { return FILE_NOT_AVAILABLE; }
+        if (currentfile == null)
+        {
+            return FILE_NOT_AVAILABLE;
+        }
         try
         {
             flush();
@@ -211,7 +244,7 @@ public class FileSpanningOutputStream extends OutputStream
 
     /**
      * Closes the stream to the current volume and reopens to the next volume
-     * 
+     *
      * @throws IOException
      */
     protected void createStreamToNextVolume() throws IOException
@@ -244,9 +277,12 @@ public class FileSpanningOutputStream extends OutputStream
      */
     public void write(byte[] b, int off, int len) throws IOException
     {
-        if (len > maxvolumesize) { throw new IOException(
-                "file can't be written. buffer length exceeded maxvolumesize (" + " > "
-                        + maxvolumesize + ")"); }
+        if (len > maxvolumesize)
+        {
+            throw new IOException(
+                    "file can't be written. buffer length exceeded maxvolumesize (" + " > "
+                            + maxvolumesize + ")");
+        }
         // get the current size of this file
         long currentsize = getCurrentVolumeSize();
         // calculate the available bytes
@@ -307,7 +343,7 @@ public class FileSpanningOutputStream extends OutputStream
 
     /**
      * Returns the amount of currently created volumes
-     * 
+     *
      * @return the amount of created volumes
      */
     public int getVolumeCount()
@@ -316,7 +352,6 @@ public class FileSpanningOutputStream extends OutputStream
     }
 
     /**
-     * 
      * @return
      */
     public long getFirstvolumefreespacesize()
@@ -325,7 +360,6 @@ public class FileSpanningOutputStream extends OutputStream
     }
 
     /**
-     * 
      * @param firstvolumefreespacesize
      */
     public void setFirstvolumefreespacesize(long firstvolumefreespacesize)
@@ -335,7 +369,7 @@ public class FileSpanningOutputStream extends OutputStream
 
     /**
      * Returns the current position in this file
-     * 
+     *
      * @return the position in this file
      * @throws IOException
      */

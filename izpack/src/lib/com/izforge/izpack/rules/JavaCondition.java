@@ -1,10 +1,10 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  *
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  *
- * Copyright 2007 Dennis Reil
+ * Copyright 2007-2009 Dennis Reil
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,19 +20,24 @@
  */
 package com.izforge.izpack.rules;
 
+import com.izforge.izpack.util.Debug;
+import com.izforge.izpack.adaptator.IXMLElement;
+import com.izforge.izpack.adaptator.impl.XMLElementImpl;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.Properties;
-
-import net.n3.nanoxml.XMLElement;
-import com.izforge.izpack.util.Debug;
 
 /**
  * A condition based on the value of a static java field or static java method.
  *
- * @author Dennis Reil, <Dennis.Reil@reddot.de>
+ * @author Dennis Reil, <izpack@reil-online.de>
  */
-public class JavaCondition extends Condition {
+public class JavaCondition extends Condition
+{
+    /**
+     *
+     */
+    private static final long serialVersionUID = -7649870719815066537L;
     protected String classname;
     protected String methodname;
     protected String fieldname;
@@ -45,52 +50,76 @@ public class JavaCondition extends Condition {
     protected Field usedfield;
     protected Method usedmethod;
 
-    public JavaCondition() {
+    public JavaCondition()
+    {
 
     }
 
-    private boolean isTrue(Properties variables) {
-        if (!this.complete) {
+    public boolean isTrue()
+    {
+        if (!this.complete)
+        {
             return false;
-        } else {
-            if (this.usedclass == null) {
-                ClassLoader loader = ClassLoader.getSystemClassLoader();
-                try {
-                    this.usedclass = loader.loadClass(this.classname);
-                } catch (ClassNotFoundException e) {
+        }
+        else
+        {
+            if (this.usedclass == null)
+            {
+                try
+                {
+                    this.usedclass = Class.forName(this.classname); 
+                }
+                catch (ClassNotFoundException e)
+                {
                     Debug.log("Can't find class " + this.classname);
                     return false;
                 }
             }
-            if ((this.usedfield == null) && (this.fieldname != null)) {
-                try {
+            if ((this.usedfield == null) && (this.fieldname != null))
+            {
+                try
+                {
                     this.usedfield = this.usedclass.getField(this.fieldname);
-                } catch (SecurityException e) {
+                }
+                catch (SecurityException e)
+                {
                     Debug.log("No permission to access specified field: " + this.fieldname);
                     return false;
-                } catch (NoSuchFieldException e) {
+                }
+                catch (NoSuchFieldException e)
+                {
                     Debug.log("No such field: " + this.fieldname);
                     return false;
                 }
             }
-            if ((this.usedmethod == null) && (this.methodname != null)) {
+            if ((this.usedmethod == null) && (this.methodname != null))
+            {
                 Debug.log("not implemented yet.");
                 return false;
             }
 
-            if (this.usedfield != null) {
+            if (this.usedfield != null)
+            {
                 // access field
-                if ("boolean".equals(this.returnvaluetype)) {
-                    try {
+                if ("boolean".equals(this.returnvaluetype))
+                {
+                    try
+                    {
                         boolean returnval = this.usedfield.getBoolean(null);
-                        boolean expectedreturnval = Boolean.valueOf(this.returnvalue).booleanValue();
+                        boolean expectedreturnval = Boolean.valueOf(this.returnvalue);
                         return returnval == expectedreturnval;
-                    } catch (IllegalArgumentException e) {
+                    }
+                    catch (IllegalArgumentException e)
+                    {
                         Debug.log("IllegalArgumentexeption " + this.fieldname);
-                    } catch (IllegalAccessException e) {
+                    }
+                    catch (IllegalAccessException e)
+                    {
                         Debug.log("IllegalAccessException " + this.fieldname);
                     }
-                } else {
+                }
+                else
+                {
                     Debug.log("not implemented yet.");
                     return false;
                 }
@@ -99,45 +128,105 @@ public class JavaCondition extends Condition {
         }
     }
 
-    public void readFromXML(XMLElement xmlcondition) {
-        if (xmlcondition.getChildrenCount() != 2) {
+    public void readFromXML(IXMLElement xmlcondition)
+    {
+        if (xmlcondition.getChildrenCount() != 2)
+        {
             Debug.log("Condition of type java needs (java,returnvalue)");
             return;
         }
-        XMLElement javael = xmlcondition.getFirstChildNamed("java");
-        XMLElement classel = javael.getFirstChildNamed("class");
-        if (classel != null) {
+        IXMLElement javael = xmlcondition.getFirstChildNamed("java");
+        IXMLElement classel = javael.getFirstChildNamed("class");
+        if (classel != null)
+        {
             this.classname = classel.getContent();
-        } else {
+        }
+        else
+        {
             Debug.log("Java-Element needs (class,method?,field?)");
             return;
         }
-        XMLElement methodel = javael.getFirstChildNamed("method");
-        if (methodel != null) {
+        IXMLElement methodel = javael.getFirstChildNamed("method");
+        if (methodel != null)
+        {
             this.methodname = methodel.getContent();
         }
-        XMLElement fieldel = javael.getFirstChildNamed("field");
-        if (fieldel != null) {
+        IXMLElement fieldel = javael.getFirstChildNamed("field");
+        if (fieldel != null)
+        {
             this.fieldname = fieldel.getContent();
         }
-        if ((this.methodname == null) && (this.fieldname == null)) {
+        if ((this.methodname == null) && (this.fieldname == null))
+        {
             Debug.log("java element needs (class, method?,field?)");
             return;
         }
-        XMLElement returnvalel = xmlcondition.getFirstChildNamed("returnvalue");
-        if (returnvalel != null) {
+        IXMLElement returnvalel = xmlcondition.getFirstChildNamed("returnvalue");
+        if (returnvalel != null)
+        {
             this.returnvalue = returnvalel.getContent();
             this.returnvaluetype = returnvalel.getAttribute("type");
-        } else {
+        }
+        else
+        {
             Debug.log("no returnvalue-element specified.");
             return;
         }
         this.complete = true;
     }
-
-    public boolean isTrue()
+    
+    @Override
+    public void makeXMLData(IXMLElement conditionRoot)
     {
-       return this.isTrue(this.installdata.getVariables());
+        XMLElementImpl javael = new XMLElementImpl("java",conditionRoot);
+        conditionRoot.addChild(javael);
+        XMLElementImpl classel = new XMLElementImpl("class",javael);
+        classel.setContent(this.classname);
+        javael.addChild(classel);
+        if (this.methodname != null){
+            XMLElementImpl methodel = new XMLElementImpl("method",javael);
+            methodel.setContent(this.methodname);
+            javael.addChild(methodel);    
+        }
+        if (this.fieldname != null){
+            XMLElementImpl fieldel = new XMLElementImpl("field",javael);
+            fieldel.setContent(this.fieldname);
+            javael.addChild(fieldel);    
+        }        
+        XMLElementImpl returnvalel = new XMLElementImpl("returnvalue",javael);
+        returnvalel.setContent(this.returnvalue);
+        returnvalel.setAttribute("type", this.returnvaluetype);
+        javael.addChild(returnvalel);
     }
+
+    /* (non-Javadoc)
+     * @see com.izforge.izpack.rules.Condition#getDependenciesDetails()
+     */
+    public String getDependenciesDetails()
+    {
+        StringBuffer details = new StringBuffer();
+        details.append(this.id);
+        details.append(" depends on the ");
+        if (this.fieldname != null)
+        {
+            details.append("value of field <b>");
+            details.append(this.fieldname);
+            details.append("</b>");
+        }
+        else
+        {
+            details.append("return value of method <b>");
+            details.append(this.methodname);
+            details.append("</b>");
+        }
+        details.append(" on an instance of class <b>");
+        details.append(this.classname);
+        details.append("</b> which should be <b>");
+        details.append(this.returnvalue);
+        details.append("</b><br/>");
+        return details.toString();
+    }
+
+    
 
 }

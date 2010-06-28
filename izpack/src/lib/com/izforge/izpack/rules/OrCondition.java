@@ -1,10 +1,10 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  *
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  *
- * Copyright 2007 Dennis Reil
+ * Copyright 2007-2009 Dennis Reil
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,29 +20,23 @@
  */
 package com.izforge.izpack.rules;
 
-import java.util.List;
-import java.util.Properties;
-
-import net.n3.nanoxml.XMLElement;
 import com.izforge.izpack.util.Debug;
+import com.izforge.izpack.adaptator.IXMLElement;
 
 /**
- * @author Dennis Reil, <Dennis.Reil@reddot.de>
+ * @author Dennis Reil, <izpack@reil-online.de>
  * @version $Id: OrCondition.java,v 1.1 2006/09/29 14:40:38 dennis Exp $
  */
 public class OrCondition extends Condition
 {
-
-    public static final String RDE_VCS_REVISION = "$Revision: 1.1 $";
-
-    public static final String RDE_VCS_NAME = "$Name:  $";
+    private static final long serialVersionUID = 8341350377205144199L;
 
     protected Condition leftoperand;
 
     protected Condition rightoperand;
 
     /**
-     * 
+     *
      */
     public OrCondition()
     {
@@ -51,12 +45,14 @@ public class OrCondition extends Condition
     }
 
     /**
-     * 
+     *
      */
     public OrCondition(Condition operand1, Condition operand2)
     {
         this.leftoperand = operand1;
+        this.leftoperand.setInstalldata(this.installdata);
         this.rightoperand = operand2;
+        this.rightoperand.setInstalldata(this.installdata);
     }
 
     /*
@@ -71,9 +67,9 @@ public class OrCondition extends Condition
     /*
      * (non-Javadoc)
      * 
-     * @see de.reddot.installer.rules.Condition#readFromXML(net.n3.nanoxml.XMLElement)
+     * @see de.reddot.installer.rules.Condition#readFromXML(com.izforge.izpack.adaptator.IXMLElement)
      */
-    public void readFromXML(XMLElement xmlcondition)
+    public void readFromXML(IXMLElement xmlcondition)
     {
         try
         {
@@ -98,6 +94,38 @@ public class OrCondition extends Condition
      */
     public boolean isTrue()
     {
+        if ((this.leftoperand == null) || (this.rightoperand == null)){
+            Debug.trace("Operands of condition " + this.id + " not initialized correctly.");
+            return false;
+        }
+        this.leftoperand.setInstalldata(this.installdata);
+        this.rightoperand.setInstalldata(this.installdata);
         return this.leftoperand.isTrue() || this.rightoperand.isTrue();
+    }
+
+    /* (non-Javadoc)
+     * @see com.izforge.izpack.rules.Condition#getDependenciesDetails()
+     */
+    public String getDependenciesDetails()
+    {
+        StringBuffer details = new StringBuffer();
+        details.append(this.id);
+        details.append(" depends on:<ul><li>");
+        details.append(leftoperand.getDependenciesDetails());
+        details.append("</li> OR <li>");
+        details.append(rightoperand.getDependenciesDetails());
+        details.append("</li></ul>");
+        return details.toString();
+    }
+
+    @Override
+    public void makeXMLData(IXMLElement conditionRoot)
+    {
+        IXMLElement left = RulesEngine.createConditionElement(this.leftoperand, conditionRoot);
+        this.leftoperand.makeXMLData(left);
+        conditionRoot.addChild(left);        
+        IXMLElement right = RulesEngine.createConditionElement(this.rightoperand, conditionRoot);
+        this.rightoperand.makeXMLData(right);
+        conditionRoot.addChild(right);     
     }
 }

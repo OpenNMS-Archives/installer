@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,27 +19,26 @@
 
 package com.izforge.izpack.panels;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-
-import javax.swing.JButton;
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
-
+import com.izforge.izpack.gui.AutomatedInstallScriptFilter;
 import com.izforge.izpack.gui.ButtonFactory;
 import com.izforge.izpack.gui.IzPanelLayout;
 import com.izforge.izpack.gui.LabelFactory;
 import com.izforge.izpack.installer.InstallData;
 import com.izforge.izpack.installer.InstallerFrame;
 import com.izforge.izpack.installer.IzPanel;
+import com.izforge.izpack.util.Log;
 import com.izforge.izpack.util.VariableSubstitutor;
+
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 
 /**
  * The finish panel class.
- * 
+ *
  * @author Julien Ponge
  */
 public class FinishPanel extends IzPanel implements ActionListener
@@ -47,17 +46,21 @@ public class FinishPanel extends IzPanel implements ActionListener
 
     private static final long serialVersionUID = 3257282535107998009L;
 
-    /** The automated installers generation button. */
+    /**
+     * The automated installers generation button.
+     */
     protected JButton autoButton;
 
-    /** The variables substitutor. */
+    /**
+     * The variables substitutor.
+     */
     protected VariableSubstitutor vs;
 
     /**
      * The constructor.
-     * 
+     *
      * @param parent The parent.
-     * @param idata The installation data.
+     * @param idata  The installation data.
      */
     public FinishPanel(InstallerFrame parent, InstallData idata)
     {
@@ -68,7 +71,7 @@ public class FinishPanel extends IzPanel implements ActionListener
 
     /**
      * Indicates wether the panel has been validated or not.
-     * 
+     *
      * @return true if the panel has been validated.
      */
     public boolean isValidated()
@@ -76,7 +79,9 @@ public class FinishPanel extends IzPanel implements ActionListener
         return true;
     }
 
-    /** Called when the panel becomes active. */
+    /**
+     * Called when the panel becomes active.
+     */
     public void panelActivate()
     {
         parent.lockNextButton();
@@ -87,8 +92,8 @@ public class FinishPanel extends IzPanel implements ActionListener
         {
             // We set the information
             add(LabelFactory.create(parent.langpack.getString("FinishPanel.success"),
-                    parent.icons.getImageIcon("information"), LEADING), NEXT_LINE);
-            add(IzPanelLayout.createParagraphGap());
+                    parent.icons.getImageIcon("preferences"), LEADING), NEXT_LINE);
+            add(IzPanelLayout.createVerticalStrut(5));
             if (idata.uninstallOutJar != null)
             {
                 // We prepare a message for the uninstaller feature
@@ -96,13 +101,13 @@ public class FinishPanel extends IzPanel implements ActionListener
 
                 add(LabelFactory.create(parent.langpack
                         .getString("FinishPanel.uninst.info"), parent.icons
-                        .getImageIcon("information"), LEADING), NEXT_LINE);
+                        .getImageIcon("preferences"), LEADING), NEXT_LINE);
                 add(LabelFactory.create(path, parent.icons.getImageIcon("empty"),
                         LEADING), NEXT_LINE);
             }
 
             // We add the autoButton
-            add(IzPanelLayout.createParagraphGap());
+            add(IzPanelLayout.createVerticalStrut(5));
             autoButton = ButtonFactory.createButton(parent.langpack.getString("FinishPanel.auto"),
                     parent.icons.getImageIcon("edit"), idata.buttonsHColor);
             autoButton.setToolTipText(parent.langpack.getString("FinishPanel.auto.tip"));
@@ -110,14 +115,17 @@ public class FinishPanel extends IzPanel implements ActionListener
             add(autoButton, NEXT_LINE);
         }
         else
+        {
             add(LabelFactory.create(parent.langpack.getString("FinishPanel.fail"),
-                    parent.icons.getImageIcon("information"), LEADING), NEXT_LINE);
+                    parent.icons.getImageIcon("stop"), LEADING), NEXT_LINE);
+        }
         getLayoutHelper().completeLayout(); // Call, or call not?
+        Log.getInstance().informUser();
     }
 
     /**
      * Actions-handling method.
-     * 
+     *
      * @param e The event.
      */
     public void actionPerformed(ActionEvent e)
@@ -126,7 +134,7 @@ public class FinishPanel extends IzPanel implements ActionListener
         JFileChooser fc = new JFileChooser();
         fc.setCurrentDirectory(new File(idata.getInstallPath()));
         fc.setMultiSelectionEnabled(false);
-        fc.addChoosableFileFilter(fc.getAcceptAllFileFilter());
+        fc.addChoosableFileFilter(new AutomatedInstallScriptFilter());
         // fc.setCurrentDirectory(new File("."));
 
         // Shows it
@@ -155,7 +163,7 @@ public class FinishPanel extends IzPanel implements ActionListener
 
     /**
      * Translates a relative path to a local system path.
-     * 
+     *
      * @param destination The path to translate.
      * @return The translated path.
      */

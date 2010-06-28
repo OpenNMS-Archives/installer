@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,36 +19,39 @@
 
 package com.izforge.izpack.panels;
 
-import java.io.File;
-
 import com.izforge.izpack.gui.IzPanelLayout;
 import com.izforge.izpack.gui.LabelFactory;
 import com.izforge.izpack.installer.InstallData;
 import com.izforge.izpack.installer.InstallerFrame;
 import com.izforge.izpack.installer.IzPanel;
+import com.izforge.izpack.util.Log;
 import com.izforge.izpack.util.VariableSubstitutor;
+
+import java.io.File;
 
 /**
  * The simple finish panel class.
- * 
+ *
  * @author Julien Ponge
  */
 public class SimpleFinishPanel extends IzPanel
 {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 3689911781942572085L;
 
-    /** The variables substitutor. */
+    /**
+     * The variables substitutor.
+     */
     private VariableSubstitutor vs;
 
     /**
      * The constructor.
-     * 
+     *
      * @param parent The parent.
-     * @param idata The installation data.
+     * @param idata  The installation data.
      */
     public SimpleFinishPanel(InstallerFrame parent, InstallData idata)
     {
@@ -58,7 +61,7 @@ public class SimpleFinishPanel extends IzPanel
 
     /**
      * Indicates wether the panel has been validated or not.
-     * 
+     *
      * @return true if the panel has been validated.
      */
     public boolean isValidated()
@@ -66,7 +69,9 @@ public class SimpleFinishPanel extends IzPanel
         return true;
     }
 
-    /** Called when the panel becomes active. */
+    /**
+     * Called when the panel becomes active.
+     */
     public void panelActivate()
     {
         parent.lockNextButton();
@@ -75,13 +80,13 @@ public class SimpleFinishPanel extends IzPanel
         parent.setQuitButtonIcon("done");
         if (idata.installSuccess)
         {
-            
+
             // We set the information
             add(LabelFactory.create(parent.icons.getImageIcon("check")));
-            add(IzPanelLayout.createParagraphGap());
+            add(IzPanelLayout.createVerticalStrut(5));
             add(LabelFactory.create(parent.langpack.getString("FinishPanel.success"),
-                    parent.icons.getImageIcon("information"), LEADING), NEXT_LINE);
-            add(IzPanelLayout.createParagraphGap());
+                    parent.icons.getImageIcon("preferences"), LEADING), NEXT_LINE);
+            add(IzPanelLayout.createVerticalStrut(5));
             if (idata.uninstallOutJar != null)
             {
                 // We prepare a message for the uninstaller feature
@@ -89,21 +94,23 @@ public class SimpleFinishPanel extends IzPanel
 
                 add(LabelFactory.create(parent.langpack
                         .getString("FinishPanel.uninst.info"), parent.icons
-                        .getImageIcon("information"), LEADING), NEXT_LINE);
+                        .getImageIcon("preferences"), LEADING), NEXT_LINE);
                 add(LabelFactory.create(path, parent.icons.getImageIcon("empty"),
                         LEADING), NEXT_LINE);
             }
         }
         else
+        {
             add(LabelFactory.create(parent.langpack.getString("FinishPanel.fail"),
-                    parent.icons.getImageIcon("information"),  LEADING));
+                    parent.icons.getImageIcon("stop"), LEADING));
+        }
         getLayoutHelper().completeLayout(); // Call, or call not?
-
+        Log.getInstance().informUser();
     }
 
     /**
      * Translates a relative path to a local system path.
-     * 
+     *
      * @param destination The path to translate.
      * @return The translated path.
      */

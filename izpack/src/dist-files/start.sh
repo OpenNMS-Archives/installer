@@ -14,7 +14,7 @@
 # IzPack - Copyright 2001-2005 Julien Ponge, All Rights Reserved.
 # 
 # http://izpack.org/
-# http://developer.berlios.de/projects/izpack/
+# http://izpack.codehaus.org/
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@
 #  ./start.sh http://izpack.org/
 #
 # author marc.eppelmann&#064;gmx.de
-# $Id: start.sh 1816 2007-04-23 19:57:27Z jponge $
+# $Id: start.sh 2116 2008-04-19 13:00:24Z jponge $
 #
 
 function detectDesktop() {

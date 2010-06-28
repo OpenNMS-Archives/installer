@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2004 Klaus Bartz
  * 
@@ -21,23 +21,20 @@
 
 package com.izforge.izpack.event;
 
-import java.util.Map;
-
-import net.n3.nanoxml.XMLElement;
-
 import com.izforge.izpack.compiler.CompilerException;
 import com.izforge.izpack.compiler.IPackager;
 import com.izforge.izpack.compiler.PackInfo;
+import com.izforge.izpack.adaptator.IXMLElement;
+
+import java.util.Map;
 
 /**
  * <p>
  * This class implements all methods of interface CompilerListener, but do not do anything else. It
  * can be used as base class to save implementation of unneeded methods.
  * </p>
- * 
- * 
+ *
  * @author Klaus Bartz
- * 
  */
 public class SimpleCompilerListener implements CompilerListener
 {
@@ -54,9 +51,9 @@ public class SimpleCompilerListener implements CompilerListener
      * (non-Javadoc)
      * 
      * @see com.izforge.izpack.compiler.CompilerListener#reviseAttributSetFile(java.util.Map,
-     * net.n3.nanoxml.XMLElement)
+     * com.izforge.izpack.adaptator.IXMLElement)
      */
-    public Map reviseAdditionalDataMap(Map existentDataMap, XMLElement element)
+    public Map reviseAdditionalDataMap(Map existentDataMap, IXMLElement element)
             throws CompilerException
     {
         return null;
@@ -87,9 +84,9 @@ public class SimpleCompilerListener implements CompilerListener
      * (non-Javadoc)
      * 
      * @see com.izforge.izpack.compiler.CompilerListener#notify(java.lang.String, int,
-     * net.n3.nanoxml.XMLElement, com.izforge.izpack.compiler.Packager)
+     * com.izforge.izpack.adaptator.IXMLElement, com.izforge.izpack.compiler.Packager)
      */
-    public void notify(String position, int state, XMLElement data, IPackager packager)
+    public void notify(String position, int state, IXMLElement data, IPackager packager)
     {
     }
 
