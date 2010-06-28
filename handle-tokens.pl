@@ -54,7 +54,7 @@ find (
 	$path,
 );
 
-for my $installfile ('install.xml', 'install-1.6.xml') {
+for my $installfile ('INSTALL.txt', 'launcher.ini', 'install.xml', 'install-1.6.xml') {
 	open (FILEIN, "$installfile.in") or die "can't read from $installfile.in: $!";
 	open (FILEOUT, ">$installfile") or die "can't write to $installfile: $!";
 	while (<FILEIN>) {

@@ -1,7 +1,9 @@
 #!/bin/sh -e
 
 TOPDIR=`pwd -P`
-IZPACK_HOME="$TOPDIR/izpack"
+if [ -z "$IZPACK_HOME" ]; then
+	IZPACK_HOME="$TOPDIR/izpack"
+fi
 IZPACK_COMPILE="$IZPACK_HOME/bin/compile"
 REPLACEMENT_TOKEN="XXX_TOKENIZE_ME_XXX"
 
@@ -36,7 +38,9 @@ if [ -z "$SKIP_BUILD" ]; then
 	popd
 fi
 
+DATESTAMP=`date '+%Y%m%d'`
 VERSION=`grep '<version>' "$TOPDIR/opennms-build/pom.xml" | head -n 1 | sed -e 's,^.*<version>,,' -e 's,<.*$,,'`
+VERSION=`echo $VERSION | sed -e "s,-SNAPSHOT,-${DATESTAMP},g"`
 BINARY_DIRECTORY=`ls -d -1 "$TOPDIR/opennms-build/target/"opennms-*`
 TEMP_DIRECTORY="$TOPDIR/izpack-temp"
 
@@ -62,4 +66,11 @@ cp *.bat "$TEMP_DIRECTORY/bin/"
 cp discovery-configuration.xml java.conf.* opennms-datasources.xml "$TEMP_DIRECTORY/etc/"
 cp native/* "$TEMP_DIRECTORY/lib/"
 
-"$IZPACK_COMPILE" $INSTALL_XML -b "$TEMP_DIRECTORY" -o standalone-opennms-installer-$VERSION.jar -k standard
+INSTALLER_NAME="standalone-opennms-installer-$VERSION"
+ZIP_DIRECTORY="opennms-installer"
+mkdir -p "$TOPDIR/$ZIP_DIRECTORY"
+"$IZPACK_COMPILE" $INSTALL_XML -b "$TEMP_DIRECTORY" -o "$TOPDIR/$ZIP_DIRECTORY/$INSTALLER_NAME.jar" -k standard
+cp launcher.ini setup.exe "$TOPDIR/$ZIP_DIRECTORY/"
+pushd "$TOPDIR" >/dev/null 2>&1
+	zip -9 "$INSTALLER_NAME.zip" -r "$ZIP_DIRECTORY"
+popd >/dev/null 2>&1

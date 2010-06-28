@@ -1,0 +1,3 @@
+# OpenNMS Windows Installer Configuration
+jar = standalone-opennms-installer-@appversion@.jar
+download = http://www.java.com/
