@@ -60,20 +60,21 @@ for my $installfile ('INSTALL.txt', 'launcher.ini', 'install.xml', 'install-1.6.
 	while (<FILEIN>) {
 		if (/\@parsable_files\@/) {
 			for my $file (@altered) {
-				$file =~ s/${path}/\$UNIFIED_INSTALL_PATH/;
+				$file =~ s/${path}/\$INSTALL_PATH/;
 				print FILEOUT "\t\t\t<parsable targetfile=\"$file\" />\n";
 			}
 			for my $file (@executable) {
-				$file =~ s/${path}/\$UNIFIED_INSTALL_PATH/;
+				$file =~ s/${path}/\$INSTALL_PATH/;
 				print FILEOUT "\t\t\t<executable targetfile=\"$file\" stage=\"never\" />\n";
 			}
 		} elsif (/\@jar_files\@/) {
 			for my $file (@jars) {
 				$file =~ s#^.*?/lib/##;
-				print FILEOUT "\t\t\t<singlefile src=\"lib/$file\" target=\"\$UNIFIED_INSTALL_PATH/lib/$file\" />\n";
+				print FILEOUT "\t\t\t<singlefile src=\"lib/$file\" target=\"\$INSTALL_PATH/lib/$file\" />\n";
 			}
 		} elsif (/\@appversion\@/) {
-			print FILEOUT "\t\t<appversion>$version</appversion>\n";
+			s/\@appversion\@/$version/g;
+			print FILEOUT $_;
 		} else {
 			print FILEOUT;
 		}

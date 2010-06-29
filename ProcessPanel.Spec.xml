@@ -1,15 +1,15 @@
 <processing>
-  <logfiledir>$UNIFIED_INSTALL_PATH/logs</logfiledir>
+  <logfiledir>$INSTALL_PATH/logs</logfiledir>
   <job name="Setting Up the Database">
     <executefile name="$JDKPath/bin/java">
     	<arg>-Xmx256m</arg>
-    	<arg>-Dopennms.home=$UNIFIED_INSTALL_PATH</arg>
-    	<arg>-Dinstall.dir=$UNIFIED_INSTALL_PATH</arg>
-    	<arg>-Dinstall.etc.dir=$UNIFIED_INSTALL_PATH/etc</arg>
-    	<arg>-Dinstall.servlet.dir=$UNIFIED_INSTALL_PATH/webapps/opennms</arg>
-    	<arg>-jar</arg><arg>$UNIFIED_INSTALL_PATH/lib/opennms_install.jar</arg>
+    	<arg>-Dopennms.home=$INSTALL_PATH</arg>
+    	<arg>-Dinstall.dir=$INSTALL_PATH</arg>
+    	<arg>-Dinstall.etc.dir=$INSTALL_PATH/etc</arg>
+    	<arg>-Dinstall.servlet.dir=$INSTALL_PATH/webapps/opennms</arg>
+    	<arg>-jar</arg><arg>$INSTALL_PATH/lib/opennms_install.jar</arg>
     	<arg>-dis</arg>
-    	<arg>-l</arg><arg>$UNIFIED_INSTALL_PATH/lib</arg>
+    	<arg>-l</arg><arg>$INSTALL_PATH/lib</arg>
     </executefile>
   </job>
 </processing>
