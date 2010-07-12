@@ -238,6 +238,7 @@ public class AutomatedInstallData implements Serializable
     public void setInstallPath(String path)
     {
         setVariable(ScriptParser.INSTALL_PATH, path);
+        setVariable(ScriptParser.UNIFIED_INSTALL_PATH, path.replace("\\", "/"));
     }
 
     /**
@@ -249,6 +250,17 @@ public class AutomatedInstallData implements Serializable
     public String getInstallPath()
     {
         return getVariable(ScriptParser.INSTALL_PATH);
+    }
+
+    /**
+     * Returns the install path.
+     *
+     * @return the current install path or null if none set yet
+     * @see #setInstallPath
+     */
+    public String getUnified_InstallPath()
+    {
+        return getVariable(ScriptParser.UNIFIED_INSTALL_PATH);
     }
 
     /**

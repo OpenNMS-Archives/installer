@@ -44,6 +44,11 @@ public class ScriptParser
     public final static String INSTALL_PATH = "INSTALL_PATH";
 
     /**
+     * The install path, using forward-slashes for property-replacement purposes.
+     */
+	public static final String UNIFIED_INSTALL_PATH = "UNIFIED_INSTALL_PATH";
+
+    /**
      * The Java home path.
      */
     public final static String JAVA_HOME = "JAVA_HOME";
