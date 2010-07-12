@@ -1,0 +1,14 @@
+<langpack>
+
+	<str id="configureDatabase.text" txt="English:Configure Database" />
+	<str id="databaseName.text" txt="English:PostgreSQL Database Name:" />
+	<str id="databaseAdminUser.text" txt="English:Database Administrator Username:" />
+	<str id="databaseAdminPass.text" txt="English:Database Administrator Password:" />
+
+	<str id="configureDiscoveryRange.text" txt="English:Configure Discovery Range" />
+	<str id="discoveryIncludeRangeStart.text" txt="English:Start:" />
+	<str id="discoveryIncludeRangeEnd.text" txt="English:End:" />
+
+	<str id="ipAddressInvalid.text" txt="Invalid IP Address." />
+
+</langpack>
