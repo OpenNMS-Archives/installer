@@ -45,7 +45,7 @@ BINARY_DIRECTORY=`ls -d -1 "$TOPDIR/opennms-build/target/"opennms-*`
 TEMP_DIRECTORY="$TOPDIR/izpack-temp"
 
 rsync -avr --progress --delete "$BINARY_DIRECTORY"/ "$TEMP_DIRECTORY"/
-./handle-tokens.pl "$TEMP_DIRECTORY" "($REPLACEMENT_TOKEN|$BINARY_DIRECTORY)" '$INSTALL_PATH' "$VERSION"
+./handle-tokens.pl "$TEMP_DIRECTORY" "($REPLACEMENT_TOKEN|$BINARY_DIRECTORY)" '$UNIFIED_INSTALL_PATH' "$VERSION"
 
 if [ -d "$TOPDIR/opennms-build/integrations/opennms-map-provisioning-adapter" ]; then
 	INSTALL_XML="install.xml"

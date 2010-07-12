@@ -60,13 +60,13 @@
 	<packs>
 		<pack name="Core" required="yes">
 			<description>The base OpenNMS installation</description>
-			<file src="bin" targetdir="$INSTALL_PATH" />
-			<file src="contrib" targetdir="$INSTALL_PATH" />
-			<file src="etc" targetdir="$INSTALL_PATH" />
-			<file src="logs" targetdir="$INSTALL_PATH" />
-			<file src="share" targetdir="$INSTALL_PATH" />
-			<file src="jetty-webapps" targetdir="$INSTALL_PATH" />
-			<fileset dir="." targetdir="$INSTALL_PATH/lib">
+			<file src="bin" targetdir="$UNIFIED_INSTALL_PATH" />
+			<file src="contrib" targetdir="$UNIFIED_INSTALL_PATH" />
+			<file src="etc" targetdir="$UNIFIED_INSTALL_PATH" />
+			<file src="logs" targetdir="$UNIFIED_INSTALL_PATH" />
+			<file src="share" targetdir="$UNIFIED_INSTALL_PATH" />
+			<file src="jetty-webapps" targetdir="$UNIFIED_INSTALL_PATH" />
+			<fileset dir="." targetdir="$UNIFIED_INSTALL_PATH/lib">
 				<exclude name="lib/opennms-dns-provisioning-adapter-*.jar" />
 				<exclude name="lib/opennms-link-provisioning-adapter-*.jar" />
 				<exclude name="lib/opennms-map-provisioning-adapter-*.jar" />
@@ -75,51 +75,51 @@
 				<include name="lib/endorsed/*.jar" />
 			</fileset>
 			@jar_files@
-			<singlefile src="bin/install.bat" target="$INSTALL_PATH/bin/install.bat" os="windows" />
-			<singlefile src="bin/opennms.bat" target="$INSTALL_PATH/bin/opennms.bat" os="windows" />
-			<singlefile src="etc/java.conf.win" target="$INSTALL_PATH/etc/java.conf" os="windows" />
-			<singlefile src="etc/java.conf.unix" target="$INSTALL_PATH/etc/java.conf" os="unix" />
-			<singlefile src="lib/jicmp.dll" target="$INSTALL_PATH/lib/jicmp.dll" os="windows" />
-			<singlefile src="lib/libjicmp.jnilib" target="$INSTALL_PATH/lib/libjicmp.jnilib" os="mac" />
-			<parsable targetfile="$INSTALL_PATH/bin/install.bat" os="windows" />
-			<parsable targetfile="$INSTALL_PATH/bin/opennms.bat" os="windows" />
-			<parsable targetfile="$INSTALL_PATH/etc/discovery-configuration.xml" />
-			<parsable targetfile="$INSTALL_PATH/etc/java.conf" />
-			<parsable targetfile="$INSTALL_PATH/etc/opennms-datasources.xml" />
+			<singlefile src="bin/install.bat" target="$UNIFIED_INSTALL_PATH/bin/install.bat" os="windows" />
+			<singlefile src="bin/opennms.bat" target="$UNIFIED_INSTALL_PATH/bin/opennms.bat" os="windows" />
+			<singlefile src="etc/java.conf.win" target="$UNIFIED_INSTALL_PATH/etc/java.conf" os="windows" />
+			<singlefile src="etc/java.conf.unix" target="$UNIFIED_INSTALL_PATH/etc/java.conf" os="unix" />
+			<singlefile src="lib/jicmp.dll" target="$UNIFIED_INSTALL_PATH/lib/jicmp.dll" os="windows" />
+			<singlefile src="lib/libjicmp.jnilib" target="$UNIFIED_INSTALL_PATH/lib/libjicmp.jnilib" os="mac" />
+			<parsable targetfile="$UNIFIED_INSTALL_PATH/bin/install.bat" os="windows" />
+			<parsable targetfile="$UNIFIED_INSTALL_PATH/bin/opennms.bat" os="windows" />
+			<parsable targetfile="$UNIFIED_INSTALL_PATH/etc/discovery-configuration.xml" />
+			<parsable targetfile="$UNIFIED_INSTALL_PATH/etc/java.conf" />
+			<parsable targetfile="$UNIFIED_INSTALL_PATH/etc/opennms-datasources.xml" />
 			@parsable_files@
 		</pack>
 		<pack name="Docs" required="no">
 			<description>The documentation</description>
-			<file src="docs" targetdir="$INSTALL_PATH"/>
+			<file src="docs" targetdir="$UNIFIED_INSTALL_PATH"/>
 		</pack>
 		<pack name="DNS Provisioning Adapter Plugin" required="no" preselected="no">
 			<description>The DNS provisioning adapter allows for updating dynamic DNS records based on provisioned nodes.</description>
-			<fileset dir="." targetdir="$INSTALL_PATH">
+			<fileset dir="." targetdir="$UNIFIED_INSTALL_PATH">
 				<include name="lib/opennms-dns-provisioning-adapter-*.jar" />
 			</fileset>
 		</pack>
 		<pack name="Link Provisioning Adapter Plugin" required="no" preselected="no">
 			<description>The link provisioning adapter creates links between provisioned nodes based on naming conventions defined in the link-adapter-configuration.xml file.  It also updates the status of the map links based on data link events.</description>
-			<fileset dir="." targetdir="$INSTALL_PATH">
+			<fileset dir="." targetdir="$UNIFIED_INSTALL_PATH">
 				<include name="etc/link-adapter-configuration.xml" />
 				<include name="etc/endpoint-configuration.xml" />
 			</fileset>
-			<fileset dir="." targetdir="$INSTALL_PATH">
+			<fileset dir="." targetdir="$UNIFIED_INSTALL_PATH">
 				<include name="lib/opennms-link-provisioning-adapter-*.jar" />
 			</fileset>
 		</pack>
 		<pack name="Map Provisioning Adapter Plugin" required="no" preselected="no">
 			<description>The map provisioning adapter will automatically create maps when nodes are provisioned in OpenNMS.</description>
-			<fileset dir="." targetdir="$INSTALL_PATH">
+			<fileset dir="." targetdir="$UNIFIED_INSTALL_PATH">
 				<include name="etc/mapsadapter-configuration.xml" />
 			</fileset>
-			<fileset dir="." targetdir="$INSTALL_PATH">
+			<fileset dir="." targetdir="$UNIFIED_INSTALL_PATH">
 				<include name="lib/opennms-map-provisioning-adapter-*.jar" />
 			</fileset>
 		</pack>
 		<pack name="RANCID Provisioning Adapter Plugin" required="no" preselected="no">
 			<description>The RANCID provisioning adapter coordinates with the RANCID Web Service by updating RANCID's device database when OpenNMS provisions nodes.</description>
-			<fileset dir="." targetdir="$INSTALL_PATH">
+			<fileset dir="." targetdir="$UNIFIED_INSTALL_PATH">
 				<include name="lib/opennms-rancid-*.jar" />
 			</fileset>
 		</pack>
