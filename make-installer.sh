@@ -61,7 +61,7 @@ if [ -d "$TOPDIR/opennms-build/integrations/opennms-map-provisioning-adapter" ];
 	cp $TOPDIR/opennms-build/integrations/opennms-map-provisioning-adapter/src/main/resources/mapsadapter-configuration.xml   "$TEMP_DIRECTORY/etc/"
 fi
 
-cp LICENSE ProcessPanel.Spec.xml userInputSpec.xml "$TEMP_DIRECTORY/"
+cp LICENSE ProcessPanel.Spec.xml userInput*.xml* "$TEMP_DIRECTORY/"
 cp *.bat "$TEMP_DIRECTORY/bin/"
 cp discovery-configuration.xml java.conf.* opennms-datasources.xml "$TEMP_DIRECTORY/etc/"
 cp native/* "$TEMP_DIRECTORY/lib/"

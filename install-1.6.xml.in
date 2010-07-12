@@ -24,6 +24,7 @@
 	
 	<resources>
 		<res id="userInputSpec.xml" src="userInputSpec.xml" />
+		<res id="userInputLang.xml_eng" src="userInputLang.xml_eng" />
 		<res id="ProcessPanel.Spec.xml" src="ProcessPanel.Spec.xml" />
 		<res id="LicencePanel.licence" src="LICENSE"/>
 		<!-- <res id="InfoPanel.info" src="Readme.txt"/> -->
