@@ -37,6 +37,9 @@ if [ -z "$SKIP_BUILD" ]; then
 fi
 
 VERSION=`grep '<version>' "$TOPDIR/opennms-build/pom.xml" | head -n 1 | sed -e 's,^.*<version>,,' -e 's,<.*$,,'`
+if [ -n "$1" ]; then
+	VERSION="$1"; shift
+fi
 BINARY_DIRECTORY=`ls -d -1 "$TOPDIR/opennms-build/target/"opennms-*`
 TEMP_DIRECTORY="$TOPDIR/izpack-temp"
 
