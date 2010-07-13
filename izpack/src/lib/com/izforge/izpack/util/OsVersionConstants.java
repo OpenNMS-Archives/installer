@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  *
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  *
  * Copyright 2005 Marc Eppelmann
  *
@@ -27,59 +27,150 @@ package com.izforge.izpack.util;
  */
 public interface OsVersionConstants
 {
-  //~ Static fields/initializers *********************************************************
+    //~ Static fields/initializers *********************************************************
 
-  /** OSNAME = "os.name" */
-  public final static String OSNAME = "os.name";
+    /**
+     * OSNAME = "os.name"
+     */
+    public final static String OSNAME = "os.name";
 
-  /** FREEBSD = "FreeBSD" */
-  public final static String FREEBSD = "FreeBSD";
+    /**
+     * OSARCH = "os.arch"
+     */
+    public final static String OSARCH = "os.arch";
 
-  /** LINUX = "Linux" */
-  public final static String LINUX = "Linux";
+    /**
+     * OSARCH = "os.arch"
+     */
+    public final static String OSVERSION = "os.version";
 
-  /** HP_UX = "HP-UX" */
-  public final static String HP_UX = "HP-UX";
+    /**
+     * X86 = "x86"
+     */
+    public static final String X86 = "x86";
 
-  /** AIX = "AIX" */
-  public final static String AIX = "AIX";
+    /**
+     * I386 = "i386"
+     */
+    public static final String I386 = "i386";
 
-  /** SUNOS = "SunOS" */
-  public final static String SUNOS = "SunOS";
+    /**
+     * PPC = "ppc"
+     */
+    public static final String PPC = "ppc";
 
-  /** OS_2 = "OS/2" */
-  public final static String OS_2 = "OS/2";
+    /**
+     * SPARC = "sparc"
+     */
+    public static final String SPARC = "sparc";
 
-  /** MAC = "Mac" */
-  public final static String MAC = "Mac";
-  
-  /** Mac OS X */
-  public final static String MACOSX = "mac os x";
+    /**
+     * FREEBSD = "FreeBSD"
+     */
+    public final static String FREEBSD = "FreeBSD";
 
-  /** WINDOWS = "Windows" */
-  public final static String WINDOWS = "Windows";
+    /**
+     * LINUX = "Linux"
+     */
+    public final static String LINUX = "Linux";
 
-  /** REDHAT  = "RedHat" */
-  public final static String REDHAT  = "RedHat";
+    /**
+     * HP_UX = "HP-UX"
+     */
+    public final static String HP_UX = "HP-UX";
 
-  /** RED_HAT = "Red Hat" */
-  public final static String RED_HAT = "Red Hat";
+    /**
+     * AIX = "AIX"
+     */
+    public final static String AIX = "AIX";
 
-  /** FEDORA = "Fedora" */
-  public final static String FEDORA = "Fedora";
+    /**
+     * SUNOS = "SunOS"
+     */
+    public final static String SUNOS = "SunOS";
 
-  /** MANDRAKE = "Mandrake" */
-  public final static String MANDRAKE = "Mandrake";
+    /**
+     * SOLARIS = "Solaris"
+     */
+    public static final String SOLARIS = "Solaris";
 
-  /** MANDRIVA = "Mandriva" */
-  public final static String MANDRIVA = "Mandriva";
+    /**
+     * OS_2 = "OS/2"
+     */
+    public final static String OS_2 = "OS/2";
 
-  /** SUSE = "SuSE" */
-  public final static String SUSE = "SuSE";
+    /**
+     * MAC = "Mac"
+     */
+    public final static String MAC = "Mac";
 
-  /** DEBIAN = "Debian" */
-  public final static String DEBIAN = "Debian";
+    /**
+     * Mac OS X
+     */
+    public final static String MACOSX = "mac os x";
 
-  /** PROC_VERSION = "/proc/version" */
-  public final static String PROC_VERSION = "/proc/version";
+    /**
+     * WINDOWS = "Windows"
+     */
+    public final static String WINDOWS = "Windows";
+
+    /**
+     * Windows XP
+     */
+    public final static String WINDOWS_XP_VERSION = "5.1";
+
+    /**
+     * Windows Server 2003
+     */
+    public final static String WINDOWS_2003_VERSION = "5.2";
+
+    /**
+     * Windows Vista
+     */
+    public final static String WINDOWS_VISTA_VERSION = "6.0";
+
+    /**
+     * Windows 7
+     */
+    public final static String WINDOWS_7_VERSION = "6.1";
+
+    /**
+     * REDHAT  = "RedHat"
+     */
+    public final static String REDHAT = "RedHat";
+
+    /**
+     * RED_HAT = "Red Hat"
+     */
+    public final static String RED_HAT = "Red Hat";
+
+    /**
+     * FEDORA = "Fedora"
+     */
+    public final static String FEDORA = "Fedora";
+
+    /**
+     * MANDRAKE = "Mandrake"
+     */
+    public final static String MANDRAKE = "Mandrake";
+
+    /**
+     * MANDRIVA = "Mandriva"
+     */
+    public final static String MANDRIVA = "Mandriva";
+
+    /**
+     * SUSE = "SuSE"
+     */
+    public final static String SUSE = "SuSE";
+
+    /**
+     * DEBIAN = "Debian"
+     */
+    public final static String DEBIAN = "Debian";
+
+    /**
+     * PROC_VERSION = "/proc/version"
+     */
+    public final static String PROC_VERSION = "/proc/version";
 }

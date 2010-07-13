@@ -1,9 +1,9 @@
 /*
- * $Id: Compiler.java 1831 2007-05-11 19:38:20Z jponge $
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * $Id: Compiler.java 2912 2009-12-14 08:49:30Z jponge $
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  *
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  *
  * Copyright 2001 Johannes Lehtinen
  * Copyright 2002 Paul Wilkinson
@@ -25,29 +25,20 @@
 
 package com.izforge.izpack.compiler;
 
+import com.izforge.izpack.*;
+import com.izforge.izpack.compressor.PackCompressor;
+import com.izforge.izpack.installer.InstallerRequirement;
+import com.izforge.izpack.rules.Condition;
+import com.izforge.izpack.util.Debug;
+import com.izforge.izpack.util.OsConstraint;
+import com.izforge.izpack.util.VariableSubstitutor;
+
 import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.jar.JarInputStream;
 import java.util.zip.ZipEntry;
-
-import com.izforge.izpack.CustomData;
-import com.izforge.izpack.GUIPrefs;
-import com.izforge.izpack.Info;
-import com.izforge.izpack.Pack;
-import com.izforge.izpack.Panel;
-import com.izforge.izpack.compressor.PackCompressor;
-import com.izforge.izpack.util.Debug;
-import com.izforge.izpack.util.VariableSubstitutor;
 
 /**
  * The IzPack compiler class. This is now a java bean style class that can be
@@ -55,39 +46,56 @@ import com.izforge.izpack.util.VariableSubstitutor;
  * configuration. The install.xml configuration is now handled by the
  * CompilerConfig class.
  *
- * @see CompilerConfig
- *
  * @author Julien Ponge
  * @author Tino Schwarze
  * @author Chadwick McHenry
+ * @see CompilerConfig
  */
 public class Compiler extends Thread
 {
-    /** The IzPack version. */
-    public final static String IZPACK_VERSION = "3.10.2";
+    /**
+     * The IzPack version.
+     */
+    public final static String IZPACK_VERSION = "4.3.3";
 
-    /** The IzPack home directory. */
+    /**
+     * The IzPack home directory.
+     */
     public static String IZPACK_HOME = ".";
 
-    /** The base directory. */
+    /**
+     * The base directory.
+     */
     protected String basedir;
 
-    /** The installer kind. */
+    /**
+     * The installer kind.
+     */
     protected String kind;
 
-    /** The output jar filename. */
+    /**
+     * The output jar filename.
+     */
     protected String output;
 
-    /** Collects and packs files into installation jars, as told. */
+    /**
+     * Collects and packs files into installation jars, as told.
+     */
     private IPackager packager = null;
 
-    /** Error code, set to true if compilation succeeded. */
+    /**
+     * Error code, set to true if compilation succeeded.
+     */
     private boolean compileFailed = true;
 
-    /** Key/values which are substituted at compile time in the install data */
+    /**
+     * Key/values which are substituted at compile time in the install data
+     */
     private Properties properties;
 
-    /** Replaces the properties in the install.xml file prior to compiling */
+    /**
+     * Replaces the properties in the install.xml file prior to compiling
+     */
     private VariableSubstitutor propertySubstitutor;
 
     private String compr_format;
@@ -96,6 +104,7 @@ public class Compiler extends Thread
 
     /**
      * Set the IzPack home directory
+     *
      * @param izHome - the izpack home directory
      */
     public static void setIzpackHome(String izHome)
@@ -107,41 +116,41 @@ public class Compiler extends Thread
      * The constructor.
      *
      * @param basedir The base directory.
-     * @param kind The installer kind.
-     * @param output The installer filename.
+     * @param kind    The installer kind.
+     * @param output  The installer filename.
      * @throws CompilerException
      */
     public Compiler(String basedir, String kind, String output) throws CompilerException
     {
-        this(basedir,kind,output,"default");
+        this(basedir, kind, output, "default");
     }
 
     /**
      * The constructor.
      *
-     * @param basedir The base directory.
-     * @param kind The installer kind.
-     * @param output The installer filename.
+     * @param basedir      The base directory.
+     * @param kind         The installer kind.
+     * @param output       The installer filename.
      * @param compr_format The format which should be used for the packs.
      * @throws CompilerException
      */
     public Compiler(String basedir, String kind, String output, String compr_format) throws CompilerException
     {
-        this(basedir,kind,output, compr_format, -1);
+        this(basedir, kind, output, compr_format, -1);
     }
 
     /**
      * The constructor.
      *
-     * @param basedir The base directory.
-     * @param kind The installer kind.
-     * @param output The installer filename.
+     * @param basedir      The base directory.
+     * @param kind         The installer kind.
+     * @param output       The installer filename.
      * @param compr_format The format which should be used for the packs.
-     * @param compr_level Compression level to be used if supported.
+     * @param compr_level  Compression level to be used if supported.
      * @throws CompilerException
      */
     public Compiler(String basedir, String kind, String output,
-            String compr_format, int compr_level) throws CompilerException
+                    String compr_format, int compr_level) throws CompilerException
     {
         // Default initialisation
         this.basedir = basedir;
@@ -162,35 +171,43 @@ public class Compiler extends Thread
 
     /**
      * Initializes the given packager class
+     *
      * @param classname
      * @throws CompilerException
      */
-    public void initPackager(String classname) throws CompilerException{
-        try {
+    public void initPackager(String classname) throws CompilerException
+    {
+        try
+        {
             packager = PackagerFactory.getPackager(classname);
             packager.initPackCompressor(this.compr_format, this.compr_level);
             PackCompressor compressor = packager.getCompressor();
-            if (compressor != null){
+            if (compressor != null)
+            {
                 compressor.setCompiler(this);
             }
-            if (this.packagerlistener != null){
+            if (this.packagerlistener != null)
+            {
                 packager.setPackagerListener(this.packagerlistener);
             }
         }
-        catch (Exception e){
+        catch (Exception e)
+        {
             Debug.trace(e);
-            throw new CompilerException("Error loading packager class: " +  classname);
+            throw new CompilerException("Error loading packager class: " + classname);
         }
     }
 
     /**
      * Returns the packager listener.
+     *
      * @return the packager listener
      */
     public PackagerListener getPackagerListener()
     {
         return packager.getPackagerListener();
     }
+
     /**
      * Sets the packager listener.
      *
@@ -198,24 +215,29 @@ public class Compiler extends Thread
      */
     public void setPackagerListener(PackagerListener listener)
     {
-        if (packager != null){
+        if (packager != null)
+        {
             packager.setPackagerListener(listener);
         }
-        else {
+        else
+        {
             this.packagerlistener = listener;
         }
     }
 
     /**
      * Access the installation kind.
+     *
      * @return the installation kind.
      */
     public String getKind()
     {
         return kind;
     }
+
     /**
      * Get the packager variables.
+     *
      * @return the packager variables
      */
     public Properties getVariables()
@@ -223,13 +245,17 @@ public class Compiler extends Thread
         return packager.getVariables();
     }
 
-    /** Compiles. */
+    /**
+     * Compiles.
+     */
     public void compile()
     {
         start();
     }
 
-    /** The run() method. */
+    /**
+     * The run() method.
+     */
     public void run()
     {
         try
@@ -257,22 +283,26 @@ public class Compiler extends Thread
     /**
      * Compiles the installation.
      *
-     * @exception Exception Description of the Exception
+     * @throws Exception Description of the Exception
      */
     public void createInstaller() throws Exception
     {
         // Add the class files from the chosen compressor.
-        if( packager.getCompressor().getContainerPaths() != null )
+        if (packager.getCompressor().getContainerPaths() != null)
         {
-            String [] containerPaths = packager.getCompressor().getContainerPaths();
-            String [][] decoderClassNames = packager.getCompressor().getDecoderClassNames();
-            for( int i = 0; i < containerPaths.length; ++i)
+            String[] containerPaths = packager.getCompressor().getContainerPaths();
+            String[][] decoderClassNames = packager.getCompressor().getDecoderClassNames();
+            for (int i = 0; i < containerPaths.length; ++i)
             {
                 URL compressorURL = null;
-                if( containerPaths[i] != null )
-                    compressorURL = findIzPackResource(containerPaths[i],"pack compression Jar file");
-                if( decoderClassNames[i] != null && decoderClassNames[i].length > 0)
+                if (containerPaths[i] != null)
+                {
+                    compressorURL = findIzPackResource(containerPaths[i], "pack compression Jar file");
+                }
+                if (decoderClassNames[i] != null && decoderClassNames[i].length > 0)
+                {
                     addJarContent(compressorURL, Arrays.asList(decoderClassNames[i]));
+                }
             }
 
 
@@ -285,6 +315,7 @@ public class Compiler extends Thread
 
     /**
      * Returns whether the installation was successful or not.
+     *
      * @return whether the installation was successful or not
      */
     public boolean wasSuccessful()
@@ -294,6 +325,7 @@ public class Compiler extends Thread
 
     /**
      * Replaces placeholder in the given string with the associated strings.
+     *
      * @param value to be substituted
      * @return the substituted string
      */
@@ -304,14 +336,17 @@ public class Compiler extends Thread
 
     /**
      * Sets GUI preferences to the packager.
+     *
      * @param prefs preferences to be set
      */
     public void setGUIPrefs(GUIPrefs prefs)
     {
         packager.setGUIPrefs(prefs);
     }
+
     /**
      * Sets an Info object to the packager.
+     *
      * @param info Info object to be set
      * @throws Exception
      */
@@ -322,14 +357,17 @@ public class Compiler extends Thread
 
     /**
      * Returns the install packager.
+     *
      * @return the install packager.
      */
     public IPackager getPackager()
     {
         return packager;
     }
+
     /**
      * Returns the properties currently known to the compileer.
+     *
      * @return the properties currently known to the compileer
      */
     public Properties getProperties()
@@ -351,13 +389,14 @@ public class Compiler extends Thread
     /**
      * Add a name value pair to the project property set. Overwriting any existing value except system properties.
      *
-     * @param name the name of the property
+     * @param name  the name of the property
      * @param value the value to set
      * @return an indicator if the name value pair was added.
      */
     public boolean setProperty(String name, String value)
     {
-        if (System.getProperties().containsKey(name)) {
+        if (System.getProperties().containsKey(name))
+        {
             return false;
         }
         properties.put(name, value);
@@ -368,7 +407,7 @@ public class Compiler extends Thread
      * Add a name value pair to the project property set. It is <i>not</i> replaced it is already
      * in the set of properties.
      *
-     * @param name the name of the property
+     * @param name  the name of the property
      * @param value the value to set
      * @return true if the property was not already set
      */
@@ -385,6 +424,7 @@ public class Compiler extends Thread
 
     /**
      * Add jar content to the installation.
+     *
      * @param content
      */
     public void addJarContent(URL content)
@@ -398,10 +438,10 @@ public class Compiler extends Thread
      * jar file will be copied else only the listed.
      *
      * @param content The url of the jar to add to the installer. We use a URL so the jar may be
-     * nested within another.
-     * @param files to be copied
+     *                nested within another.
+     * @param files   to be copied
      */
-    public void addJarContent(URL content, List files)
+    public void addJarContent(URL content, List<String> files)
     {
         packager.addJarContent(content, files);
     }
@@ -416,18 +456,26 @@ public class Compiler extends Thread
     {
         packager.addCustomJar(ca, url);
     }
+
+    public void addInstallerRequirement(List<InstallerRequirement> conditions){
+        packager.addInstallerRequirements(conditions);
+    }
+
     /**
      * Add a lang pack to the installation.
-     * @param iso3
-     * @param iso3xmlURL
-     * @param iso3FlagURL
+     *
+     * @param locale
+     * @param localeURL
+     * @param flagURL
      */
-    public void addLangPack(String iso3, URL iso3xmlURL, URL iso3FlagURL)
+    public void addLangPack(String locale, URL localeURL, URL flagURL)
     {
-        packager.addLangPack(iso3, iso3xmlURL, iso3FlagURL);
+        packager.addLangPack(locale, localeURL, flagURL);
     }
+
     /**
      * Add a native library to the installation.
+     *
      * @param name
      * @param url
      * @throws Exception
@@ -436,24 +484,30 @@ public class Compiler extends Thread
     {
         packager.addNativeLibrary(name, url);
     }
+
     /**
      * Add an unistaller library.
+     *
      * @param data
      */
     public void addNativeUninstallerLibrary(CustomData data)
     {
         packager.addNativeUninstallerLibrary(data);
     }
+
     /**
      * Add a pack to the installation.
+     *
      * @param pack
      */
     public void addPack(PackInfo pack)
     {
         packager.addPack(pack);
     }
+
     /**
      * Add a panel jar to the installation.
+     *
      * @param panel
      * @param url
      */
@@ -461,8 +515,10 @@ public class Compiler extends Thread
     {
         packager.addPanelJar(panel, url);
     }
+
     /**
      * Add a resource to the installation.
+     *
      * @param name
      * @param url
      */
@@ -475,6 +531,7 @@ public class Compiler extends Thread
      * Checks whether the dependencies stated in the configuration file are correct. Specifically it
      * checks that no pack point to a non existent pack and also that there are no circular
      * dependencies in the packs.
+     *
      * @throws CompilerException
      */
     public void checkDependencies() throws CompilerException
@@ -484,38 +541,40 @@ public class Compiler extends Thread
 
     /**
      * Checks whether the excluded packs exist. (simply calles the other function)
+     *
      * @throws CompilerException
      */
     public void checkExcludes() throws CompilerException
     {
-       checkExcludes(packager.getPacksList());
+        checkExcludes(packager.getPacksList());
     }
 
     /**
      * This checks if there are more than one preselected packs per excludeGroup.
+     *
      * @param packs list of packs which should be checked
      * @throws CompilerException
      */
-    public void checkExcludes(List packs) throws CompilerException
+    public void checkExcludes(List<PackInfo> packs) throws CompilerException
     {
-        for(int q=0; q<packs.size(); q++)
+        for (int q = 0; q < packs.size(); q++)
         {
-            PackInfo packinfo1 = (PackInfo) packs.get(q);
+            PackInfo packinfo1 = packs.get(q);
             Pack pack1 = packinfo1.getPack();
-            for(int w = 0; w < q; w++)
+            for (int w = 0; w < q; w++)
             {
 
-                PackInfo packinfo2 = (PackInfo) packs.get(w);
+                PackInfo packinfo2 = packs.get(w);
                 Pack pack2 = packinfo2.getPack();
-                if(pack1.excludeGroup != null && pack2.excludeGroup != null)
+                if (pack1.excludeGroup != null && pack2.excludeGroup != null)
                 {
-                    if(pack1.excludeGroup.equals(pack2.excludeGroup))
+                    if (pack1.excludeGroup.equals(pack2.excludeGroup))
                     {
-                        if(pack1.preselected && pack2.preselected)
+                        if (pack1.preselected && pack2.preselected)
                         {
-                            parseError("Packs "+pack1.name+" and "+pack2.name+
-                                    " belong to the same excludeGroup "+pack1.excludeGroup+
-                            " and are both preselected. This is not allowed.");
+                            parseError("Packs " + pack1.name + " and " + pack2.name +
+                                    " belong to the same excludeGroup " + pack1.excludeGroup +
+                                    " and are both preselected. This is not allowed.");
                         }
                     }
                 }
@@ -523,28 +582,34 @@ public class Compiler extends Thread
 
         }
     }
+
     /**
      * Checks whether the dependencies among the given Packs. Specifically it
      * checks that no pack point to a non existent pack and also that there are no circular
      * dependencies in the packs.
+     *
      * @param packs - List<Pack> representing the packs in the installation
      * @throws CompilerException
      */
-    public void checkDependencies(List packs) throws CompilerException
+    public void checkDependencies(List<PackInfo> packs) throws CompilerException
     {
         // Because we use package names in the configuration file we assosiate
         // the names with the objects
-        Map names = new HashMap();
-        for (int i = 0; i < packs.size(); i++)
+        Map<String, PackInfo> names = new HashMap<String, PackInfo>();
+        for (PackInfo pack : packs)
         {
-            PackInfo pack = (PackInfo) packs.get(i);
             names.put(pack.getPack().name, pack);
         }
         int result = dfs(packs, names);
         // @todo More informative messages to include the source of the error
         if (result == -2)
+        {
             parseError("Circular dependency detected");
-        else if (result == -1) parseError("A dependency doesn't exist");
+        }
+        else if (result == -1)
+        {
+            parseError("A dependency doesn't exist");
+        }
     }
 
     /**
@@ -556,15 +621,17 @@ public class Compiler extends Thread
      * @param names The name map
      * @return -2 if back edges exist, else 0
      */
-    private int dfs(List packs, Map names)
+    private int dfs(List<PackInfo> packs, Map<String, PackInfo> names)
     {
-        Map edges = new HashMap();
-        for (int i = 0; i < packs.size(); i++)
+        Map<Edge, Integer> edges = new HashMap<Edge, Integer>();
+        for (PackInfo pack : packs)
         {
-            PackInfo pack = (PackInfo) packs.get(i);
             if (pack.colour == PackInfo.WHITE)
             {
-                if (dfsVisit(pack, names, edges) != 0) return -1;
+                if (dfsVisit(pack, names, edges) != 0)
+                {
+                    return -1;
+                }
             }
 
         }
@@ -573,17 +640,20 @@ public class Compiler extends Thread
 
     /**
      * This function checks for the existence of back edges.
+     *
      * @param edges map to be checked
      * @return -2 if back edges exist, else 0
      */
-    private int checkBackEdges(Map edges)
+    private int checkBackEdges(Map<Edge, Integer> edges)
     {
-        Set keys = edges.keySet();
-        for (Iterator iterator = keys.iterator(); iterator.hasNext();)
+        Set<Edge> keys = edges.keySet();
+        for (final Edge key : keys)
         {
-            final Object key = iterator.next();
-            int color = ((Integer) edges.get(key)).intValue();
-            if (color == PackInfo.GREY) { return -2; }
+            int color = edges.get(key);
+            if (color == PackInfo.GREY)
+            {
+                return -2;
+            }
         }
         return 0;
 
@@ -606,29 +676,34 @@ public class Compiler extends Thread
         }
     }
 
-    private int dfsVisit(PackInfo u, Map names, Map edges)
+    private int dfsVisit(PackInfo u, Map<String, PackInfo> names, Map<Edge, Integer> edges)
     {
         u.colour = PackInfo.GREY;
-        List deps = u.getDependencies();
+        List<String> deps = u.getDependencies();
         if (deps != null)
         {
-            for (int i = 0; i < deps.size(); i++)
+            for (String name : deps)
             {
-                String name = (String) deps.get(i);
-                PackInfo v = (PackInfo) names.get(name);
+                PackInfo v = names.get(name);
                 if (v == null)
                 {
-                    System.out.println("Failed to find dependency: "+name);
+                    System.out.println("Failed to find dependency: " + name);
                     return -1;
                 }
                 Edge edge = new Edge(u, v);
-                if (edges.get(edge) == null) edges.put(edge, new Integer(v.colour));
+                if (edges.get(edge) == null)
+                {
+                    edges.put(edge, v.colour);
+                }
 
                 if (v.colour == PackInfo.WHITE)
                 {
 
                     final int result = dfsVisit(v, names, edges);
-                    if (result != 0) return result;
+                    if (result != 0)
+                    {
+                        return result;
+                    }
                 }
             }
         }
@@ -636,40 +711,66 @@ public class Compiler extends Thread
         return 0;
     }
 
+    public URL findIzPackResource(String path, String desc)
+        throws CompilerException
+    {
+        return findIzPackResource(path, desc, false);
+    }
+
     /**
      * Look for an IzPack resource either in the compiler jar, or within IZPACK_HOME. The path must
      * not be absolute. The path must use '/' as the fileSeparator (it's used to access the jar
-     * file). If the resource is not found, a CompilerException is thrown indicating fault in the
-     * parent element.
+     * file). If the resource is not found, take appropriate action base on ignoreWhenNotFound flag.
      *
      * @param path the relative path (using '/' as separator) to the resource.
      * @param desc the description of the resource used to report errors
+     * @param ignoreWhenNotFound when false, throws a CompilerException indicate
+     *        fault in the parent element when resource not found.
      * @return a URL to the resource.
      * @throws CompilerException
      */
-    public URL findIzPackResource(String path, String desc)
+    public URL findIzPackResource(String path, String desc, boolean ignoreWhenNotFound)
             throws CompilerException
     {
         URL url = getClass().getResource("/" + path);
         if (url == null)
         {
             File resource = new File(path);
-            if (!resource.isAbsolute()) resource = new File(IZPACK_HOME, path);
-
-            if (!resource.exists()) // fatal
-                parseError(desc + " not found: " + resource);
-
-            try
+            if (!resource.isAbsolute())
             {
-                url = resource.toURL();
+                resource = new File(IZPACK_HOME, path);
             }
-            catch (MalformedURLException how)
+
+            if (!resource.exists())
             {
-                parseError(desc + "(" + resource + ")", how);
+                if ( ignoreWhenNotFound )
+                {
+                    parseWarn(desc + " not found: " + resource);
+                }
+                else
+                {
+                    parseError(desc + " not found: " + resource); // fatal
+                }
+            }
+            else
+            {
+                try
+                {
+                    url = resource.toURI().toURL();
+                }
+                catch (MalformedURLException how)
+                {
+                    parseError(desc + "(" + resource + ")", how);
+                }
             }
         }
 
         return url;
+    }
+
+    private void parseWarn(String message)
+    {
+        System.out.println("Warning: " + message);
     }
 
     /**
@@ -684,12 +785,13 @@ public class Compiler extends Thread
         this.compileFailed = true;
         throw new CompilerException(message);
     }
+
     /**
      * Create parse error with consistent messages. Includes file name. For use When parent is
      * unknown.
      *
      * @param message Brief message explaining error
-     * @param how throwable which was catched
+     * @param how     throwable which was catched
      * @throws CompilerException
      */
     public void parseError(String message, Throwable how) throws CompilerException
@@ -718,18 +820,31 @@ public class Compiler extends Thread
      * install.xml like : &lt;listeners&gt; &lt;listener compiler="PermissionCompilerListener"
      * installer="PermissionInstallerListener"/1gt; &lt;/listeners&gt;
      *
-     * @param type The listener type.
-     * @param className The class name.
-     * @param jarPath The jar path.
+     * @param type        The listener type.
+     * @param className   The class name.
+     * @param jarPath     The jar path.
      * @param constraints The list of constraints.
      * @throws Exception Thrown in case an error occurs.
      */
-    public void addCustomListener(int type, String className, String jarPath, List constraints) throws Exception
+    public void addCustomListener(int type, String className, String jarPath, List<OsConstraint> constraints) throws Exception
     {
         jarPath = replaceProperties(jarPath);
-        URL url = findIzPackResource(jarPath, "CustomAction jar file");
-        List filePaths = getContainedFilePaths(url);
-        String fullClassName = getFullClassName(url, className);
+        String fullClassName = className;
+        List<String> filePaths = null;
+
+        URL url = findIzPackResource(jarPath, "CustomAction jar file", true);
+
+        if ( url != null )
+        {
+             fullClassName = getFullClassName(url, className);
+             if (fullClassName == null)
+             {
+                throw new CompilerException("CustomListener class '" + className + "' not found in '"
+                    + url + "'. The class and listener name must match");
+             }
+             filePaths = getContainedFilePaths(url);
+        }
+
         CustomData ca = new CustomData(fullClassName, filePaths, constraints, type);
         packager.addCustomJar(ca, url);
     }
@@ -742,16 +857,19 @@ public class Compiler extends Thread
      * @return full qualified paths of the contained files
      * @throws Exception
      */
-    private List getContainedFilePaths(URL url) throws Exception
+    private List<String> getContainedFilePaths(URL url) throws Exception
     {
         JarInputStream jis = new JarInputStream(url.openStream());
         ZipEntry zentry = null;
-        ArrayList fullNames = new ArrayList();
+        ArrayList<String> fullNames = new ArrayList<String>();
         while ((zentry = jis.getNextEntry()) != null)
         {
             String name = zentry.getName();
             // Add only files, no directory entries.
-            if (!zentry.isDirectory()) fullNames.add(name);
+            if (!zentry.isDirectory())
+            {
+                fullNames.add(name);
+            }
         }
         jis.close();
         return (fullNames);
@@ -761,7 +879,7 @@ public class Compiler extends Thread
      * Returns the qualified class name for the given class. This method expects as the url param a
      * jar file which contains the given class. It scans the zip entries of the jar file.
      *
-     * @param url url of the jar file which contains the class
+     * @param url       url of the jar file which contains the class
      * @param className short name of the class for which the full name should be resolved
      * @return full qualified class name
      * @throws Exception
@@ -783,12 +901,12 @@ public class Compiler extends Thread
             if (className != null)
             {
                 pos = name.indexOf(className);
-            }
-            if (name.length() == pos + className.length() + 6) // "Main" class
-            // found
-            {
-                jis.close();
-                return (name.substring(0, lastPos));
+                if (pos >= 0 && name.length() == pos + className.length() + 6) // "Main" class
+                // found
+                {
+                    jis.close();
+                    return (name.substring(0, lastPos));
+                }
             }
         }
         jis.close();
@@ -819,7 +937,7 @@ public class Compiler extends Thread
         /**
          * Print a message to the console at the specified priority.
          *
-         * @param info The information.
+         * @param info     The information.
          * @param priority priority to be used for the message prefix
          */
         public void packagerMsg(String info, int priority)
@@ -827,32 +945,36 @@ public class Compiler extends Thread
             final String prefix;
             switch (priority)
             {
-            case MSG_DEBUG:
-                prefix = "[ DEBUG ] ";
-                break;
-            case MSG_ERR:
-                prefix = "[ ERROR ] ";
-                break;
-            case MSG_WARN:
-                prefix = "[ WARNING ] ";
-                break;
-            case MSG_INFO:
-            case MSG_VERBOSE:
-            default: // don't die, but don't prepend anything
-                prefix = "";
+                case MSG_DEBUG:
+                    prefix = "[ DEBUG ] ";
+                    break;
+                case MSG_ERR:
+                    prefix = "[ ERROR ] ";
+                    break;
+                case MSG_WARN:
+                    prefix = "[ WARNING ] ";
+                    break;
+                case MSG_INFO:
+                case MSG_VERBOSE:
+                default: // don't die, but don't prepend anything
+                    prefix = "";
             }
 
             System.out.println(prefix + info);
         }
 
-        /** Called when the packager starts. */
+        /**
+         * Called when the packager starts.
+         */
         public void packagerStart()
         {
             System.out.println("[ Begin ]");
             System.out.println();
         }
 
-        /** Called when the packager stops. */
+        /**
+         * Called when the packager stops.
+         */
         public void packagerStop()
         {
             System.out.println();
@@ -860,4 +982,32 @@ public class Compiler extends Thread
         }
     }
 
+
+    /**
+     * @return the conditions
+     */
+    public Map<String, Condition> getConditions()
+    {
+        return this.packager.getRules();
+    }
+
+
+    /**
+     * @param conditions the conditions to set
+     */
+    public void setConditions(Map<String, Condition> conditions)
+    {
+        this.packager.setRules(conditions);
+    }
+
+    public Map<String, List<DynamicVariable>> getDynamicVariables()
+    {
+        return this.packager.getDynamicVariables();
+    }
+
+
+    public void setDynamicVariables(Map<String, List<DynamicVariable>> dynamicvariables)
+    {
+        this.packager.setDynamicVariables(dynamicvariables);
+    }
 }

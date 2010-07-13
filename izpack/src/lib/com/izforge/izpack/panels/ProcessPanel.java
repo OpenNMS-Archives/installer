@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2004 Tino Schwarze
  * 
@@ -21,35 +21,24 @@
 
 package com.izforge.izpack.panels;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.io.IOException;
-
-import javax.swing.BoxLayout;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JProgressBar;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
-
-import net.n3.nanoxml.XMLElement;
-
 import com.izforge.izpack.installer.InstallData;
 import com.izforge.izpack.installer.InstallerFrame;
 import com.izforge.izpack.installer.IzPanel;
 import com.izforge.izpack.installer.ProcessPanelWorker;
 import com.izforge.izpack.util.AbstractUIProcessHandler;
+import com.izforge.izpack.adaptator.IXMLElement;
+
+import javax.swing.*;
+import java.awt.*;
+import java.io.IOException;
 
 /**
  * The process panel class.
- * 
+ * <p/>
  * This class allows external processes to be executed during installation.
- * 
+ * <p/>
  * Parts of the code have been taken from CompilePanel.java and modified a lot.
- * 
+ *
  * @author Tino Schwarze
  * @author Julien Ponge
  */
@@ -57,35 +46,49 @@ public class ProcessPanel extends IzPanel implements AbstractUIProcessHandler
 {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 3258417209583155251L;
 
-    /** The operation label . */
+    /**
+     * The operation label .
+     */
     protected JLabel processLabel;
 
-    /** The overall progress bar. */
+    /**
+     * The overall progress bar.
+     */
     protected JProgressBar overallProgressBar;
 
-    /** True if the compilation has been done. */
+    /**
+     * True if the compilation has been done.
+     */
     private boolean validated = false;
 
-    /** The processing worker. Does all the work. */
+    /**
+     * The processing worker. Does all the work.
+     */
     private ProcessPanelWorker worker;
 
-    /** Number of jobs to process. Used for progress indication. */
-    private int noOfJobs;
+    /**
+     * Number of jobs to process. Used for progress indication.
+     */
+    private int noOfJobs = 0;
 
-    private int currentJob;
+    private int currentJob = 0;
 
-    /** Where the output is displayed */
+    /**
+     * Where the output is displayed
+     */
     private JTextArea outputPane;
+
+    private static boolean finishedWork = false;
 
     /**
      * The constructor.
-     * 
+     *
      * @param parent The parent window.
-     * @param idata The installation data.
+     * @param idata  The installation data.
      */
     public ProcessPanel(InstallerFrame parent, InstallData idata) throws IOException
     {
@@ -100,7 +103,10 @@ public class ProcessPanel extends IzPanel implements AbstractUIProcessHandler
         heading.setHorizontalAlignment(SwingConstants.CENTER);
         heading.setText(parent.langpack.getString("ProcessPanel.heading"));
         heading.setVerticalAlignment(SwingConstants.TOP);
-        setLayout(new BorderLayout());
+        BorderLayout layout = new BorderLayout();
+        layout.setHgap(2);
+        layout.setVgap(2);
+        setLayout(layout);
         add(heading, BorderLayout.NORTH);
 
         // put everything but the heading into it's own panel
@@ -130,7 +136,7 @@ public class ProcessPanel extends IzPanel implements AbstractUIProcessHandler
 
     /**
      * Indicates wether the panel has been validated or not.
-     * 
+     *
      * @return The validation state.
      */
     public boolean isValidated()
@@ -138,42 +144,56 @@ public class ProcessPanel extends IzPanel implements AbstractUIProcessHandler
         return validated;
     }
 
-    /** The compiler starts. */
+    /**
+     * The compiler starts.
+     */
     public void startProcessing(int no_of_jobs)
     {
         this.noOfJobs = no_of_jobs;
-        overallProgressBar.setMaximum(noOfJobs);
+        overallProgressBar.setMaximum(no_of_jobs);
+        overallProgressBar.setIndeterminate(true);
         parent.lockPrevButton();
     }
 
-    /** The compiler stops. */
-    public void finishProcessing()
+    /**
+     * The compiler stops.
+     */
+    public void finishProcessing(boolean unlockPrev, boolean unlockNext)
     {
-        overallProgressBar.setValue(this.noOfJobs);
+        overallProgressBar.setIndeterminate(false);
         String no_of_jobs = Integer.toString(this.noOfJobs);
         overallProgressBar.setString(no_of_jobs + " / " + no_of_jobs);
-        overallProgressBar.setEnabled(false);
 
         processLabel.setText(" ");
         processLabel.setEnabled(false);
 
         validated = true;
-        idata.installSuccess = true;
-        if (idata.panels.indexOf(this) != (idata.panels.size() - 1)) parent.unlockNextButton();
+        idata.installSuccess = worker.getResult();
+        if (idata.panels.indexOf(this) != (idata.panels.size() - 1))
+        {
+            if (unlockNext)
+                parent.unlockNextButton();
+        }
+        if (unlockPrev)
+            parent.unlockPrevButton();
+
+        // set to finished only in case of success
+        finishedWork = idata.installSuccess;
     }
 
     /**
      * Log a message.
-     * 
+     *
      * @param message The message.
-     * @param stderr Whether the message came from stderr or stdout.
+     * @param stderr  Whether the message came from stderr or stdout.
      */
     public void logOutput(String message, boolean stderr)
     {
         // TODO: make it colored
         this.outputPane.append(message + '\n');
 
-        SwingUtilities.invokeLater(new Runnable() {
+        SwingUtilities.invokeLater(new Runnable()
+        {
 
             public void run()
             {
@@ -184,7 +204,7 @@ public class ProcessPanel extends IzPanel implements AbstractUIProcessHandler
 
     /**
      * Next job starts.
-     * 
+     *
      * @param jobName The job name.
      */
     public void startProcess(String jobName)
@@ -199,9 +219,12 @@ public class ProcessPanel extends IzPanel implements AbstractUIProcessHandler
 
     public void finishProcess()
     {
+
     }
 
-    /** Called when the panel becomes active. */
+    /**
+     * Called when the panel becomes active.
+     */
     public void panelActivate()
     {
         // We clip the panel
@@ -214,11 +237,17 @@ public class ProcessPanel extends IzPanel implements AbstractUIProcessHandler
 
         parent.lockNextButton();
 
-        this.worker.startThread();
+        // only let the process start if the weren't finished before.
+        if (!finishedWork)
+        {
+            this.worker.startThread();
+        }
     }
 
-    /** Create XML data for automated installation. */
-    public void makeXMLData(XMLElement panelRoot)
+    /**
+     * Create XML data for automated installation.
+     */
+    public void makeXMLData(IXMLElement panelRoot)
     {
         // does nothing (no state to save)
     }

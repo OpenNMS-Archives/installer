@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2003 Jonathan Halliday
  * 
@@ -24,7 +24,7 @@ package com.izforge.izpack.panels;
 
 /**
  * Functions to support automated usage of the ImgPacksPanel
- * 
+ *
  * @author Jonathan Halliday
  * @author Julien Ponge
  */

@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2002 Olexij Tkatchenko
  * 
@@ -21,77 +21,25 @@
 
 package com.izforge.izpack.util;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringWriter;
-import java.io.Writer;
+import com.izforge.izpack.ExecutableFile;
+
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-
-import com.izforge.izpack.ExecutableFile;
 
 /**
  * Executes a bunch of files. This class is intended to do a system dependent installation
  * postprocessing. Executable file can be any file installed with current package. After execution
  * the file can be optionally removed. Before execution on Unix systems execution flag will be set
  * on processed file.
- * 
+ *
  * @author Olexij Tkatchenko <ot@parcs.de>
  */
 public class FileExecutor
 {
-
-    /**
-     * This is a grabber for stdout and stderr. It will be launched once at command execution end
-     * terminates if the apropriate stream runs out of data.
-     * 
-     * @author Olexij Tkatchenko <ot@parcs.de>
-     */
-    private static class MonitorInputStream implements Runnable
-    {
-
-        private BufferedReader reader;
-
-        private BufferedWriter writer;
-
-        private boolean shouldStop = false;
-
-        public MonitorInputStream(Reader in, Writer out)
-        {
-            reader = new BufferedReader(in);
-            writer = new BufferedWriter(out);
-        }
-
-        public void doStop()
-        {
-            shouldStop = true;
-        }
-
-        public void run()
-        {
-            try
-            {
-                String line;
-                while ((line = reader.readLine()) != null)
-                {
-                    writer.write(line);
-                    writer.newLine();
-                    writer.flush();
-                    if (shouldStop) return;
-                }
-            }
-            catch (IOException ioe)
-            {
-                ioe.printStackTrace(System.out);
-            }
-        }
-    }
+    private static final String JAR_FILE_SUFFIX = ".jar";
 
     private boolean stopThread(Thread t, MonitorInputStream m)
     {
@@ -102,9 +50,14 @@ public class FileExecutor
             t.join(softTimeout);
         }
         catch (InterruptedException e)
-        {}
+        {
+            // ignore
+        }
 
-        if (!t.isAlive()) return true;
+        if (!t.isAlive())
+        {
+            return true;
+        }
 
         t.interrupt();
         long hardTimeout = 1000;
@@ -113,17 +66,19 @@ public class FileExecutor
             t.join(hardTimeout);
         }
         catch (InterruptedException e)
-        {}
+        {
+            // ignore
+        }
         return !t.isAlive();
     }
 
     /**
      * Constructs a new executor. The executable files specified must have pretranslated paths
      * (variables expanded and file separator characters converted if necessary).
-     * 
+     *
      * @param files the executable files to process
      */
-    public FileExecutor(Collection files)
+    public FileExecutor(Collection<ExecutableFile> files)
     {
         this.files = files;
     }
@@ -138,7 +93,7 @@ public class FileExecutor
 
     /**
      * Gets the output of the given (console based) commandline
-     * 
+     *
      * @param aCommandLine to execute
      * @return the result of the command
      */
@@ -150,8 +105,8 @@ public class FileExecutor
 
     /**
      * Executes the given Command and gets the result of StdOut, or if exec returns !=0:  StdErr.
-     * 
-     * @param aCommandLine aCommandLine to execute
+     *
+     * @param aCommandLine     aCommandLine to execute
      * @param forceToGetStdOut if true returns stdout
      * @return the result of the command stdout or stderr if exec returns !=0
      */
@@ -165,20 +120,26 @@ public class FileExecutor
 
         if (execResult == 0)
 
+        {
             return execOut[0];
+        }
 
-        else if (forceToGetStdOut == true)
+        else if (forceToGetStdOut)
+        {
             return execOut[0];
+        }
         else
+        {
             return execOut[1];
+        }
     }
 
     /**
      * Executed a system command and waits for completion.
-     * 
+     *
      * @param params system command as string array
      * @param output contains output of the command index 0 = standard output index 1 = standard
-     * error
+     *               error
      * @return exit status of process
      */
     public int executeCommand(String[] params, String[] output)
@@ -187,9 +148,9 @@ public class FileExecutor
         retval.append("executeCommand\n");
         if (params != null)
         {
-            for (int i = 0; i < params.length; i++)
+            for (String param : params)
             {
-                retval.append("\tparams: ").append(params[i]);
+                retval.append("\tparams: ").append(param);
                 retval.append("\n");
             }
         }
@@ -251,7 +212,10 @@ public class FileExecutor
         }
         catch (InterruptedException e)
         {
-            if (Debug.tracing()) e.printStackTrace(System.err);
+            if (Debug.tracing())
+            {
+                e.printStackTrace(System.err);
+            }
             stopThread(t1, outMonitor);
             stopThread(t2, errMonitor);
             output[0] = "";
@@ -259,26 +223,31 @@ public class FileExecutor
         }
         catch (IOException e)
         {
-            if (Debug.tracing()) e.printStackTrace(System.err);
+            if (Debug.tracing())
+            {
+                e.printStackTrace(System.err);
+            }
             output[0] = "";
             output[1] = e.getMessage() + "\n";
         }
-        finally 
+        finally
         {
-        	// cleans up always resources like file handles etc.
-        	// else many calls (like chmods for every file) can produce
-        	// too much open handles.
-            if (process != null) process.destroy();
+            // cleans up always resources like file handles etc.
+            // else many calls (like chmods for every file) can produce
+            // too much open handles.
+            if (process != null)
+            {
+                process.destroy();
+            }
         }
         return exitStatus;
     }
 
     /**
      * Executes files specified at construction time.
-     * 
+     *
      * @param currentStage the stage of the installation
-     * @param handler The AbstractUIHandler to notify on errors.
-     * 
+     * @param handler      The AbstractUIHandler to notify on errors.
      * @return 0 on success, else the exit status of the last failed command
      */
     public int executeFiles(int currentStage, AbstractUIHandler handler)
@@ -290,27 +259,30 @@ public class FileExecutor
         String permissions = "a+x";
 
         // loop through all executables
-        Iterator efileIterator = files.iterator();
+        Iterator<ExecutableFile> efileIterator = this.files.iterator();
         while (exitStatus == 0 && efileIterator.hasNext())
         {
-            ExecutableFile efile = (ExecutableFile) efileIterator.next();
+            ExecutableFile efile = efileIterator.next();
             boolean deleteAfterwards = !efile.keepFile;
             File file = new File(efile.path);
-            Debug.trace("handeling executable file " + efile);
+            Debug.trace("handling executable file " + efile);
 
             // skip file if not for current OS (it might not have been installed
             // at all)
-            if (!OsConstraint.oneMatchesCurrentSystem(efile.osList)) continue;
+            if (!OsConstraint.oneMatchesCurrentSystem(efile.osList))
+            {
+                continue;
+            }
 
-            if (currentStage != ExecutableFile.UNINSTALL && OsVersion.IS_UNIX)
+            if (ExecutableFile.BIN == efile.type && currentStage != ExecutableFile.UNINSTALL && OsVersion.IS_UNIX)
             {
                 // fix executable permission for unix systems
                 Debug.trace("making file executable (setting executable flag)");
-                String[] params = { "/bin/chmod", permissions, file.toString()};
+                String[] params = {"/bin/chmod", permissions, file.toString()};
                 exitStatus = executeCommand(params, output);
                 if (exitStatus != 0)
                 {
-                    handler.emitError("file execution error", "Error executing \n" + params[0]
+                    handler.emitWarning("file execution error", "Error executing \n" + params[0]
                             + " " + params[1] + " " + params[2]);
                     continue;
                 }
@@ -320,9 +292,11 @@ public class FileExecutor
             if ((exitStatus == 0)
                     && ((currentStage == ExecutableFile.POSTINSTALL && efile.executionStage == ExecutableFile.POSTINSTALL) || (currentStage == ExecutableFile.UNINSTALL && efile.executionStage == ExecutableFile.UNINSTALL)))
             {
-                List paramList = new ArrayList();
+                List<String> paramList = new ArrayList<String>();
                 if (ExecutableFile.BIN == efile.type)
+                {
                     paramList.add(file.toString());
+                }
 
                 else if (ExecutableFile.JAR == efile.type && null == efile.mainClass)
                 {
@@ -334,16 +308,28 @@ public class FileExecutor
                 {
                     paramList.add(System.getProperty("java.home") + "/bin/java");
                     paramList.add("-cp");
-                    paramList.add(file.toString());
+                    try
+                    {
+                        paramList.add(buildClassPath(file.toString()));
+                    }
+                    catch (Exception e)
+                    {
+                        exitStatus = -1;
+                        Debug.error(e);
+                    }
                     paramList.add(efile.mainClass);
                 }
 
                 if (null != efile.argList && !efile.argList.isEmpty())
+                {
                     paramList.addAll(efile.argList);
+                }
 
                 String[] params = new String[paramList.size()];
                 for (int i = 0; i < paramList.size(); i++)
-                    params[i] = (String) paramList.get(i);
+                {
+                    params[i] = paramList.get(i);
+                }
 
                 exitStatus = executeCommand(params, output);
 
@@ -353,7 +339,9 @@ public class FileExecutor
                     deleteAfterwards = false;
                     String message = output[0] + "\n" + output[1];
                     if (message.length() == 1)
+                    {
                         message = "Failed to execute " + file.toString() + ".";
+                    }
 
                     if (efile.onFailure == ExecutableFile.ABORT)
                     {
@@ -366,11 +354,18 @@ public class FileExecutor
                         handler.emitWarning("file execution error", message);
                         exitStatus = 0;
                     }
+                    else if (efile.onFailure == ExecutableFile.IGNORE)
+                    {
+                        // do nothing  
+                        exitStatus = 0;
+                    }
                     else
                     {
                         if (handler
-                                .askQuestion(null, "Continue?", AbstractUIHandler.CHOICES_YES_NO) == AbstractUIHandler.ANSWER_YES)
+                                .askQuestion("Execution Failed", message + "\nContinue Installation?", AbstractUIHandler.CHOICES_YES_NO) == AbstractUIHandler.ANSWER_YES)
+                        {
                             exitStatus = 0;
+                        }
                     }
 
                 }
@@ -380,13 +375,73 @@ public class FileExecutor
             // POSTINSTALL executables will be deleted
             if (efile.executionStage == ExecutableFile.POSTINSTALL && deleteAfterwards)
             {
-                if (file.canWrite()) file.delete();
+                if (file.canWrite())
+                {
+                    file.delete();
+                }
             }
 
         }
         return exitStatus;
     }
 
-    /** The files to execute. */
-    private Collection files;
+    /**
+     * Transform classpath as specified in targetFile attribute into
+     * OS specific classpath. This method also resolves directories
+     * containing jar files. ';' and ':' are valid delimiters allowed
+     * in targetFile attribute.
+     *
+     * @param targetFile
+     * @return valid Java classpath
+     * @throws Exception
+     */
+    private String buildClassPath(String targetFile) throws Exception
+    {
+        StringBuffer classPath = new StringBuffer();
+        List<String> jars = new ArrayList<String>();
+        String rawClassPath = targetFile.replace(':', File.pathSeparatorChar).replace(';', File.pathSeparatorChar);
+        String[] rawJars = rawClassPath.split("" + File.pathSeparatorChar);
+        for (String rawJar : rawJars)
+        {
+            File file = new File(rawJar);
+            jars.add(rawJar);
+
+            if (file.isDirectory())
+            {
+                String[] subDirJars = FileUtil.getFileNames(rawJar,
+                        new FilenameFilter()
+                        {
+                            public boolean accept(File dir, String name)
+                            {
+                                return name.toLowerCase().endsWith(JAR_FILE_SUFFIX);
+                            }
+
+                        });
+                if (subDirJars != null)
+                {
+                    for (String subDirJar : subDirJars)
+                    {
+                        jars.add(rawJar + File.separator + subDirJar);
+                    }
+                }
+            }
+        }
+
+        Iterator<String> iter = jars.iterator();
+        if (iter.hasNext())
+        {
+            classPath.append(iter.next());
+        }
+        while (iter.hasNext())
+        {
+            classPath.append(File.pathSeparatorChar).append(iter.next());
+        }
+
+        return classPath.toString();
+    }
+
+    /**
+     * The files to execute.
+     */
+    private Collection<ExecutableFile> files;
 }

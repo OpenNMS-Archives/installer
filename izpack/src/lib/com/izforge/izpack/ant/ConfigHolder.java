@@ -1,9 +1,9 @@
 /*
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2002 Marcus Wolschon
  * Copyright 2002 Jan Blok
@@ -23,46 +23,49 @@
  */
 package com.izforge.izpack.ant;
 
-import java.util.Enumeration;
-import java.util.Vector;
-
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
+
+import java.util.Enumeration;
+import java.util.Vector;
 
 /**
  * A nested element holder for the installation configuration document content.
  * The installation document must be passed in using a CDATA element.
- * 
+ *
  * @author Scott Stark
- * @version $Revision: 1816 $
+ * @version $Revision: 2163 $
  */
 public class ConfigHolder
 {
-    /** The parent element project */
+    /**
+     * The parent element project
+     */
     private Project project;
 
-    /** The config element body text with ${x} property references replaced */
+    /**
+     * The config element body text with ${x} property references replaced
+     */
     private String installText;
 
     /**
      * Taken from the ant org.apache.tools.ant.PropertyHelper and '$' replaced
      * with '@' to deal with @{x} style property references.
-     * 
+     * <p/>
      * Parses a string containing @{xxx} style property references
      * into two lists. The first list is a collection of text fragments, while
      * the other is a set of string property names. null entries in the
      * first list indicate a property reference from the second list.
-     * 
+     * <p/>
      * It can be overridden with a more efficient or customized version.
-     * 
-     * @param value Text to parse. Must not be null.
-     * @param fragments List to add text fragments to. Must not be null.
+     *
+     * @param value        Text to parse. Must not be null.
+     * @param fragments    List to add text fragments to. Must not be null.
      * @param propertyRefs List to add property names to. Must not be null.
-     * 
-     * @exception BuildException if the string contains an opening @{ without a
-     * closing }
+     * @throws BuildException if the string contains an opening @{ without a
+     *                        closing }
      */
-    static void parseCompileProperties(String value, Vector fragments, Vector propertyRefs)
+    static void parseCompileProperties(String value, Vector<String> fragments, Vector<String> propertyRefs)
             throws BuildException
     {
         int prev = 0;
@@ -138,27 +141,27 @@ public class ConfigHolder
      * Called by ant to set the config element content. The content is scanned
      * for @{x} style property references and replaced with the x project
      * property.
-     * 
+     *
      * @param rawText - the raw config element body text.
      */
     public void addText(String rawText)
     {
         // Locate the @{x} references
-        Vector fragments = new Vector();
-        Vector propertyRefs = new Vector();
+        Vector<String> fragments = new Vector<String>();
+        Vector<String> propertyRefs = new Vector<String>();
         parseCompileProperties(rawText, fragments, propertyRefs);
 
         // Replace the references with the project property value
         StringBuffer sb = new StringBuffer();
-        Enumeration i = fragments.elements();
-        Enumeration j = propertyRefs.elements();
+        Enumeration<String> i = fragments.elements();
+        Enumeration<String> j = propertyRefs.elements();
 
         while (i.hasMoreElements())
         {
-            String fragment = (String) i.nextElement();
+            String fragment = i.nextElement();
             if (fragment == null)
             {
-                String propertyName = (String) j.nextElement();
+                String propertyName = j.nextElement();
                 Object replacement = null;
 
                 // try to get it from the project
@@ -173,9 +176,13 @@ public class ConfigHolder
                             Project.MSG_VERBOSE);
                 }
                 if (replacement != null)
+                {
                     fragment = replacement.toString();
+                }
                 else
+                {
                     fragment = "@{" + propertyName + "}";
+                }
             }
             sb.append(fragment);
         }
@@ -185,7 +192,7 @@ public class ConfigHolder
 
     /**
      * Get the config element body text with @{x} property references replaced
-     * 
+     *
      * @return the processed config element body text.
      */
     public String getText()

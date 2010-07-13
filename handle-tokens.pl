@@ -54,7 +54,7 @@ find (
 	$path,
 );
 
-for my $installfile ('install.xml', 'install-1.6.xml') {
+for my $installfile ('INSTALL.txt', 'launcher.ini', 'install.xml', 'install-1.6.xml') {
 	open (FILEIN, "$installfile.in") or die "can't read from $installfile.in: $!";
 	open (FILEOUT, ">$installfile") or die "can't write to $installfile: $!";
 	while (<FILEIN>) {
@@ -73,7 +73,8 @@ for my $installfile ('install.xml', 'install-1.6.xml') {
 				print FILEOUT "\t\t\t<singlefile src=\"lib/$file\" target=\"\$UNIFIED_INSTALL_PATH/lib/$file\" />\n";
 			}
 		} elsif (/\@appversion\@/) {
-			print FILEOUT "\t\t<appversion>$version</appversion>\n";
+			s/\@appversion\@/$version/g;
+			print FILEOUT $_;
 		} else {
 			print FILEOUT;
 		}

@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2004 Thorsten Kamann
  * 
@@ -21,18 +21,18 @@
 
 package com.izforge.izpack.util;
 
-import java.net.InetAddress;
-import java.net.ServerSocket;
-
 import com.izforge.izpack.panels.ProcessingClient;
 import com.izforge.izpack.panels.Validator;
 
+import java.net.InetAddress;
+import java.net.ServerSocket;
+
 /**
  * A validator to check wheter a host:port is available (free).
- * 
+ * <p/>
  * This validator can be used for rule input fields in the UserInputPanel to make sure that the port
  * the user entered is not in use.
- * 
+ *
  * @author thorque
  */
 public class HostAddressValidator implements Validator

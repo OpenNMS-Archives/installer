@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2004 Klaus Bartz
  * 
@@ -21,20 +21,18 @@
 
 package com.izforge.izpack.event;
 
-import java.util.Map;
-
-import net.n3.nanoxml.XMLElement;
-
 import com.izforge.izpack.compiler.CompilerException;
 import com.izforge.izpack.compiler.IPackager;
+import com.izforge.izpack.adaptator.IXMLElement;
+
+import java.util.Map;
 
 /**
  * <p>
  * Implementations of this class are used to add extensions to the packs at compilation.
  * </p>
- * 
+ *
  * @author Klaus Bartz
- * 
  */
 public interface CompilerListener
 {
@@ -44,30 +42,30 @@ public interface CompilerListener
     public final static int END = 2;
 
     /**
-     * This method is called from the compiler for each file (or dir) parsing. The XMLElement is a
+     * This method is called from the compiler for each file (or dir) parsing. The IXMLElement is a
      * node of the file related children of the XML element "pack" (see installation.dtd). Current
      * these are "file", "singlefile" or "fileset". If an additional data should be set, it should
      * be added to the given data map (if exist). If no map exist a new should be created and
      * filled. The data map will be added to the PackFile object after all registered
      * CompilerListener are called. If the map contains an not common object, it is necessary to add
      * the needed class to the installer.
-     * 
+     *
      * @param existentDataMap attribute set with previos setted attributes
-     * @param element current file related XML node
+     * @param element         current file related XML node
      * @return the given or a new attribute set. If no attribute set is given and no attribute was
-     * added, null returns
+     *         added, null returns
      * @throws CompilerException
      */
-    Map reviseAdditionalDataMap(Map existentDataMap, XMLElement element) throws CompilerException;
+    Map reviseAdditionalDataMap(Map existentDataMap, IXMLElement element) throws CompilerException;
 
     /**
      * This method will be called from each step of packaging.
-     * 
+     *
      * @param position name of the calling method, e.g. "addVariables"
-     * @param state BEGIN or END
-     * @param data current install data
+     * @param state    BEGIN or END
+     * @param data     current install data
      * @param packager current packager object
      */
-    void notify(String position, int state, XMLElement data, IPackager packager);
+    void notify(String position, int state, IXMLElement data, IPackager packager);
 
 }

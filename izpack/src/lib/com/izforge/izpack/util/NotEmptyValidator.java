@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2003 Tino Schwarze
  * 
@@ -26,10 +26,10 @@ import com.izforge.izpack.panels.Validator;
 
 /**
  * A validator to enforce non-empty fields.
- * 
+ * <p/>
  * This validator can be used for rule input fields in the UserInputPanel to make sure that the user
  * entered something.
- * 
+ *
  * @author tisc
  */
 public class NotEmptyValidator implements Validator
@@ -43,7 +43,10 @@ public class NotEmptyValidator implements Validator
         {
             String value = client.getFieldContents(i);
 
-            if ((value == null) || (value.length() == 0)) return false;
+            if ((value == null) || (value.length() == 0))
+            {
+                return false;
+            }
         }
 
         return true;

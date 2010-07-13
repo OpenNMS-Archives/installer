@@ -1,5 +1,5 @@
 <!--
-    $Id: IzPack-install.xml 1831 2007-05-11 19:38:20Z jponge $
+    $Id: IzPack-install.xml 2912 2009-12-14 08:49:30Z jponge $
 
     IzPack installer XML file
 
@@ -17,62 +17,40 @@
     much simpler :-)
 -->
 
-        <!-- The installation -->
+<!-- The installation -->
 <installation version="1.0">
 
     <!-- The info section -->
     <info>
         <appname>IzPack</appname>
-        <appversion>3.10.2</appversion>
+        <appversion>4.3.3</appversion>
         <authors>
-            <author email="" name="Julien Ponge (maintainer and original developer)"/>
-
-            <author email="" name="Klaus Bartz (developer)"/>
-            <author email="" name="Hans Aikema (developer)" />
-            <author email="" name="Marc Eppelmann (developer)" />
-            <author email="" name="Fabrice Mirabile (developer)"/>
-            <author email="" name="Dennis Reil (developer)" />
-            <author email="" name="JBoss/RedHat: Vladimir Ralev (developers)" />
-
-            <author email="" name="Francois Guillet (contributor)"/>
-            <author email="" name="Nils Meier (contributor)" />
-            <author email="" name="Markus Schlegel (contributor)" />
-            <author email="" name="Hal Vaughan (contributor)" />
-            <author email="" name="Ari Voutilainen (contributor)" />
-            <author email="" name="Stefan Wachter (contributor)" />
-            <author email="" name="Romain Guy (contributor)" />
-            <author email="" name="Melih Cetin (contributor)" />
-            <author email="" name="Thomas Santosa (contributor)" />
-            <author email="" name="Michael Hagedorn (contributor)" />
-            <author email="" name="Max Fedorov (contributor)" />
-            <author email="" name="Scott Plante (contributor)" />
-            <author email="" name="Marius Nicolae (contributor)" />
-
-            <author email=""
-                    name="... the (many) other developers and contributors to the previous releases!"/>
+            <author email="" name="Julien Ponge (project founder)"/>
+            <author email="" name="The fantastic IzPack developers and contributors"/>
         </authors>
         <url>http://izpack.org/</url>
-        <javaversion>1.4</javaversion>
+        <javaversion>1.5</javaversion>
+        <requiresjdk>no</requiresjdk>
+        <!--><pack200/>-->
+        <run-privileged condition="izpack.windowsinstall.vista|izpack.windowsinstall.7"/>
         <summarylogfilepath>$INSTALL_PATH/installinfo/Summary.htm</summarylogfilepath>
     </info>
 
     <!-- Flexible and in the screen proportions -->
-    <guiprefs height="600" resizable="yes" width="800">
-        <laf name="looks">
-            <os family="unix"/>
-        </laf>
+    <guiprefs height="700" resizable="yes" width="870">
         <!-- GUI addaption for more informations see "Modifying the GUI" in the documentation -->
-    	<modifier key="layoutAnchor" value="CENTER"/>
-    	<modifier key="headingPanelCounter" value="progressbar"/>
-		<modifier key="headingPanelCounterPos" value="inNavigationPanel"/>
-		<modifier key="allYGap" value="3"/>
-		<modifier key="paragraphYGap" value="10"/>
-		<modifier key="filler1YGap" value="5"/>
-		<modifier key="filler3XGap" value="10"/>
+        <modifier key="layoutAnchor" value="CENTER"/>
+        <modifier key="headingPanelCounter" value="progressbar"/>
+        <modifier key="headingPanelCounterPos" value="inNavigationPanel"/>
+        <modifier key="allYGap" value="4"/>
+        <modifier key="paragraphYGap" value="10"/>
+        <modifier key="filler1YGap" value="5"/>
+        <modifier key="filler3XGap" value="10"/>
     </guiprefs>
 
     <variables>
         <variable name="DesktopShortcutCheckboxEnabled" value="true"/>
+        <variable name="ApplicationShortcutPath" value="ApplicationShortcuts"/>
     </variables>
 
     <!-- We include every langpack -->
@@ -102,50 +80,38 @@
         <langpack iso3="scg"/>
         <langpack iso3="cze"/>
         <langpack iso3="kor"/>
+        <langpack iso3="glg"/>
     </locale>
 
     <!-- The resources needed by the various panels -->
     <resources>
         <res src="install-readme.html" id="HTMLInfoPanel.info"/>
-        <res src="Licence.txt" id="LicencePanel.licence"/>
+        <res src="license.html" id="HTMLLicencePanel.licence"/>
         <res src="splash-3.10.png" id="installer.langsel.img"/>
         <res src="shortcutSpec.xml" id="shortcutSpec.xml"/>
         <res src="Unix_shortcutSpec.xml" id="Unix_shortcutSpec.xml"/>
-        <res src="core.png" id="ImgPacksPanel.img.0"/>
-        <res src="doc-html.png" id="ImgPacksPanel.img.1"/>
-        <res src="javadocs.png" id="ImgPacksPanel.img.2"/>
-        <res src="doc-nanoxml.png" id="ImgPacksPanel.img.3"/>
-        <!--
-            <res src="doc-pdf.png" id="ImgPacksPanel.img.2" />
-        -->
-        <res src="sample.png" id="ImgPacksPanel.img.4"/>
-        <res src="src.png" id="ImgPacksPanel.img.5"/>
-        <res src="border1.png" id="Installer.image.0"/>
-        <res src="border2.png" id="Installer.image.1"/>
-        <res src="border3.png" id="Installer.image.2"/>
-        <res src="border4.png" id="Installer.image.3"/>
-        <res src="border5.png" id="Installer.image.4"/>
-        <res src="border5.png" id="Installer.image.5"/>
-        <res src="border6.png" id="Installer.image.6"/>
-        <res src="border7.png" id="Installer.image.7"/>
-        <res src="border8.png" id="Installer.image.8"/>
+        <res src="info-border.png" id="Installer.image.0"/>
+        <res src="info-border.png" id="Installer.image.1"/>
+        <res src="info-border.png" id="Installer.image.2"/>
+        <res src="pack-border.png" id="Installer.image.3"/>
+        <res src="pack-border.png" id="Installer.image.4"/>
+        <res src="installing-border.png" id="Installer.image.5"/>
+        <res src="installing-border.png" id="Installer.image.6"/>
+        <res src="installing-border.png" id="Installer.image.7"/>
+        <res src="finished-border.png" id="Installer.image.8"/>
         <res src="RegistrySpec.xml" id="RegistrySpec.xml"/>
     </resources>
 
     <!-- The panels in a classic order -->
     <panels>
         <panel classname="CheckedHelloPanel" id="hellopanel"/>
-        <panel classname="HTMLInfoPanel" id="infopanel"/>
-        <panel classname="LicencePanel" id="licensepanel"/>
+        <panel classname="HTMLInfoPanel" id="infopanel" encoding="ISO-8859-1"/>
+        <panel classname="HTMLLicencePanel" id="licensepanel"/>
         <panel classname="TargetPanel" id="targetpanel"/>
-        <panel classname="ImgPacksPanel" id="packspanel"/>
+        <panel classname="PacksPanel" id="packspanel"/>
         <panel classname="SummaryPanel" id="summarypanel"/>
         <panel classname="InstallPanel" id="installpanel"/>
         <panel classname="ShortcutPanel" id="shortcutpanel"/>
-        <!-- We use temporary the FinishPanel in the 3.9 Release
-             to get Access to the [Generate an automatic installation script]-Button
-             to get feedback so quick as possible from all of users,
-             who wants to get back this feature ;-) -->
         <panel classname="FinishPanel" id="finishpanel"/>
     </panels>
 
@@ -175,37 +141,35 @@
         </pack>
 
         <!-- The documentation -->
-        <pack name="XHTML Documentation" required="no">
-            <description>The IzPack documentation (XHTML version).</description>
+        <pack name="HTML Documentation" required="no">
+            <description>The IzPack documentation (HTML version).</description>
             <fileset dir="" targetdir="$INSTALL_PATH">
-                <include name="doc/izpack/xhtml/**/*"/>
+                <include name="doc/izpack/html/**/*"/>
             </fileset>
         </pack>
-        <pack name="Java Documentation" required="no">
-            <description>
-                The IzPack Java documentation (Javadocs for IzPack developers).
-            </description>
+        <pack name="PDF Documentation" required="no">
+            <description>The IzPack documentation (PDF version).</description>
+            <fileset dir="" targetdir="$INSTALL_PATH">
+                <include name="doc/izpack/pdf/**/*"/>
+            </fileset>
+        </pack>
+        <pack name="Javadocs Documentation" required="no">
+            <description>The IzPack Java documentation (Javadocs for IzPack developers).</description>
             <fileset dir="" targetdir="$INSTALL_PATH">
                 <include name="doc/izpack/javadoc/**/*"/>
             </fileset>
         </pack>
-        <!--
-            Disabled while doc-ng not provides a pdf ...
 
-            <pack name="PDF Documentation" required="no">
-            <description>The IzPack documentation (PDF version).</description>
+        <!-- Utilities pack -->
+        <pack name="Utilities" required="no">
+            <description>IzPack utilities (izpack2exe, izpack2app, izpack2jnlp)</description>
             <fileset dir="" targetdir="$INSTALL_PATH">
-            <include name="doc/izpack/pdf/**/*" />
+                <include name="utils/**/*"/>
             </fileset>
-            </pack>
-        -->
-        <pack name="NanoXML Documentation" required="no">
-            <description>NanoXML documentation (for IzPack developers).</description>
-            <fileset dir="" targetdir="$INSTALL_PATH">
-                <include name="doc/nanoxml/**/*"/>
-            </fileset>
+            <executable 
+                targetfile="$INSTALL_PATH/utils/wrappers/izpack2app/Mac-App-Template/Contents/MacOS/JavaApplicationStub"
+                stage="never"/>
         </pack>
-
 
         <!-- A trivial sample to get started -->
         <pack name="Sample" required="no">
@@ -228,6 +192,7 @@
 
     <!-- The native libraries to add -->
     <native type="izpack" name="ShellLink.dll"/>
+    <native type="izpack" name="ShellLink_x64.dll"/>
     <native type="3rdparty" name="COIOSHelper.dll" stage="both">
         <os family="windows"/>
     </native>

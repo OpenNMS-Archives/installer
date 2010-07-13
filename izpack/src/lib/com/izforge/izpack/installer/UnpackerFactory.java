@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2007 Dennis Reil
  * 
@@ -20,36 +20,38 @@
  */
 package com.izforge.izpack.installer;
 
-import java.lang.reflect.Constructor;
-
 import com.izforge.izpack.util.AbstractUIProgressHandler;
 import com.izforge.izpack.util.Debug;
 
+import java.lang.reflect.Constructor;
+
 
 /**
- * A Factory for getting unpacker instances. 
- * 
+ * A Factory for getting unpacker instances.
+ *
  * @author Dennis Reil, <Dennis.Reil@reddot.de>
  */
 public abstract class UnpackerFactory
 {
     /**
      * Returns an instance of the desired unpacker class
+     *
      * @param unpackerclassname
      * @param installdata
      * @param listener
-     * @return
+     * @return the unpacker
      */
-    public static IUnpacker getUnpacker(String unpackerclassname, AutomatedInstallData installdata, AbstractUIProgressHandler listener){
+    public static IUnpacker getUnpacker(String unpackerclassname, AutomatedInstallData installdata, AbstractUIProgressHandler listener)
+    {
         IUnpacker unpackerobj = null;
         try
         {
-            Class unpackerclass = Class.forName(unpackerclassname);
+            Class<IUnpacker> unpackerclass = (Class<IUnpacker>) Class.forName(unpackerclassname);
             Class[] parametertypes = {AutomatedInstallData.class, AbstractUIProgressHandler.class};
-            Constructor unpackerconstructor = unpackerclass.getConstructor(parametertypes);
-            Object[] parameter = {installdata,listener};
-            unpackerobj = (IUnpacker) unpackerconstructor.newInstance(parameter);            
-        }        
+            Constructor<IUnpacker> unpackerconstructor = unpackerclass.getConstructor(parametertypes);
+            Object[] parameter = {installdata, listener};
+            unpackerobj = unpackerconstructor.newInstance(parameter);
+        }
         catch (NoSuchMethodException e)
         {
             Debug.trace("Can't load unpacker: " + unpackerclassname);
@@ -60,7 +62,7 @@ public abstract class UnpackerFactory
         {
             Debug.trace("Can't load unpacker: " + unpackerclassname);
             Debug.trace(e);
-        }                
+        }
         return unpackerobj;
     }
 }

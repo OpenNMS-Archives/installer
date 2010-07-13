@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2001 Johannes Lehtinen
  * 
@@ -21,13 +21,15 @@
 
 package com.izforge.izpack;
 
+import com.izforge.izpack.util.OsConstraint;
+
 import java.io.Serializable;
 import java.util.List;
 
 /**
  * Encloses information about a parsable file. This class abstracts the way the information is
  * stored to package.
- * 
+ *
  * @author Johannes Lehtinen <johannes.lehtinen@iki.fi>
  */
 public class ParsableFile implements Serializable
@@ -35,32 +37,68 @@ public class ParsableFile implements Serializable
 
     static final long serialVersionUID = -7761309341843715721L;
 
-    /** The file path */
+    /**
+     * The file path
+     */
     public String path = null;
 
-    /** The file type (or null for default) */
+    /**
+     * The file type (or null for default)
+     */
     public String type = null;
 
-    /** The file encoding (or null for default) */
+    /**
+     * The file encoding (or null for default)
+     */
     public String encoding = null;
 
-    /** The list of OS constraints limiting file installation. */
-    public List osConstraints = null;
+    /**
+     * The list of OS constraints limiting file installation.
+     */
+    public List<OsConstraint> osConstraints = null;
+
+    /**
+     * condition for this Parsable
+     */
+    private String condition = null;
 
     /**
      * Constructs and initializes a new instance.
-     * 
-     * @param path the file path
-     * @param type the file type (or null for default)
-     * @param encoding the file encoding (or null for default)
+     *
+     * @param path          the file path
+     * @param type          the file type (or null for default)
+     * @param encoding      the file encoding (or null for default)
      * @param osConstraints the OS constraint (or null for any OS)
      */
-    public ParsableFile(String path, String type, String encoding, List osConstraints)
+    public ParsableFile(String path, String type, String encoding, List<OsConstraint> osConstraints)
     {
         this.path = path;
         this.type = type;
         this.encoding = encoding;
         this.osConstraints = osConstraints;
+    }
+
+
+    /**
+     * @return the condition
+     */
+    public String getCondition()
+    {
+        return this.condition;
+    }
+
+
+    /**
+     * @param condition the condition to set
+     */
+    public void setCondition(String condition)
+    {
+        this.condition = condition;
+    }
+
+    public boolean hasCondition()
+    {
+        return this.condition != null;
     }
 
 }

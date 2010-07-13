@@ -7,7 +7,7 @@
         AntActionInstallerListener and
         AntActionUninstallerListener
         =====================================
-$Id: antaction.dtd 1075 2005-02-15 13:06:59Z jponge $
+$Id: antaction.dtd 2709 2009-03-30 19:23:13Z bbergquist $
         
 -->
 
@@ -41,8 +41,13 @@ $Id: antaction.dtd 1075 2005-02-15 13:06:59Z jponge $
                  is related to the &lt;language&gt;.xml file.
 			-->
             <!ATTLIST antcall messageid CDATA  #IMPLIED>
-            <!-- Path of the file which contains the antcall. -->
-            <!ATTLIST antcall buildfile CDATA #REQUIRED>
+            <!-- Path of the file which contains the antcall. Either buildfile or buildresource 
+                 must be specified, but not both
+            -->
+            <!ATTLIST antcall buildfile CDATA #IMPLIED>
+            <!-- Id of the resource which contains the antcall. Either buildresource or buildfile
+                 must be specifeid, but not both -->
+            <!ATTLIST antcall buildresource CDATA #IMPLIED>
             <!-- Properties to be used with all targets and uninstall_targets 
                  which are defined for this antcall.
             -->

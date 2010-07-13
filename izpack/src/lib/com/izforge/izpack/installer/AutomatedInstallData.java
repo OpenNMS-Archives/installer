@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,33 +19,31 @@
 
 package com.izforge.izpack.installer;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.zip.ZipOutputStream;
-
-import net.n3.nanoxml.XMLElement;
-
 import com.izforge.izpack.Info;
 import com.izforge.izpack.LocaleDatabase;
+import com.izforge.izpack.Pack;
+import com.izforge.izpack.Panel;
+import com.izforge.izpack.rules.RulesEngine;
+import com.izforge.izpack.adaptator.IXMLElement;
+import com.izforge.izpack.adaptator.impl.XMLElementImpl;
+
+
+import java.io.Serializable;
+import java.util.*;
+import java.util.zip.ZipOutputStream;
 
 /**
  * Encloses information about the install process. This implementation is not thread safe.
- * 
+ *
  * @author Julien Ponge <julien@izforge.com>
  * @author Johannes Lehtinen <johannes.lehtinen@iki.fi>
  */
-public class AutomatedInstallData
+public class AutomatedInstallData implements Serializable
 {
 
     // --- Static members -------------------------------------------------
+    public static final String MODIFY_INSTALLATION = "modify.izpack.install";
+    public static final String INSTALLATION_INFORMATION = ".installationinformation";
 
     /**
      * Names of the custom actions types with which they are stored in the installer jar file. These
@@ -55,7 +53,7 @@ public class AutomatedInstallData
     // Attention !! Do not change the existent names and the order.
     // Add a / as first char at new types. Add new type handling in
     // Unpacker.
-    static final String[] CUSTOM_ACTION_TYPES = new String[] { "/installerListeners",
+    static final String[] CUSTOM_ACTION_TYPES = new String[]{"/installerListeners",
             "/uninstallerListeners", "/uninstallerLibs", "/uninstallerJars"};
 
     public static final int INSTALLER_LISTENER_INDEX = 0;
@@ -64,97 +62,140 @@ public class AutomatedInstallData
 
     public static final int UNINSTALLER_LIBS_INDEX = 2;
 
-    public static final int UNINSTALLER_JARS_INDEX = 3;
+    public static final int UNINSTALLER_JARS_INDEX = 3;    
 
     // --- Instance members -----------------------------------------------
 
-    /** The language code. */
+    private RulesEngine rules;
+    
+    /**
+     * The language code.
+     */
     public String localeISO3;
 
-    /** The language pack. */
+    /**
+     * The used locale.
+     */
+    public Locale locale;
+
+    /**
+     * The language pack.
+     */
     public LocaleDatabase langpack;
 
-    /** The uninstaller jar stream. */
+    /**
+     * The uninstaller jar stream.
+     */
     public ZipOutputStream uninstallOutJar;
 
-    /** The inforamtions. */
+    /**
+     * The inforamtions.
+     */
     public Info info;
 
-    /** The complete list of packs. */
-    public List allPacks;
+    /**
+     * The complete list of packs.
+     */
+    public List<Pack> allPacks;
 
-    /** The available packs. */
-    public List availablePacks;
+    /**
+     * The available packs.
+     */
+    public List<Pack> availablePacks;
 
-    /** The selected packs. */
-    public List selectedPacks;
+    /**
+     * The selected packs.
+     */
+    public List<Pack> selectedPacks;
 
-    /** The panels list. */
-    public List panels;
+    /**
+     * The panels list.
+     */
+    public List<IzPanel> panels;
 
-    /** The panels order. */
-    public List panelsOrder;
+    /**
+     * The panels order.
+     */
+    public List<Panel> panelsOrder;
 
-    /** The current panel. */
+    /**
+     * The current panel.
+     */
     public int curPanelNumber;
 
-    /** Can we close the installer ? */
+    /**
+     * Can we close the installer ?
+     */
     public boolean canClose = false;
 
-    /** Did the installation succeed ? */
+    /**
+     * Did the installation succeed ?
+     */
     public boolean installSuccess = true;
 
-    /** The xmlData for automated installers. */
-    public XMLElement xmlData;
+    /**
+     * The xmlData for automated installers.
+     */
+    public IXMLElement xmlData;
 
-    /** Custom data. */
-    public Map customData;
+    /**
+     * Custom data.
+     */
+    public Map<String, List> customData;
 
     /**
      * Maps the variable names to their values
      */
     protected Properties variables;
 
-    /** The attributes used by the panels */
-    protected Map attributes;
-    
-    /** This class should be a singleton. Therefore
-     * the one possible object will be stored in this 
+    /**
+     * The attributes used by the panels
+     */
+    protected Map<String, Object> attributes;
+
+    /**
+     * This class should be a singleton. Therefore
+     * the one possible object will be stored in this
      * static member.
      */
     private static AutomatedInstallData self = null;
-    
+
     /**
      * Returns the one possible object of this class.
+     *
      * @return the one possible object of this class
      */
     public static AutomatedInstallData getInstance()
     {
-        return( self);
+        return (self);
     }
 
-    /** Constructs a new instance of this class. 
+    /**
+     * Constructs a new instance of this class.
      * Only one should be possible, at a scound call a RuntimeException
-     * will be raised. */
+     * will be raised.
+     */
     public AutomatedInstallData()
     {
-        availablePacks = new ArrayList();
+        availablePacks = new ArrayList<Pack>();
         selectedPacks = new ArrayList();
-        panels = new ArrayList();
-        panelsOrder = new ArrayList();
-        xmlData = new XMLElement("AutomatedInstallation");
+        panels = new ArrayList<IzPanel>();
+        panelsOrder = new ArrayList<Panel>();
+        xmlData = new XMLElementImpl("AutomatedInstallation");
         variables = new Properties();
-        attributes = new HashMap();
-        customData = new HashMap();
-        if( self != null )
+        attributes = new HashMap<String, Object>();
+        customData = new HashMap<String, List>();
+        if (self != null)
+        {
             throw new RuntimeException("Panic!! second call of the InstallData Ctor!!");
+        }
         self = this;
     }
 
     /**
      * Returns the map of variable values. Modifying this will directly affect the current value of
      * variables.
-     * 
+     *
      * @return the map of variable values
      */
     public Properties getVariables()
@@ -165,7 +206,7 @@ public class AutomatedInstallData
     /**
      * Sets a variable to the specified value. This is short hand for
      * <code>getVariables().setProperty(var, val)</code>.
-     * 
+     *
      * @param var the name of the variable
      * @param val the new value of the variable
      * @see #getVariable
@@ -178,7 +219,7 @@ public class AutomatedInstallData
     /**
      * Returns the current value of the specified variable. This is short hand for
      * <code>getVariables().getProperty(var)</code>.
-     * 
+     *
      * @param var the name of the variable
      * @return the value of the variable or null if not set
      * @see #setVariable
@@ -190,20 +231,19 @@ public class AutomatedInstallData
 
     /**
      * Sets the install path.
-     * 
+     *
      * @param path the new install path
      * @see #getInstallPath
      */
     public void setInstallPath(String path)
     {
         setVariable(ScriptParser.INSTALL_PATH, path);
-        String unifiedpath = getShortName(path).replace('\\', '/');
-        setVariable("UNIFIED_INSTALL_PATH", unifiedpath);
+        setVariable(ScriptParser.UNIFIED_INSTALL_PATH, path.replace("\\", "/"));
     }
 
     /**
      * Returns the install path.
-     * 
+     *
      * @return the current install path or null if none set yet
      * @see #setInstallPath
      */
@@ -213,8 +253,19 @@ public class AutomatedInstallData
     }
 
     /**
+     * Returns the install path.
+     *
+     * @return the current install path or null if none set yet
+     * @see #setInstallPath
+     */
+    public String getUnified_InstallPath()
+    {
+        return getVariable(ScriptParser.UNIFIED_INSTALL_PATH);
+    }
+
+    /**
      * Returns the value of the named attribute.
-     * 
+     *
      * @param attr the name of the attribute
      * @return the value of the attribute or null if not set
      * @see #setAttribute
@@ -230,67 +281,33 @@ public class AutomatedInstallData
      * panels do not need to implement a common data storage but can use InstallData singleton. The
      * name of the attribute should include the package and class name to prevent name space
      * collisions.
-     * 
+     *
      * @param attr the name of the attribute to set
-     * @param val the value of the attribute or null to unset the attribute
+     * @param val  the value of the attribute or null to unset the attribute
      * @see #getAttribute
      */
     public void setAttribute(String attr, Object val)
     {
         if (val == null)
+        {
             attributes.remove(attr);
+        }
         else
+        {
             attributes.put(attr, val);
+        }
 
     }
+
     
-	public static String getShortName(String arg) {
-		if (!File.separator.equals("\\")) {
-			return arg;
-		}
+    public RulesEngine getRules()
+    {
+        return rules;
+    }
 
-		String[] entries = arg.split("\\\\");
-		List<String> path = new ArrayList<String>();
-		Collections.addAll(path, entries);
-		
-		String fullPath = path.remove(0);
-		
-		try {
-			for (String entry : path) {
-				if (entry.length() == 0) {
-					continue;
-				}
-
-				fullPath += "\\";
-				ProcessBuilder pb = new ProcessBuilder("cmd.exe", "/c", "dir", "/a-", "/x", fullPath).redirectErrorStream(true);
-				Process p = pb.start();
-				InputStreamReader isr = new InputStreamReader(p.getInputStream());
-				BufferedReader br = new BufferedReader(isr);
-				String line;
-				Boolean matched = false;
-				while ((line = br.readLine()) != null) {
-					if (!matched && line.endsWith(" " + entry)) {
-						line = line.replace(" " + entry, "").trim();
-						String match = line.replaceAll("^.* ", "");
-						if (match.contains("~")) {
-							fullPath += match;
-							matched = true;
-						}
-					}
-				}
-				br.close();
-				isr.close();
-				p.getInputStream().close();
-				if (!matched) {
-					fullPath += entry;
-				}
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-			return arg;
-		}
-
-		return fullPath;
-	}
-
+    
+    public void setRules(RulesEngine rules)
+    {
+        this.rules = rules;
+    }
 }

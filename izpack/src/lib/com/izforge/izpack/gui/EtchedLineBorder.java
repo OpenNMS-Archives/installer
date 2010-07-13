@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,12 @@
 
 package com.izforge.izpack.gui;
 
-import java.awt.Component;
-import java.awt.Graphics;
-
 import javax.swing.border.EtchedBorder;
+import java.awt.*;
 
 /**
  * Draws an etched line border.
- * 
+ *
  * @author Julien Ponge
  */
 public class EtchedLineBorder extends EtchedBorder
@@ -36,12 +34,12 @@ public class EtchedLineBorder extends EtchedBorder
 
     /**
      * Paints the etched line.
-     * 
-     * @param c The component to draw the border on.
-     * @param g The graphics object.
-     * @param x The top-left x.
-     * @param y The top-left y.
-     * @param width The border width.
+     *
+     * @param c      The component to draw the border on.
+     * @param g      The graphics object.
+     * @param x      The top-left x.
+     * @param y      The top-left y.
+     * @param width  The border width.
      * @param height The border height.
      */
     public void paintBorder(Component c, Graphics g, int x, int y, int width, int height)

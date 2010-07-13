@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2006 Klaus Bartz
  *
@@ -27,14 +27,17 @@ import java.util.ArrayList;
  * Data container for access control lists used by the registry stuff in the java and in the native
  * part. DO NOT CHANGE METHODE SIGNATURES etc. without addapt the native methods
  * RegistryImpl.modifyKeyACL and RegistryImpl.getKeyACL.
- * 
+ *
  * @author Klaus Bartz
- * 
  */
 public class AccessControlList extends java.util.ArrayList
 {
 
-    private ArrayList permissions = new ArrayList();
+    /**
+     * Required (serializable)
+     */
+    private static final long serialVersionUID = -5350586385078554562L;
+    private ArrayList<AccessControlEntry> permissions = new ArrayList<AccessControlEntry>();
 
     /**
      * Default constructor.
@@ -46,10 +49,10 @@ public class AccessControlList extends java.util.ArrayList
 
     /**
      * Creates an ACE entry in the permission array with the given values.
-     * 
-     * @param owner owner of the ACE
+     *
+     * @param owner   owner of the ACE
      * @param allowed access allowed mask
-     * @param denied access denied mask
+     * @param denied  access denied mask
      */
     public void setACE(String owner, int allowed, int denied)
     {
@@ -59,18 +62,18 @@ public class AccessControlList extends java.util.ArrayList
 
     /**
      * Returns the access control entry related to the given id.
-     * 
+     *
      * @param num id in the internal permisson array.
      * @return the access control entry for the given id
      */
     public AccessControlEntry getACE(int num)
     {
-        return ((AccessControlEntry) (((AccessControlEntry) permissions.get(num)).clone()));
+        return ((AccessControlEntry) ((permissions.get(num)).clone()));
     }
 
     /**
      * Returns number of access control entries.
-     * 
+     *
      * @return number of access control entries
      */
     public int getACECount()
@@ -80,9 +83,8 @@ public class AccessControlList extends java.util.ArrayList
 
     /**
      * This class holds a representation of MS Windows ACEs.
-     * 
+     *
      * @author Klaus Bartz
-     * 
      */
     public static class AccessControlEntry implements Cloneable
     {
@@ -103,10 +105,10 @@ public class AccessControlList extends java.util.ArrayList
 
         /**
          * Creates an ACE with the given parameter.
-         * 
-         * @param owner2 owner of the ACE
+         *
+         * @param owner2  owner of the ACE
          * @param allowed access allowed mask
-         * @param denied access denied mask
+         * @param denied  access denied mask
          */
         public AccessControlEntry(String owner2, int allowed, int denied)
         {
@@ -117,7 +119,7 @@ public class AccessControlList extends java.util.ArrayList
 
         /**
          * Returns the owner.
-         * 
+         *
          * @return the owner
          */
         public String getOwner()
@@ -127,7 +129,7 @@ public class AccessControlList extends java.util.ArrayList
 
         /**
          * Sets owner to the given value.
-         * 
+         *
          * @param owner The owner to set.
          */
         public void setOwner(String owner)
@@ -137,7 +139,7 @@ public class AccessControlList extends java.util.ArrayList
 
         /**
          * Returns the accessAllowdMask.
-         * 
+         *
          * @return the accessAllowdMask
          */
         public int getAccessAllowdMask()
@@ -147,7 +149,7 @@ public class AccessControlList extends java.util.ArrayList
 
         /**
          * Sets accessAllowdMask to the given value.
-         * 
+         *
          * @param accessAllowdMask The accessAllowdMask to set.
          */
         public void setAccessAllowdMask(int accessAllowdMask)
@@ -157,7 +159,7 @@ public class AccessControlList extends java.util.ArrayList
 
         /**
          * Returns the accessDeniedMask.
-         * 
+         *
          * @return the accessDeniedMask
          */
         public int getAccessDeniedMask()
@@ -167,7 +169,7 @@ public class AccessControlList extends java.util.ArrayList
 
         /**
          * Sets accessDeniedMask to the given value.
-         * 
+         *
          * @param accessDeniedMask The accessDeniedMask to set.
          */
         public void setAccessDeniedMask(int accessDeniedMask)

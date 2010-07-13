@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2002 Olexij Tkatchenko
  * 
@@ -23,7 +23,7 @@ package com.izforge.izpack.util;
 
 /**
  * Interface for UIs which need to interface to external processes.
- * 
+ *
  * @author tisc
  */
 public interface AbstractUIProcessHandler extends AbstractUIHandler
@@ -31,9 +31,9 @@ public interface AbstractUIProcessHandler extends AbstractUIHandler
 
     /**
      * Log the given message.
-     * 
+     *
      * @param message
-     * @param stderr true if this is a message received from a program via stderr
+     * @param stderr  true if this is a message received from a program via stderr
      */
     public void logOutput(String message, boolean stderr);
 
@@ -41,12 +41,12 @@ public interface AbstractUIProcessHandler extends AbstractUIHandler
 
     /**
      * Notify the user that a process has started.
-     * 
+     *
      * @param name
      */
     public void startProcess(String name);
 
     public void finishProcess();
 
-    public void finishProcessing();
+    public void finishProcessing(boolean unlockPrev, boolean unlockNext);
 }

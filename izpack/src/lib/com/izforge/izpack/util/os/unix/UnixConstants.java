@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  *
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  *
  * Copyright 2005 Marc Eppelmann
  *
@@ -23,16 +23,17 @@ package com.izforge.izpack.util.os.unix;
 
 /**
  * @author marc.eppelmann
- *
  */
 public class UnixConstants
 {
-    /** etcPasswd = "/etc/passwd" */
-    public static String etcPasswd = "/etc/passwd";
-    
-    
     /**
-     * 
+     * etcPasswd = "/etc/passwd"
+     */
+    public static String etcPasswd = "/etc/passwd";
+
+
+    /**
+     *
      */
     public UnixConstants()
     {

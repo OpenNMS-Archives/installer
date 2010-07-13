@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,91 +19,132 @@
 
 package com.izforge.izpack.installer;
 
+import com.izforge.izpack.ExecutableFile;
+
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
-
-import com.izforge.izpack.ExecutableFile;
-import com.izforge.izpack.util.os.unix.UnixUser;
-
 /**
  * Holds uninstallation data. Implemented as a singleton.
- * 
+ *
  * @author Julien Ponge created October 27, 2002
  */
 public class UninstallData
 {
-    /** The uninstall data object. */
+    /**
+     * The uninstall data object.
+     */
     private static UninstallData instance = null;
 
-    /** The files list. */
-    private List filesList;
+    /**
+     * The installed files list.
+     */
+    private List<String> installedFilesList;
 
-    /** The executables list. */
+    /**
+     * The uninstallable files list.
+     */
+    private List uninstallableFilesList;
+
+    /**
+     * The executables list.
+     */
     private List executablesList;
 
-    /** The uninstaller jar filename. */
+    /**
+     * The uninstaller jar filename.
+     */
     private String uninstallerJarFilename;
 
-    /** The uninstaller path. */
+    /**
+     * The uninstaller path.
+     */
     private String uninstallerPath;
 
-    /** Additional uninstall data like uninstaller listener list. */
-    private Map additionalData;
-    
-    /** Filesmap which should removed by the root user for another user */
-    private String rootScript;
+    /**
+     * Additional uninstall data like uninstaller listener list.
+     */
+    private Map<String, Object> additionalData;
 
-    /** The constructor. */
+    /**
+     * Filesmap which should removed by the root user for another user
+     */
+    private ArrayList<String> unInstallScripts;
+
+    /**
+     * The constructor.
+     */
     private UninstallData()
     {
-        filesList = new ArrayList();
+        installedFilesList = new ArrayList<String>();
+        uninstallableFilesList = new ArrayList();
         executablesList = new ArrayList();
-        additionalData = new HashMap();
-        rootScript = new String();
+        additionalData = new HashMap<String, Object>();
+        unInstallScripts = new ArrayList<String>();
     }
-    
-    /** Constant RootFiles = "rootfiles" */
+
+    /**
+     * Constant RootFiles = "rootfiles"
+     */
     public final static String ROOTSCRIPT = "rootscript";
 
     /**
      * Returns the instance (it is a singleton).
-     * 
+     *
      * @return The instance.
      */
     public synchronized static UninstallData getInstance()
     {
-        if (instance == null) instance = new UninstallData();
+        if (instance == null)
+        {
+            instance = new UninstallData();
+        }
         return instance;
     }
 
     /**
      * Adds a file to the data.
-     * 
-     * @param path The file to add.
+     *
+     * @param path      The file to add.
+     * @param uninstall If true, file must be uninstalled.
      */
-    public synchronized void addFile(String path)
+    public synchronized void addFile(String path, boolean uninstall)
     {
-        if(path != null)
-           filesList.add(path);
+        if (path != null)
+        {
+            installedFilesList.add(path);
+            if (uninstall)
+            {
+                uninstallableFilesList.add(path);
+            }
+        }
     }
 
     /**
-     * Returns the files list.
-     * 
-     * @return The files list.
+     * Returns the installed files list.
+     *
+     * @return The installed files list.
      */
-    public List getFilesList()
+    public List<String> getInstalledFilesList()
     {
-        return filesList;
+        return installedFilesList;
+    }
+
+    /**
+     * Returns the uninstallable files list.
+     *
+     * @return The uninstallable files list.
+     */
+    public List getUninstalableFilesList()
+    {
+        return uninstallableFilesList;
     }
 
     /**
      * Adds an executable to the data.
-     * 
+     *
      * @param file The executable file.
      */
     public synchronized void addExecutable(ExecutableFile file)
@@ -113,7 +154,7 @@ public class UninstallData
 
     /**
      * Returns the executables list.
-     * 
+     *
      * @return The executables list.
      */
     public List getExecutablesList()
@@ -123,7 +164,7 @@ public class UninstallData
 
     /**
      * Returns the uninstaller jar filename.
-     * 
+     *
      * @return The uninstaller jar filename.
      */
     public synchronized String getUninstallerJarFilename()
@@ -133,7 +174,7 @@ public class UninstallData
 
     /**
      * Sets the uninstaller jar filename.
-     * 
+     *
      * @param name The uninstaller jar filename.
      */
     public synchronized void setUninstallerJarFilename(String name)
@@ -143,7 +184,7 @@ public class UninstallData
 
     /**
      * Returns the path to the uninstaller.
-     * 
+     *
      * @return The uninstaller filename path.
      */
     public String getUninstallerPath()
@@ -153,7 +194,7 @@ public class UninstallData
 
     /**
      * Sets the uninstaller path.
-     * 
+     *
      * @param path The uninstaller path.
      */
     public void setUninstallerPath(String path)
@@ -163,18 +204,18 @@ public class UninstallData
 
     /**
      * Returns additional uninstall data like uninstaller listener list.
-     * 
+     *
      * @return additional uninstall data
      */
-    public Map getAdditionalData()
+    public Map<String, Object> getAdditionalData()
     {
         return additionalData;
     }
 
     /**
      * Sets additional uninstall data like uninstaller listener list.
-     * 
-     * @param name key for the additional uninstall data
+     *
+     * @param name  key for the additional uninstall data
      * @param value the additional uninstall data
      */
     public void addAdditionalData(String name, Object value)
@@ -184,24 +225,23 @@ public class UninstallData
 
     /**
      * Adds the given File to delete several Shortcuts as Root for the given Users.
-     * 
+     *
      * @param aRootUninstallScript The Script to exec as Root at uninstall.
      */
-    public void addRootUninstallScript( String aRootUninstallScript )
-    {    
-        rootScript = new String( aRootUninstallScript==null?"":aRootUninstallScript );
+    public void addUninstallScript(String aRootUninstallScript)
+    {
+        unInstallScripts.add( aRootUninstallScript == null ? "" : aRootUninstallScript );
     }
-    
+
     /**
      * Returns the root data.
-     * 
+     *
      * @return root data
      */
-    public String getRootScript()
+    public ArrayList<String> getUninstallScripts()
     {
-        return rootScript;
+        return unInstallScripts;
     }
-    
-    
+
 
 }

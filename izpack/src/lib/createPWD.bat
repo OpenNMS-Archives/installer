@@ -20,3 +20,4 @@ goto exit
 echo "Success: jar %1 has been created."
 
 :exit
+

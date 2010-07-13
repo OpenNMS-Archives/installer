@@ -1,9 +1,9 @@
 /*
  * $Id: Packager.java 1671 2007-01-02 10:28:58Z dreil $
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  *
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  *
  * Copyright 2006 Dennis Reil
  *
@@ -28,17 +28,18 @@ import java.io.OutputStream;
 
 /**
  * Helper class for packager classes
+ *
  * @author Dennis Reil, <Dennis.Reil@reddot.de>
  */
 public class PackagerHelper
-{    
+{
     /**
      * Copies all the data from the specified input stream to the specified output stream.
-     * 
-     * @param in the input stream to read
+     *
+     * @param in  the input stream to read
      * @param out the output stream to write
      * @return the total number of bytes copied
-     * @exception IOException if an I/O error occurs
+     * @throws IOException if an I/O error occurs
      */
     public static long copyStream(InputStream in, OutputStream out) throws IOException
     {

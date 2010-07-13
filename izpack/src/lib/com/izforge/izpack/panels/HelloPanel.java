@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2002 Jan Blok
  * 
@@ -21,11 +21,6 @@
 
 package com.izforge.izpack.panels;
 
-import java.awt.LayoutManager2;
-import java.util.ArrayList;
-
-import javax.swing.JLabel;
-
 import com.izforge.izpack.Info;
 import com.izforge.izpack.gui.IzPanelLayout;
 import com.izforge.izpack.gui.LabelFactory;
@@ -34,24 +29,28 @@ import com.izforge.izpack.installer.InstallData;
 import com.izforge.izpack.installer.InstallerFrame;
 import com.izforge.izpack.installer.IzPanel;
 
+import javax.swing.*;
+import java.awt.*;
+import java.util.ArrayList;
+
 /**
  * The Hello panel class.
- * 
+ *
  * @author Julien Ponge
  */
 public class HelloPanel extends IzPanel
 {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 3257848774955905587L;
 
     /**
      * The constructor.
-     * 
+     *
      * @param parent The parent.
-     * @param idata The installation data.
+     * @param idata  The installation data.
      */
     public HelloPanel(InstallerFrame parent, InstallData idata)
     {
@@ -62,9 +61,9 @@ public class HelloPanel extends IzPanel
      * Creates a new HelloPanel object with the given layout manager. Valid layout manager are the
      * IzPanelLayout and the GridBagLayout. New panels should be use the IzPanelLaout. If lm is
      * null, no layout manager will be created or initialized.
-     * 
+     *
      * @param parent The parent IzPack installer frame.
-     * @param idata The installer internal data.
+     * @param idata  The installer internal data.
      * @param layout layout manager to be used with this IzPanel
      */
 
@@ -94,7 +93,7 @@ public class HelloPanel extends IzPanel
         // to create a paragraph gap which is configurable.
         add(IzPanelLayout.createParagraphGap());
 
-        ArrayList authors = idata.info.getAuthors();
+        ArrayList<Info.Author> authors = idata.info.getAuthors();
         int size = authors.size();
         if (size > 0)
         {
@@ -115,7 +114,7 @@ public class HelloPanel extends IzPanel
             JLabel label;
             for (int i = 0; i < size; i++)
             {
-                Info.Author a = (Info.Author) authors.get(i);
+                Info.Author a = authors.get(i);
                 String email = (a.getEmail() != null && a.getEmail().length() > 0) ? (" <"
                         + a.getEmail() + ">") : "";
                 label = LabelFactory.create(" - " + a.getName() + email, parent.icons
@@ -138,7 +137,7 @@ public class HelloPanel extends IzPanel
 
     /**
      * Indicates wether the panel has been validated or not.
-     * 
+     *
      * @return Always true.
      */
     public boolean isValidated()

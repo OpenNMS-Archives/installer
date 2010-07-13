@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2002 Elmar Grom
  * 
@@ -25,9 +25,9 @@ package com.izforge.izpack.util;
 /**
  * Any class that wants to perform cleanup operations and to be notified by <code>Hosekeeper</code>
  * for this purpose must implement this interface.
- * 
- * @version 0.0.1 / 2/9/02
+ *
  * @author Elmar Grom
+ * @version 0.0.1 / 2/9/02
  */
 /*---------------------------------------------------------------------------*/
 public interface CleanupClient

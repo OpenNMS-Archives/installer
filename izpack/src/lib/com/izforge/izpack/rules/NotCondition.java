@@ -1,10 +1,10 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  *
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  *
- * Copyright 2007 Dennis Reil
+ * Copyright 2007-2009 Dennis Reil
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,20 +20,20 @@
  */
 package com.izforge.izpack.rules;
 
-import net.n3.nanoxml.XMLElement;
-
 import com.izforge.izpack.util.Debug;
+import com.izforge.izpack.adaptator.IXMLElement;
 
 /**
- * @author Dennis Reil, <Dennis.Reil@reddot.de>
+ * @author Dennis Reil, <izpack@reil-online.de>
  */
 public class NotCondition extends Condition
 {
 
+    private static final long serialVersionUID = 3194843222487006309L;
     protected Condition operand;
 
     /**
-     * 
+     *
      */
     public NotCondition()
     {
@@ -42,11 +42,14 @@ public class NotCondition extends Condition
     }
 
     /**
-     * 
+     *
      */
     public NotCondition(Condition operand)
     {
         this.operand = operand;
+        if (operand != null){
+            this.operand.setInstalldata(this.installdata);
+        }        
     }
 
     /*
@@ -64,9 +67,10 @@ public class NotCondition extends Condition
     /*
      * (non-Javadoc)
      * 
-     * @see de.reddot.installer.rules.Condition#readFromXML(net.n3.nanoxml.XMLElement)
+     * @see de.reddot.installer.rules.Condition#readFromXML(com.izforge.izpack.adaptator.IXMLElement)
      */
-    public void readFromXML(XMLElement xmlcondition)
+
+    public void readFromXML(IXMLElement xmlcondition)
     {
         try
         {
@@ -90,7 +94,33 @@ public class NotCondition extends Condition
     }
     */
     public boolean isTrue()
-    {        
+    {
+        if ((this.operand == null)){
+            Debug.trace("Operand of condition " + this.id + " not initialized correctly.");
+            return false;
+        }
+        this.operand.setInstalldata(this.installdata);        
         return !operand.isTrue();
+    }
+
+    /* (non-Javadoc)
+     * @see com.izforge.izpack.rules.Condition#getDependenciesDetails()
+     */
+    public String getDependenciesDetails()
+    {
+        StringBuffer details = new StringBuffer();
+        details.append(this.id);
+        details.append(" depends on:<ul><li>NOT ");
+        details.append(operand.getDependenciesDetails());
+        details.append("</li></ul>");
+        return details.toString();
+    }
+
+    @Override
+    public void makeXMLData(IXMLElement conditionRoot)
+    {
+        IXMLElement op = RulesEngine.createConditionElement(this.operand,conditionRoot);
+        this.operand.makeXMLData(op);
+        conditionRoot.addChild(op);                        
     }
 }

@@ -1,6 +1,11 @@
+.DS_Store
 .*.swp
 *.xml
+INSTALL.txt
 install*.xml
 izpack-temp
+launcher.ini
 opennms-build
+opennms-installer
 standalone-*.jar
+standalone-*.zip

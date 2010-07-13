@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  *
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  *
  * Copyright 2006 Marc Eppelmann&#064;reddot.de
  *
@@ -23,24 +23,25 @@ package com.izforge.izpack.util.os.unix;
 import com.izforge.izpack.util.StringTool;
 
 import java.io.File;
-
 import java.util.ArrayList;
 
 /**
  * Unix Users Collection Class and related static Helper Methods
- * 
+ *
  * @author marc.eppelmann&#064;reddot.de
  */
 public class UnixUsers extends ArrayList
 {
 
     // ~ Static fields/initializers *********************************************************
-    
-    /** serialVersionUID = -4804842346742194981L; */
+
+    /**
+     * serialVersionUID = -4804842346742194981L;
+     */
     private static final long serialVersionUID = -4804842346742194981L;
 
     // ~ Constructors ***********************************************************************
-    
+
     /**
      * Creates a new UnixUsers object.
      */
@@ -53,12 +54,12 @@ public class UnixUsers extends ArrayList
     // ~ Methods ****************************************************************************
     /**
      * Gets all known users with valid shells
-     * 
+     *
      * @return an UnixUsers arraylist of these users
      */
-    public ArrayList getUsersWithValidShells()
+    public ArrayList<UnixUser> getUsersWithValidShells()
     {
-        ArrayList result = new ArrayList();
+        ArrayList<UnixUser> result = new ArrayList<UnixUser>();
 
         for (int idx = 0; idx < size(); idx++)
         {
@@ -75,18 +76,18 @@ public class UnixUsers extends ArrayList
 
     /**
      * Gets all known users with valid shells and really existing (not dummy) Homefolders.
-     * 
+     *
      * @return an UnixUsers Arraylist of these users
      */
-    public ArrayList getUsersWithValidShellsAndExistingHomes()
+    public ArrayList<UnixUser> getUsersWithValidShellsAndExistingHomes()
     {
-        ArrayList result = new ArrayList();
+        ArrayList<UnixUser> result = new ArrayList<UnixUser>();
 
-        ArrayList usersWithValidShells = getUsersWithValidShells();
+        ArrayList<UnixUser> usersWithValidShells = getUsersWithValidShells();
 
         for (int idx = 0; idx < usersWithValidShells.size(); idx++)
         {
-            UnixUser user = (UnixUser) usersWithValidShells.get(idx);
+            UnixUser user = usersWithValidShells.get(idx);
 
             if ((user.getHome() != null) && new File(user.getHome().trim()).exists())
             {
@@ -100,21 +101,21 @@ public class UnixUsers extends ArrayList
     /**
      * Gets all known users with valid shells and really existing (not dummy) Home And!
      * freedesktop.org/RFC-based "Desktop" folders.
-     * 
+     *
      * @return an UnixUsers Arraylist of these users
      */
     public ArrayList _getUsersWithValidShellsExistingHomesAndDesktops()
     {
         ArrayList result = new ArrayList();
 
-        ArrayList usersWithValidShellsAndExistingHomes = getUsersWithValidShellsAndExistingHomes();
+        ArrayList<UnixUser> usersWithValidShellsAndExistingHomes = getUsersWithValidShellsAndExistingHomes();
 
         for (int idx = 0; idx < usersWithValidShellsAndExistingHomes.size(); idx++)
         {
-            UnixUser user = (UnixUser) usersWithValidShellsAndExistingHomes.get(idx);
+            UnixUser user = usersWithValidShellsAndExistingHomes.get(idx);
 
             if ((user.getHome() != null)
-                    && new File(user.getHome().trim() + File.separator + "Desktop").exists())
+                    && new File( user.getXdgDesktopfolder() ).exists())
             {
                 result.add(user);
             }
@@ -125,23 +126,22 @@ public class UnixUsers extends ArrayList
 
     /**
      * An StringArray of the existing Desktop folders of all valid users.
-     * 
+     *
      * @return the Stringlist of ValidUsersDesktopFolders
      */
-    public ArrayList getValidUsersDesktopFolders()
+    public ArrayList<String> getValidUsersDesktopFolders()
     {
-        ArrayList result = new ArrayList();
+        ArrayList<String> result = new ArrayList<String>();
 
         ArrayList validUserDesktops = getUsersWithValidShellsExistingHomesAndDesktops();
 
         for (int idx = 0; idx < validUserDesktops.size(); idx++)
         {
             UnixUser user = (UnixUser) validUserDesktops.get(idx);
-            new File(user.getHome().trim() + File.separator + "Desktop");
 
             if (user.getHome() != null)
             {
-                File DesktopFolder = new File(user.getHome().trim() + File.separator + "Desktop");
+                File DesktopFolder = new File( user.getXdgDesktopfolder() );
 
                 if (DesktopFolder.exists() && DesktopFolder.isDirectory())
                 {
@@ -156,7 +156,7 @@ public class UnixUsers extends ArrayList
     /**
      * Gets all known users with valid shells and really existing (not dummy) Home And!
      * freedesktop.org/RFC-based "Desktop" folders.
-     * 
+     *
      * @return an UnixUsers Arraylist of these users
      */
     public static ArrayList getUsersWithValidShellsExistingHomesAndDesktops()
@@ -168,30 +168,30 @@ public class UnixUsers extends ArrayList
 
     /**
      * Builds the internal Array from the given UsersArrayList
-     * 
+     *
      * @param anUsersArrayList an Users ArrayList reded from /etc/passwd
      */
-    private void fromUsersArrayList(ArrayList anUsersArrayList)
+    private void fromUsersArrayList(ArrayList<String> anUsersArrayList)
     {
         for (int idx = 0; idx < anUsersArrayList.size(); idx++)
         {
-            add(new UnixUser().fromEtcPasswdLine((String) anUsersArrayList.get(idx)));
+            add(new UnixUser().fromEtcPasswdLine(anUsersArrayList.get(idx)));
         }
     }
 
     /**
      * Gets all Users from /etc/passwd as StringList
-     * 
+     *
      * @return the UserNames extracted from the getEtcPasswdArray()
      */
-    public static ArrayList getEtcPasswdUsersAsArrayList()
+    public static ArrayList<String> getEtcPasswdUsersAsArrayList()
     {
-        ArrayList result = new ArrayList();
-        ArrayList etcPasswdArray = UnixHelper.getEtcPasswdArray();
+        ArrayList<String> result = new ArrayList<String>();
+        ArrayList<String> etcPasswdArray = UnixHelper.getEtcPasswdArray();
 
         for (int idx = 0; idx < etcPasswdArray.size(); idx++)
         {
-            String line = (String) etcPasswdArray.get(idx);
+            String line = etcPasswdArray.get(idx);
             result.add(line);
         }
 
@@ -200,28 +200,28 @@ public class UnixUsers extends ArrayList
 
     /**
      * Gets all Users from /etc/passwd as StringList
-     * 
+     *
      * @return the UserNames extracted from the getEtcPasswdArray()
      */
-    public static ArrayList getYpPasswdUsersAsArrayList()
+    public static ArrayList<String> getYpPasswdUsersAsArrayList()
     {
         return UnixHelper.getYpPasswdArray();
     }
 
     /**
      * Returns all Users as ColonSeparated String
-     * 
+     *
      * @return "asterisk:at:avahi:beagleindex:bin:daemon:dhcpd:ftp:games:gdm:haldaemon:icecream:irc:ldap:lp:mail:mailman:man:...."
      */
     public static String getUsersColonString()
     {
-        ArrayList usersArrayList = getEtcPasswdUsersAsArrayList();
+        ArrayList<String> usersArrayList = getEtcPasswdUsersAsArrayList();
 
         String retValue = "";
 
         for (int user = 0; user < usersArrayList.size(); user++)
         {
-            String userline = (String) usersArrayList.get(user);
+            String userline = usersArrayList.get(user);
             retValue += (userline.substring(0, userline.indexOf(":")) + ":");
         }
 
@@ -235,7 +235,7 @@ public class UnixUsers extends ArrayList
 
     /**
      * Test main Method
-     * 
+     *
      * @param args from Commandline
      */
     public static void main(String[] args)

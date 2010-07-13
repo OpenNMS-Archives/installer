@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2002 Jan Blok
  * 
@@ -21,30 +21,16 @@
 
 package com.izforge.izpack.util;
 
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Toolkit;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.io.PrintStream;
-import java.io.PrintWriter;
-
-import javax.swing.JFrame;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 import javax.swing.text.Segment;
+import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.io.*;
+import java.util.Vector;
 
 public final class Console
 {
@@ -357,7 +343,7 @@ class ConsoleTextArea extends JTextArea implements KeyListener, DocumentListener
 {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 3258410625414475827L;
 
@@ -371,7 +357,7 @@ class ConsoleTextArea extends JTextArea implements KeyListener, DocumentListener
 
     private PipedInputStream in;
 
-    private java.util.Vector history;
+    private Vector<String> history;
 
     private int historyIndex = -1;
 
@@ -386,7 +372,7 @@ class ConsoleTextArea extends JTextArea implements KeyListener, DocumentListener
     public ConsoleTextArea()
     {
         super();
-        history = new java.util.Vector();
+        history = new java.util.Vector<String>();
         console1 = new ConsoleWriter(this);
         ConsoleWriter console2 = new ConsoleWriter(this);
         out = new PrintStream(console1);
@@ -497,7 +483,7 @@ class ConsoleTextArea extends JTextArea implements KeyListener, DocumentListener
                 }
                 if (historyIndex >= 0)
                 {
-                    String str = (String) history.elementAt(historyIndex);
+                    String str = history.elementAt(historyIndex);
                     int len = getDocument().getLength();
                     replaceRange(str, outputMark, len);
                     int caretPos = outputMark + str.length();
@@ -527,7 +513,7 @@ class ConsoleTextArea extends JTextArea implements KeyListener, DocumentListener
                 int len = getDocument().getLength();
                 if (historyIndex < history.size())
                 {
-                    String str = (String) history.elementAt(historyIndex);
+                    String str = history.elementAt(historyIndex);
                     replaceRange(str, outputMark, len);
                     caretPos = outputMark + str.length();
                 }

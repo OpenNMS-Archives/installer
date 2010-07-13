@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  *
  * Copyright 2003 Jonathan Halliday
  * 
@@ -21,18 +21,18 @@
 
 package com.izforge.izpack.installer;
 
-import net.n3.nanoxml.XMLElement;
+import com.izforge.izpack.adaptator.IXMLElement;
 
 /**
  * Defines the Interface that must be implemented for running Panels in automated (or "silent",
  * "headless") install mode.
- * 
+ * <p/>
  * Implementing classes MUST NOT link against awt/swing classes. Thus the Panels cannot implement
  * this interface directly, they should use e.g. helper classes instead.
- * 
- * @see AutomatedInstaller
+ *
  * @author Jonathan Halliday
  * @author Julien Ponge
+ * @see AutomatedInstaller
  */
 public interface PanelAutomation
 {
@@ -40,20 +40,19 @@ public interface PanelAutomation
     /**
      * Asks the panel to set its own XML data that can be brought back for an automated installation
      * process. Use it as a blackbox if your panel needs to do something even in automated mode.
-     * 
+     *
      * @param installData The installation data
-     * @param panelRoot The XML root element of the panels blackbox tree.
+     * @param panelRoot   The XML root element of the panels blackbox tree.
      */
-    public void makeXMLData(AutomatedInstallData installData, XMLElement panelRoot);
+    public void makeXMLData(AutomatedInstallData installData, IXMLElement panelRoot);
 
     /**
      * Makes the panel work in automated mode. Default is to do nothing, but any panel doing
      * something 'effective' during the installation process should implement this method.
-     * 
+     *
      * @param installData The installation data
-     * @param panelRoot The XML root element of the panels blackbox tree.
-     * 
-     * @return true if the automated work was performed successful, false if it failed critically.
+     * @param panelRoot   The XML root element of the panels blackbox tree.
+     * @throws InstallerException if the automated work  failed critically.
      */
-    public boolean runAutomated(AutomatedInstallData installData, XMLElement panelRoot);
+    public void runAutomated(AutomatedInstallData installData, IXMLElement panelRoot) throws InstallerException;
 }

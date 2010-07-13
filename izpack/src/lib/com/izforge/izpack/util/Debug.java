@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  *
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  *
  * Copyright 2002 Jan Blok
  *
@@ -29,8 +29,6 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.Properties;
 
-import com.izforge.izpack.installer.Installer;
-
 /**
  * This class is for debug purposes. It is highly recommended to use it on critical or experimental
  * code places. To enable the debug mode of IzPack, just start the installer with the java parameter
@@ -38,7 +36,7 @@ import com.izforge.izpack.installer.Installer;
  * objects. <br>
  * How to use it as IzPack Setup Developer: <br>
  * Just import this class and use one of the methods:
- * 
+ * <p/>
  * <dl>
  * <dt> Debug.trace( aCriticalObject ) </dt>
  * <dd> - to print the status on console </dd>
@@ -49,10 +47,9 @@ import com.izforge.izpack.installer.Installer;
  * <dd> if -DLOG is given the output will be written in the File see #LOGFILENAME in the users Home
  * directory. </dd>
  * </dl>
- * 
- * 
+ *
  * @author Julien Ponge, Klaus Bartz, Marc Eppelmann
- * @version $Revision: 1816 $ ($Id: Debug.java 1816 2007-04-23 19:57:27Z jponge $)
+ * @version $Revision: 2909 $ ($Id: Debug.java 2909 2009-12-07 10:25:02Z jponge $)
  */
 public class Debug
 {
@@ -77,40 +74,64 @@ public class Debug
      */
     public static final String DTRACE = "TRACE";
 
-    /** System.Property Key: IZPACK_LOGFILE = "izpack.logfile" */
+    /**
+     * System.Property Key: IZPACK_LOGFILE = "izpack.logfile"
+     */
     public static final String IZPACK_LOGFILE = "izpack.logfile";
 
-    /** LOG_WITHOUT_DATE = 0 */
+    /**
+     * LOG_WITHOUT_DATE = 0
+     */
     public static final int LOG_WITHOUT_DATE = 0;
 
-    /** LOG_WITH_DATE = 1 */
+    /**
+     * LOG_WITH_DATE = 1
+     */
     public static final int LOG_WITH_DATE = 1;
 
-    /** LOG_WITH_TIME_STAMP = 2 */
+    /**
+     * LOG_WITH_TIME_STAMP = 2
+     */
     public static final int LOG_WITH_TIME_STAMP = 2;
 
-    /** LOG_WITH_TIME_AND_DATE= LOG_WITH_DATE | LOG_WITH_TIME_STAMP = 3 */
+    /**
+     * LOG_WITH_TIME_AND_DATE= LOG_WITH_DATE | LOG_WITH_TIME_STAMP = 3
+     */
     public static final int LOG_WITH_TIME_AND_DATE = LOG_WITH_DATE | LOG_WITH_TIME_STAMP;
 
-    /** internally initial unintialized TRACE-flag */
+    /**
+     * internally initial unintialized TRACE-flag
+     */
     private static boolean TRACE;
 
-    /** internal initial unintialized STACKTRACE-flag */
+    /**
+     * internal initial unintialized STACKTRACE-flag
+     */
     private static boolean STACKTRACE;
 
-    /** internal initial unintialized LOG-flag */
+    /**
+     * internal initial unintialized LOG-flag
+     */
     private static boolean LOG;
 
-    /** LOGFILE_PREFIX = "IzPack_Logfile_at_" */
+    /**
+     * LOGFILE_PREFIX = "IzPack_Logfile_at_"
+     */
     public static String LOGFILE_PREFIX = "IzPack_Logfile_at_";
 
-    /** LOGFILE_EXTENSION = ".txt" */
+    /**
+     * LOGFILE_EXTENSION = ".txt"
+     */
     public static String LOGFILE_EXTENSION = ".txt";
 
-    /** LOGFILENAME = LOGFILE_PREFIX + System.currentTimeMillis() + LOGFILE_EXTENSION */
+    /**
+     * LOGFILENAME = LOGFILE_PREFIX + System.currentTimeMillis() + LOGFILE_EXTENSION
+     */
     public static String LOGFILENAME = LOGFILE_PREFIX + System.currentTimeMillis()
             + LOGFILE_EXTENSION;
 
+    public static boolean LOG_TRACE_STATEMENTS = false;
+    
     /**
      * The log initializion bloc.
      */
@@ -167,7 +188,7 @@ public class Debug
             System.out.println(DLOG + " enabled.");
             PrintWriter logfile = createLogFile();
 
-            Debug.log(Installer.class.getName() + " LogFile created at ");
+            Debug.log("IzPack LogFile created at ");
 
             // ** write some runtime system properties into the logfile **
             Debug.log("System.Properties:", LOG_WITH_TIME_STAMP);
@@ -182,7 +203,7 @@ public class Debug
                 Debug.log(aKey + "  =  " + sysProps.getProperty(aKey), LOG_WITHOUT_DATE);
             }
             Debug.log("\n==========================================\n", LOG_WITHOUT_DATE);
-            Debug.log("\n " + Installer.class.getName() + " installs on: \n", LOG_WITHOUT_DATE);
+            Debug.log("\n IzPack runs on: \n", LOG_WITHOUT_DATE);
             Debug.log(OsVersion.getOsDetails(), LOG_WITHOUT_DATE);
             Debug.log("\n==========================================\n", LOG_WITHOUT_DATE);
         }
@@ -202,7 +223,7 @@ public class Debug
 
     /**
      * Traces the internal status of the given Object
-     * 
+     *
      * @param s
      */
     public static void trace(Object s)
@@ -210,6 +231,9 @@ public class Debug
         if (TRACE)
         {
             // console.println(s.toString());
+            if (LOG_TRACE_STATEMENTS){
+                log(s);
+            }
             System.out.println(s);
 
             if (STACKTRACE && (s instanceof Throwable))
@@ -227,7 +251,7 @@ public class Debug
 
     /**
      * Traces the given object and additional write their status in the LOGFILE.
-     * 
+     *
      * @param s
      */
     public static void error(Object s)
@@ -241,7 +265,7 @@ public class Debug
     /**
      * Logs the given Object in the created Logfile if -DLOG=true was given on commandline i.e: java
      * -DLOG=true -jar izpack-installer.jar
-     * 
+     *
      * @param o The Object to log, can be also an exception.
      */
     public static void log(Object o)
@@ -252,8 +276,8 @@ public class Debug
     /**
      * Logs the given Object in the created Logfile if -DLOG=true was given on commandline i.e: java
      * -DLOG=true -jar izpack-installer.jar
-     * 
-     * @param o The Object to log
+     *
+     * @param o              The Object to log
      * @param withWhatFormat if the given MASK is greater than 0, Log with Date/Timestamp
      */
     public static void log(Object o, int withWhatFormat)
@@ -311,7 +335,7 @@ public class Debug
 
     /**
      * Indicates that to log with Date.
-     * 
+     *
      * @param withWhatFormat The whished Format
      * @return true if to log with Date
      */
@@ -323,7 +347,7 @@ public class Debug
 
     /**
      * Indicates that to log with Timestamp.
-     * 
+     *
      * @param withWhatFormat The whished Format
      * @return true if to log with Timestamp
      */
@@ -335,7 +359,7 @@ public class Debug
 
     /**
      * Creates the logfile to write log-infos into.
-     * 
+     *
      * @return The writer object instance
      */
     private static PrintWriter createLogFile()
@@ -385,7 +409,7 @@ public class Debug
 
     /**
      * Indicates if debug is tracing
-     * 
+     *
      * @return true if tracing otherwise false
      */
     public static boolean tracing()
@@ -395,7 +419,7 @@ public class Debug
 
     /**
      * Indicates if debug is stacktracing
-     * 
+     *
      * @return true if stacktracing otherwise false
      */
     public static boolean stackTracing()
@@ -405,7 +429,7 @@ public class Debug
 
     /**
      * Returns the LOG flag.
-     * 
+     *
      * @return Returns the LOG flag.
      */
     public static boolean isLOG()
@@ -415,7 +439,7 @@ public class Debug
 
     /**
      * Sets The LOG like the given value
-     * 
+     *
      * @param aFlag The LOG status to set to or not.
      */
     public static void setLOG(boolean aFlag)
@@ -426,7 +450,7 @@ public class Debug
 
     /**
      * Returns the current STACKTRACE flag
-     * 
+     *
      * @return Returns the STACKTRACE.
      */
     public static boolean isSTACKTRACE()
@@ -436,7 +460,7 @@ public class Debug
 
     /**
      * Sets the STACKTRACE like the given value
-     * 
+     *
      * @param aFlag The STACKTRACE to set / unset.
      */
     public static void setSTACKTRACE(boolean aFlag)
@@ -447,7 +471,7 @@ public class Debug
 
     /**
      * Gets the current TRACE flag
-     * 
+     *
      * @return Returns the TRACE.
      */
     public static boolean isTRACE()
@@ -457,7 +481,7 @@ public class Debug
 
     /**
      * Sets the TRACE flag like the given value
-     * 
+     *
      * @param aFlag The TRACE to set / unset.
      */
     public static void setTRACE(boolean aFlag)
@@ -468,7 +492,7 @@ public class Debug
 
     /**
      * Get the Logfile
-     * 
+     *
      * @return Returns the logFile.
      */
     public static PrintWriter getLogFile()
@@ -480,7 +504,7 @@ public class Debug
 
     /**
      * Sets the Logfile
-     * 
+     *
      * @param aLogFile The logFile to set. *
      * @return The logfile to write into
      */

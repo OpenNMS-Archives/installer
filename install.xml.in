@@ -24,9 +24,11 @@
 	
 	<resources>
 		<res id="userInputSpec.xml" src="userInputSpec.xml" />
+		<res id="userInputLang.xml_eng" src="userInputLang.xml_eng" />
 		<res id="ProcessPanel.Spec.xml" src="ProcessPanel.Spec.xml" />
-		<res id="LicencePanel.licence" src="LICENSE"/>
-		<!-- <res id="InfoPanel.info" src="Readme.txt"/> -->
+		<res id="LicencePanel.licence" src="LICENSE" />
+		<res id="HTMLInfoPanel.readme" src="README.html" />
+		<res id="logo" src="logo.png" />
 	</resources>
 
 	<!-- 
@@ -34,25 +36,28 @@
 		We indicate here which panels we want to use. The order will be respected.
 	-->
 	<panels>
-		<panel classname="HelloPanel" />
-		<!-- <panel classname="InfoPanel" /> -->
+		<panel classname="HTMLInfoPanel" id="readme" />
 		<panel classname="LicencePanel" />
-		<panel classname="OpenNMSJDKPathPanel" />
+		<panel classname="JDKPathPanel" />
 		<panel classname="TargetPanel" /> 
 		<panel classname="UserInputPanel" />
 		<panel classname="UserInputPanel" />
 		<panel classname="PacksPanel" />
 		<panel classname="InstallPanel" />
 		<panel classname="ProcessPanel" />
-		<panel classname="FinishPanel" />
+		<panel classname="SimpleFinishPanel" />
 	</panels>
 
-	<!--
 	<variables>
+		<variable name="showInfoLabelFlag" value="no" />
 		<variable name="JDKPathPanel.minVersion" value="1.5.0" />
 		<variable name="JDKPathPanel.skipIfValid" value="yes" />
 	</variables>
-	-->
+
+	<condition type="variable" id="is32bit">
+		<name>SYSTEM_sun_arch_data_model</name>
+		<value>32</value>
+	</condition>
 
 	<!-- 
 		The packs section.
@@ -80,7 +85,9 @@
 			<singlefile src="bin/opennms.bat" target="$UNIFIED_INSTALL_PATH/bin/opennms.bat" os="windows" />
 			<singlefile src="etc/java.conf.win" target="$UNIFIED_INSTALL_PATH/etc/java.conf" os="windows" />
 			<singlefile src="etc/java.conf.unix" target="$UNIFIED_INSTALL_PATH/etc/java.conf" os="unix" />
-			<singlefile src="lib/jicmp.dll" target="$UNIFIED_INSTALL_PATH/lib/jicmp.dll" os="windows" />
+			<singlefile src="lib/jicmp.dll" target="$UNIFIED_INSTALL_PATH/lib/jicmp.dll" os="windows" condition="is32bit" />
+			<singlefile src="lib/jicmp-win64.dll" target="$UNIFIED_INSTALL_PATH/lib/jicmp.dll" os="windows" condition="!is32bit" />
+			<singlefile src="lib/msvcr90-win64.dll" target="$UNIFIED_INSTALL_PATH/lib/msvcr90.dll" os="windows" condition="!is32bit" />
 			<singlefile src="lib/libjicmp.jnilib" target="$UNIFIED_INSTALL_PATH/lib/libjicmp.jnilib" os="mac" />
 			<parsable targetfile="$UNIFIED_INSTALL_PATH/bin/install.bat" os="windows" />
 			<parsable targetfile="$UNIFIED_INSTALL_PATH/bin/opennms.bat" os="windows" />

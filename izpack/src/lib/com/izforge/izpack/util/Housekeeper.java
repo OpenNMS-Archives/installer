@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2002 Elmar Grom
  * 
@@ -33,9 +33,9 @@ import java.util.Vector;
  * on operations like <code>deleteOnExit()</code> shutdown hooks or <code>finalize()</code>for
  * cleanup. Because <code>shutDown()</code> uses <code>System.exit()</code> to terminate, these
  * methods will not work at all or will not work reliably.
- * 
- * @version 0.0.1 / 2/9/02
+ *
  * @author Elmar Grom
+ * @version 0.0.1 / 2/9/02
  */
 /*---------------------------------------------------------------------------*/
 public class Housekeeper
@@ -46,7 +46,7 @@ public class Housekeeper
     // ------------------------------------------------------------------------
     private static Housekeeper me = null;
 
-    private Vector cleanupClients = new Vector();
+    private Vector<CleanupClient> cleanupClients = new Vector<CleanupClient>();
 
     /*--------------------------------------------------------------------------*/
     /**
@@ -65,7 +65,7 @@ public class Housekeeper
     /*--------------------------------------------------------------------------*/
     /**
      * Returns an instance of <code>Housekeeper</code> to use.
-     * 
+     *
      * @return an instance of <code>Housekeeper</code>.
      */
     /*--------------------------------------------------------------------------*/
@@ -83,13 +83,23 @@ public class Housekeeper
     /**
      * Use to register objects that need to perform cleanup operations before the application shuts
      * down.
-     * 
+     *
      * @param client reference of to an object that needs to perform cleanup operations.
      */
     /*--------------------------------------------------------------------------*/
     public void registerForCleanup(CleanupClient client)
     {
-        cleanupClients.add(client);
+        // IZPACK-276:
+        // if the client is an instance of Librarian hold it at a special place to call it at the
+        // very last time
+        if (client instanceof Librarian)
+        {
+            cleanupClients.add(0, client);
+        }
+        else
+        {
+            cleanupClients.add(client);
+        }
     }
 
     /*--------------------------------------------------------------------------*/
@@ -99,17 +109,19 @@ public class Housekeeper
      * terminated. <br>
      * <br>
      * <b>THIS METHOD DOES NOT RETURN!</b>
-     * 
+     *
      * @param exitCode the exit code that should be returned to the calling process.
      */
     /*--------------------------------------------------------------------------*/
     public void shutDown(int exitCode)
     {
-        for (int i = 0; i < cleanupClients.size(); i++)
+        // IZPACK-276
+		// Do the cleanup of the last registered client at the fist time (first in last out)
+        for (int i = cleanupClients.size() - 1; i >= 0; i--)
         {
             try
             {
-                ((CleanupClient) cleanupClients.elementAt(i)).cleanUp();
+                (cleanupClients.elementAt(i)).cleanUp();
             }
             catch (Throwable exception)
             {

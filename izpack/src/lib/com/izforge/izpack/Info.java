@@ -1,9 +1,9 @@
 /*
- * $Id: Info.java 1816 2007-04-23 19:57:27Z jponge $
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * $Id: Info.java 2824 2009-07-16 11:39:50Z jponge $
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import java.util.ArrayList;
 
 /**
  * Contains some informations for an installer, as defined in the <info> section of the XML files.
- * 
+ *
  * @author Julien Ponge
  */
 public class Info implements Serializable
@@ -33,49 +33,123 @@ public class Info implements Serializable
 
     static final long serialVersionUID = 13288410782044775L;
 
-    /** The application name and version */
+    /**
+     * The application name and version
+     */
     private String appName = "";
     private String appVersion = "";
 
-    /** The installation subpath */
+    /**
+     * The installation subpath
+     */
     private String installationSubPath = null;
 
-    /** The application authors */
-    private ArrayList authors = new ArrayList();
+    /**
+     * The application authors
+     */
+    private ArrayList<Author> authors = new ArrayList<Author>();
 
-    /** The application URL */
+    /**
+     * The application URL
+     */
     private String appURL = null;
 
-    /** The required Java version (min) */
-    private String javaVersion = "1.2";
+    /**
+     * The required Java version (min)
+     */
+    private String javaVersion = "1.4";
 
-    /** The name of the installer file (name without jar suffix) */
+    /**
+     * Is a JDK required?
+     */
+    private boolean jdkRequired = false;
+
+    /**
+     * The name of the installer file (name without jar suffix)
+     */
     private String installerBase = null;
 
-    /** The application Web Directory URL */
+    /**
+     * The application Web Directory URL
+     */
     private String webDirURL = null;
 
-    /** The uninstaller name */
+    /**
+     * The uninstaller name
+     */
     private String uninstallerName = "uninstaller.jar";
+    /**
+     * The uninstaller path
+     */
+    private String uninstallerPath = "$INSTALL_PATH/Uninstaller";
+    /**
+     * condition for writing the uninstaller
+     */
+    private String uninstallerCondition = null;
 
-    /** The path of the summary log file */
+    /**
+     * The path of the summary log file
+     */
     private String summaryLogFilePath = "$INSTALL_PATH/Uninstaller/InstallSummary.htm";
 
-    /** The full qualified name of the class which should be
-     *  used for decoding the packs.
+    /**
+     * The full qualified name of the class which should be
+     * used for decoding the packs.
      */
     private String packDecoderClassName = null;
-    
+
     private String unpackerClassName = null;
+
+    private boolean writeInstallationInformation = true;
+
+    private boolean pack200Compression;
+
+    private boolean requirePrivilegedExecution = false;
+
+    private boolean requirePrivilegedExecutionUninstaller = false;
+
+    private String privilegedExecutionConditionID = null;
+
+    public boolean isPrivilegedExecutionRequired()
+    {
+        return requirePrivilegedExecution;
+    }
+
+    public void setRequirePrivilegedExecution(boolean requirePrivilegedExecution)
+    {
+        this.requirePrivilegedExecution = requirePrivilegedExecution;
+    }
     
-    /** The constructor, deliberatly void. */
+    public boolean isPrivilegedExecutionRequiredUninstaller()
+    {
+        return requirePrivilegedExecutionUninstaller;
+    }
+    
+    public void setRequirePrivilegedExecutionUninstaller(boolean required)
+    {
+        this.requirePrivilegedExecutionUninstaller = required;
+    }
+
+    public String getPrivilegedExecutionConditionID()
+    {
+        return privilegedExecutionConditionID;
+    }
+
+    public void setPrivilegedExecutionConditionID(String privilegedExecutionConditionID)
+    {
+        this.privilegedExecutionConditionID = privilegedExecutionConditionID;
+    }
+
+    /**
+     * The constructor, deliberatly void.
+     */
     public Info()
     {
     }
 
     /**
      * Sets the application name.
-     * 
+     *
      * @param appName The new application name.
      */
     public void setAppName(String appName)
@@ -85,7 +159,7 @@ public class Info implements Serializable
 
     /**
      * Gets the application name.
-     * 
+     *
      * @return The application name.
      */
     public String getAppName()
@@ -95,7 +169,7 @@ public class Info implements Serializable
 
     /**
      * Sets the version.
-     * 
+     *
      * @param appVersion The application version.
      */
     public void setAppVersion(String appVersion)
@@ -105,7 +179,7 @@ public class Info implements Serializable
 
     /**
      * Gets the version.
-     * 
+     *
      * @return The application version.
      */
     public String getAppVersion()
@@ -115,7 +189,7 @@ public class Info implements Serializable
 
     /**
      * Adds an author to the authors list.
-     * 
+     *
      * @param author The author to add.
      */
     public void addAuthor(Author author)
@@ -125,17 +199,17 @@ public class Info implements Serializable
 
     /**
      * Gets the authors list.
-     * 
+     *
      * @return The authors list.
      */
-    public ArrayList getAuthors()
+    public ArrayList<Author> getAuthors()
     {
         return authors;
     }
 
     /**
      * Sets the application URL.
-     * 
+     *
      * @param appURL The application URL.
      */
     public void setAppURL(String appURL)
@@ -145,7 +219,7 @@ public class Info implements Serializable
 
     /**
      * Gets the application URL.
-     * 
+     *
      * @return The application URL.
      */
     public String getAppURL()
@@ -155,7 +229,7 @@ public class Info implements Serializable
 
     /**
      * Sets the minimum Java version required.
-     * 
+     *
      * @param javaVersion The Java version.
      */
     public void setJavaVersion(String javaVersion)
@@ -165,7 +239,7 @@ public class Info implements Serializable
 
     /**
      * Gets the Java version required.
-     * 
+     *
      * @return The Java version.
      */
     public String getJavaVersion()
@@ -175,7 +249,7 @@ public class Info implements Serializable
 
     /**
      * Sets the installer name.
-     * 
+     *
      * @param installerBase The new installer name.
      */
     public void setInstallerBase(String installerBase)
@@ -185,7 +259,7 @@ public class Info implements Serializable
 
     /**
      * Gets the installer name.
-     * 
+     *
      * @return The name of the installer file, without the jar suffix.
      */
     public String getInstallerBase()
@@ -195,7 +269,7 @@ public class Info implements Serializable
 
     /**
      * Sets the webDir URL.
-     * 
+     *
      * @param url The application URL.
      */
     public void setWebDirURL(String url)
@@ -205,9 +279,9 @@ public class Info implements Serializable
 
     /**
      * Gets the webDir URL if it has been specified
-     * 
+     *
      * @return The webDir URL from which the installer is retrieved, or <tt>null</tt> if non has
-     * been set.
+     *         been set.
      */
     public String getWebDirURL()
     {
@@ -216,7 +290,7 @@ public class Info implements Serializable
 
     /**
      * Sets the name of the uninstaller.
-     * 
+     *
      * @param name the name of the uninstaller.
      */
     public void setUninstallerName(String name)
@@ -226,7 +300,7 @@ public class Info implements Serializable
 
     /**
      * Returns the name of the uninstaller.
-     * 
+     *
      * @return the name of the uninstaller.
      */
     public String getUninstallerName()
@@ -235,8 +309,46 @@ public class Info implements Serializable
     }
 
     /**
-     * This class represents an author.
+     * Sets the path to the uninstaller
      * 
+     * @param path the path to the uninstaller
+     */
+    public void setUninstallerPath(String path) {
+      this.uninstallerPath = path;
+    }
+
+    /**
+     * Returns the path to the uninstaller
+     * 
+     * @return the path to the uninstaller
+     */
+    public String getUninstallerPath() {
+      return this.uninstallerPath;
+    }
+    
+    public boolean isJdkRequired()
+    {
+        return jdkRequired;
+    }
+
+    public void setJdkRequired(boolean jdkRequired)
+    {
+        this.jdkRequired = jdkRequired;
+    }
+
+    public void setPack200Compression(boolean pack200Support)
+    {
+        this.pack200Compression = pack200Support;
+    }
+
+    public boolean isPack200Compression()
+    {
+        return pack200Compression;
+    }
+
+    /**
+     * This class represents an author.
+     *
      * @author Julien Ponge
      */
     public static class Author implements Serializable
@@ -244,15 +356,19 @@ public class Info implements Serializable
 
         static final long serialVersionUID = -3090178155004960243L;
 
-        /** The author name */
+        /**
+         * The author name
+         */
         private String name;
 
-        /** The author email */
+        /**
+         * The author email
+         */
         private String email;
 
         /**
          * Gets the author name.
-         * 
+         *
          * @return The author name.
          */
         public String getName()
@@ -262,7 +378,7 @@ public class Info implements Serializable
 
         /**
          * Gets the author email.
-         * 
+         *
          * @return The author email.
          */
         public String getEmail()
@@ -272,8 +388,8 @@ public class Info implements Serializable
 
         /**
          * The constructor.
-         * 
-         * @param name The author name.
+         *
+         * @param name  The author name.
          * @param email The author email.
          */
         public Author(String name, String email)
@@ -284,7 +400,7 @@ public class Info implements Serializable
 
         /**
          * Gets a String representation of the author.
-         * 
+         *
          * @return The String representation of the author, in the form : name <email> .
          */
         public String toString()
@@ -296,7 +412,7 @@ public class Info implements Serializable
 
     /**
      * Gets the installation subpath.
-     * 
+     *
      * @return the installation subpath
      */
     public String getInstallationSubPath()
@@ -306,7 +422,7 @@ public class Info implements Serializable
 
     /**
      * Sets the installation subpath.
-     * 
+     *
      * @param string subpath to be set
      */
     public void setInstallationSubPath(String string)
@@ -316,7 +432,7 @@ public class Info implements Serializable
 
     /**
      * Returns the summary log file path.
-     * 
+     *
      * @return the summary log file path
      */
     public String getSummaryLogFilePath()
@@ -326,25 +442,29 @@ public class Info implements Serializable
 
     /**
      * Sets the summary log file path.
-     * 
+     *
      * @param summaryLogFilePath the summary log file path to set
      */
     public void setSummaryLogFilePath(String summaryLogFilePath)
     {
         this.summaryLogFilePath = summaryLogFilePath;
     }
+
     /**
      * Returns the full qualified class name of the class which
      * should be used for decoding the packs.
+     *
      * @return Returns the packDecoderClassName.
      */
     public String getPackDecoderClassName()
     {
         return packDecoderClassName;
     }
+
     /**
      * Sets the full qualified class name of the class which
      * should be used for decoding the packs.
+     *
      * @param packDecoderClassName The packDecoderClassName to set.
      */
     public void setPackDecoderClassName(String packDecoderClassName)
@@ -352,15 +472,39 @@ public class Info implements Serializable
         this.packDecoderClassName = packDecoderClassName;
     }
 
-    
+
     public String getUnpackerClassName()
     {
         return unpackerClassName;
     }
 
-    
+
     public void setUnpackerClassName(String unpackerClassName)
     {
         this.unpackerClassName = unpackerClassName;
+    }
+
+
+    public boolean isWriteInstallationInformation()
+    {
+        return writeInstallationInformation;
+    }
+
+
+    public void setWriteInstallationInformation(boolean writeInstallationInformation)
+    {
+        this.writeInstallationInformation = writeInstallationInformation;
+    }
+
+
+    public String getUninstallerCondition()
+    {
+        return uninstallerCondition;
+    }
+
+
+    public void setUninstallerCondition(String uninstallerCondition)
+    {
+        this.uninstallerCondition = uninstallerCondition;
     }
 }

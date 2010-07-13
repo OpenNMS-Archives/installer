@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2004 Klaus Bartz
  * 
@@ -30,15 +30,14 @@ import com.izforge.izpack.util.ExtendedUIProgressHandler;
  * Installer listener for reset the progress bar and initialize the simple installer listener to
  * support progress bar interaction. To support progress bar interaction add this installer listener
  * as first listener.
- * 
+ *
  * @author Klaus Bartz
- * 
  */
 public class ProgressBarInstallerListener extends SimpleInstallerListener
 {
 
     /**
-     * 
+     *
      */
     public ProgressBarInstallerListener()
     {

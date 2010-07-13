@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2004 Klaus Bartz
  * 
@@ -21,24 +21,20 @@
 
 package com.izforge.izpack.event;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
-
 import com.izforge.izpack.installer.AutomatedInstallData;
 import com.izforge.izpack.util.AbstractUIProgressHandler;
-import com.izforge.izpack.util.Debug;
 import com.izforge.izpack.util.IoHelper;
 import com.izforge.izpack.util.SummaryProcessor;
 import com.izforge.izpack.util.VariableSubstitutor;
 
+import java.io.File;
+import java.io.FileOutputStream;
+
 /**
  * Installer listener which writes the summary of all panels into the logfile which is defined by
  * info.summarylogfilepath. Default is $INSTALL_PATH/Uninstaller/InstallSummary.htm
- * 
+ *
  * @author Klaus Bartz
- * 
  */
 public class SummaryLoggerInstallerListener extends SimpleInstallerListener
 {
@@ -60,12 +56,21 @@ public class SummaryLoggerInstallerListener extends SimpleInstallerListener
     public void afterPacks(AutomatedInstallData idata, AbstractUIProgressHandler handler)
             throws Exception
     {
-        if (!getInstalldata().installSuccess) return;
+        if (!getInstalldata().installSuccess)
+        {
+            return;
+        }
         // No logfile at automated installation because panels are not
         // involved.
-        if (getInstalldata().panels == null || getInstalldata().panels.size() < 1) return;
+        if (getInstalldata().panels == null || getInstalldata().panels.size() < 1)
+        {
+            return;
+        }
         String path = getInstalldata().info.getSummaryLogFilePath();
-        if (path == null) return;
+        if (path == null)
+        {
+            return;
+        }
         VariableSubstitutor vs = new VariableSubstitutor(getInstalldata().getVariables());
         path = IoHelper.translatePath(path, vs);
         File parent = new File(path).getParentFile();
@@ -74,10 +79,10 @@ public class SummaryLoggerInstallerListener extends SimpleInstallerListener
         {
             parent.mkdirs();
         }
-      
+
         String summary = SummaryProcessor.getSummary(getInstalldata());
         java.io.OutputStream out = new FileOutputStream(path);
-        
+
         out.write(summary.getBytes("utf-8"));
         out.close();
     }

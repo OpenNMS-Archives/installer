@@ -1,9 +1,9 @@
 /*
- * $Id: GUIInstaller.java 1816 2007-04-23 19:57:27Z jponge $
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * $Id: GUIInstaller.java 2829 2009-08-05 11:36:52Z afflux $
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,95 +20,99 @@
 
 package com.izforge.izpack.installer;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.GraphicsEnvironment;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.Point;
-import java.awt.Toolkit;
+import com.izforge.izpack.GUIPrefs;
+import com.izforge.izpack.LocaleDatabase;
+import com.izforge.izpack.gui.ButtonFactory;
+import com.izforge.izpack.gui.LabelFactory;
+import com.izforge.izpack.util.Debug;
+import com.izforge.izpack.util.FileExecutor;
+import com.izforge.izpack.util.OsVersion;
+import com.izforge.izpack.util.VariableSubstitutor;
+
+import javax.swing.*;
+import javax.swing.plaf.metal.MetalLookAndFeel;
+import javax.swing.plaf.metal.MetalTheme;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.TreeMap;
-
-import javax.swing.GrayFilter;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.ListCellRenderer;
-import javax.swing.LookAndFeel;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.plaf.metal.MetalLookAndFeel;
-import javax.swing.plaf.metal.MetalTheme;
-
-import com.izforge.izpack.GUIPrefs;
-import com.izforge.izpack.LocaleDatabase;
-import com.izforge.izpack.gui.ButtonFactory;
-import com.izforge.izpack.gui.IzPackMetalTheme;
-import com.izforge.izpack.gui.LabelFactory;
-import com.izforge.izpack.util.Debug;
-import com.izforge.izpack.util.OsVersion;
-import com.izforge.izpack.util.VariableSubstitutor;
 
 /**
  * The IzPack graphical installer class.
- * 
+ *
  * @author Julien Ponge
  */
 public class GUIInstaller extends InstallerBase
 {
 
-    /** The installation data. */
+    /**
+     * The installation data.
+     */
     private InstallData installdata;
 
-    /** The L&F. */
+    /**
+     * The L&F.
+     */
     protected String lnf;
 
-    /** defined modifier for language display type. */
-    private static final String[] LANGUAGE_DISPLAY_TYPES = { "iso3", "native", "default"};
+    /**
+     * defined modifier for language display type.
+     */
+    private static final String[] LANGUAGE_DISPLAY_TYPES = {"iso3", "native", "default"};
 
-    private static final String[][] LANG_CODES = { { "cat", "ca"}, { "chn", "zh"}, { "cze", "cs"},
-            { "dan", "da"}, { "deu", "de"}, { "eng", "en"}, { "fin", "fi"}, { "fra", "fr"},
-            { "hun", "hu"}, { "ita", "it"}, { "jpn", "ja"}, { "mys", "ms"}, { "ned", "nl"},
-            { "nor", "no"}, { "pol", "pl"}, { "por", "pt"}, { "rom", "or"}, { "rus", "ru"},
-            { "spa", "es"}, { "svk", "sk"}, { "swe", "sv"}, { "tur", "tr"}, { "ukr", "uk"}};
-
-    /** holds language to ISO-3 language code translation */
-    private static HashMap isoTable;
+    private static final String[][] LANG_CODES = {{"cat", "ca"}, {"chn", "zh"}, {"cze", "cs"},
+            {"dan", "da"}, {"deu", "de"}, {"eng", "en"}, {"fin", "fi"}, {"fra", "fr"},
+            {"hun", "hu"}, {"ita", "it"}, {"jpn", "ja"}, {"mys", "ms"}, {"ned", "nl"},
+            {"nor", "no"}, {"pol", "pl"}, {"por", "pt"}, {"rom", "or"}, {"rus", "ru"},
+            {"spa", "es"}, {"svk", "sk"}, {"swe", "sv"}, {"tur", "tr"}, {"ukr", "uk"}};
 
     /**
+     * holds language to ISO-3 language code translation
+     */
+    private static HashMap isoTable;
+    
+    /**
      * The constructor.
-     * 
-     * @exception Exception Description of the Exception
+     *
+     * @throws Exception Description of the Exception
      */
     public GUIInstaller() throws Exception
     {
-        this.installdata = new InstallData();
-
+        try {
+            init();
+        } catch (Exception e) { 
+            showFatalError(e);
+            throw e;
+        } catch (Error e) { 
+            showFatalError(e);
+            throw e;
+        }
+    }
+    
+    private void showFatalError(Throwable e)
+    {
+        try {
+            JOptionPane.showMessageDialog (null, "Error: "+e.toString(), "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e2) {
+            e2.printStackTrace();
+        }
+    }
+    
+    private void init() throws Exception
+    {
+    
+        this.installdata = new InstallData();                
+        
         // Loads the installation data
         loadInstallData(installdata);
-
+        
         // add the GUI install data
         loadGUIInstallData();
 
@@ -117,9 +121,15 @@ public class GUIInstaller extends InstallerBase
 
         // Checks the Java version
         checkJavaVersion();
+        checkJDKAvailable();
 
-        // Loads the suitable langpack
-        SwingUtilities.invokeAndWait(new Runnable() {
+        // Check for already running instance
+        checkLockFile();
+        
+//      Loads the suitable langpack
+        SwingUtilities.invokeAndWait(new Runnable()
+        {
+
             public void run()
             {
                 try
@@ -132,15 +142,34 @@ public class GUIInstaller extends InstallerBase
                 }
             }
         });
-
+        
         // create the resource manager (after the language selection!)
         ResourceManager.create(this.installdata);
+        
+//      load conditions
+        loadConditions(installdata);
+        
+        // loads installer conditions
+        loadInstallerRequirements();
+
+        // load dynamic variables
+        loadDynamicVariables();
+        
+        // check installer conditions
+        if (!checkInstallerRequirements(installdata))
+        {
+            Debug.log("not all installerconditions are fulfilled.");
+            System.exit(-1);
+            return;
+        }
 
         // Load custom langpack if exist.
         addCustomLangpack(installdata);
 
         // We launch the installer GUI
-        SwingUtilities.invokeLater(new Runnable() {
+        SwingUtilities.invokeLater(new Runnable()
+        {
+
             public void run()
             {
                 try
@@ -154,10 +183,14 @@ public class GUIInstaller extends InstallerBase
             }
         });
     }
+    
+    public void showMissingRequirementMessage(String message){
+        JOptionPane.showMessageDialog(null, message);
+    }
 
     /**
      * Load GUI preference information.
-     * 
+     *
      * @throws Exception
      */
     public void loadGUIInstallData() throws Exception
@@ -166,12 +199,84 @@ public class GUIInstaller extends InstallerBase
         ObjectInputStream objIn = new ObjectInputStream(in);
         this.installdata.guiPrefs = (GUIPrefs) objIn.readObject();
         objIn.close();
+    }    
+
+    /**
+     * Sets a lock file. Not using java.nio.channels.FileLock to prevent
+     * the installer from accidentally keeping a lock on a file if the install
+     * fails or is killed.
+     *
+     * @throws Exception Description of the Exception
+     */
+    private void checkLockFile() throws Exception
+    {
+        String tempDir = System.getProperty("java.io.tmpdir");
+        String appName = this.installdata.info.getAppName();
+        String fileName = "iz-" + appName + ".tmp";
+        Debug.trace("Making temp file: " + fileName);
+        Debug.trace("In temp directory: " + tempDir);
+        File file = new File(tempDir, fileName);
+        if (file.exists())
+        {
+            // Ask user if they want to proceed.
+            Debug.trace("Lock File Exists, asking user for permission to proceed.");
+            StringBuffer msg = new StringBuffer();
+            msg.append("<html>");
+            msg.append("The " + appName + " installer you are attempting to run seems to have a copy already running.<br><br>");
+            msg.append("This could be from a previous failed installation attempt or you may have accidentally launched <br>");
+            msg.append("the installer twice. <b>The recommended action is to select 'Exit'</b> and wait for the other copy of <br>");
+            msg.append("the installer to start. If you are sure there is no other copy of the installer running, click <br>");
+            msg.append("the 'Continue' button to allow this installer to run. <br><br>");
+            msg.append("Are you sure you want to continue with this installation?");
+            msg.append("</html>");
+            JLabel label = new JLabel(msg.toString());
+            label.setFont(new Font("Sans Serif", Font.PLAIN, 12));
+            Object[] optionValues = {"Continue", "Exit"};
+            int selectedOption = JOptionPane.showOptionDialog(null, label, "Warning",
+                    JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, optionValues,
+                    optionValues[1]);
+            Debug.trace("Selected option: " + selectedOption);
+            if (selectedOption == 0)
+            {
+                // Take control of the file so it gets deleted after this installer instance exits.
+                Debug.trace("Setting temp file to delete on exit");
+                file.deleteOnExit();
+            }
+            else
+            {
+                // Leave the file as it is.
+                Debug.trace("Leaving temp file alone and exiting");
+                System.exit(1);
+            }
+        }
+        else
+        {
+            try
+            {
+                // Create the new lock file
+                if (file.createNewFile())
+                {
+                    Debug.trace("Temp file created");
+                    file.deleteOnExit();
+                }
+                else
+                {
+                    Debug.trace("Temp file could not be created");
+                    Debug.trace("*** Multiple instances of installer will be allowed ***");
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.trace("Temp file could not be created: " + e);
+                Debug.trace("*** Multiple instances of installer will be allowed ***");
+            }
+        }
     }
 
     /**
      * Checks the Java version.
-     * 
-     * @exception Exception Description of the Exception
+     *
+     * @throws Exception Description of the Exception
      */
     private void checkJavaVersion() throws Exception
     {
@@ -195,16 +300,48 @@ public class GUIInstaller extends InstallerBase
     }
 
     /**
+     * Checks if a JDK is available.
+     */
+    private void checkJDKAvailable()
+    {
+        if (!this.installdata.info.isJdkRequired())
+        {
+            return;
+        }
+
+        FileExecutor exec = new FileExecutor();
+        String[] output = new String[2];
+        String[] params = {"javac", "-help"};
+        if (exec.executeCommand(params, output) != 0)
+        {
+            String[] message = {
+                    "It looks like your system does not have a Java Development Kit (JDK) available.",
+                    "The software that you plan to install requires a JDK for both its installation and execution.",
+                    "\n",
+                    "Do you still want to proceed with the installation process?"
+            };
+            int status = JOptionPane.showConfirmDialog(null, message, "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+            if (status == JOptionPane.NO_OPTION)
+            {
+                System.exit(1);
+            }
+        }
+    }
+
+    /**
      * Loads the suitable langpack.
-     * 
-     * @exception Exception Description of the Exception
+     *
+     * @throws Exception Description of the Exception
      */
     private void loadLangPack() throws Exception
     {
         // Initialisations
         List availableLangPacks = getAvailableLangPacks();
         int npacks = availableLangPacks.size();
-        if (npacks == 0) throw new Exception("no language pack available");
+        if (npacks == 0)
+        {
+            throw new Exception("no language pack available");
+        }
         String selectedPack;
 
         // Dummy Frame
@@ -221,18 +358,23 @@ public class GUIInstaller extends InstallerBase
         if (npacks != 1)
         {
             LanguageDialog picker = new LanguageDialog(frame, availableLangPacks.toArray());
-            picker.setSelection(Locale.getDefault().getISO3Country().toLowerCase());
+            picker.setSelection(Locale.getDefault().getISO3Language().toLowerCase());
             picker.setModal(true);
             picker.toFront();
-            //frame.setVisible(true);
+            // frame.setVisible(true);
             frame.setVisible(false);
             picker.setVisible(true);
 
             selectedPack = (String) picker.getSelection();
-            if (selectedPack == null) throw new Exception("installation canceled");
+            if (selectedPack == null)
+            {
+                throw new Exception("installation canceled");
+            }
         }
         else
+        {
             selectedPack = (String) availableLangPacks.get(0);
+        }
 
         // We add an xml data information
         this.installdata.xmlData.setAttribute("langpack", selectedPack);
@@ -242,29 +384,13 @@ public class GUIInstaller extends InstallerBase
         installdata.setVariable(ScriptParser.ISO3_LANG, installdata.localeISO3);
         InputStream in = getClass().getResourceAsStream("/langpacks/" + selectedPack + ".xml");
         this.installdata.langpack = new LocaleDatabase(in);
-    }
 
-    /**
-     * Returns an ArrayList of the available langpacks ISO3 codes.
-     * 
-     * @return The available langpacks list.
-     * @exception Exception Description of the Exception
-     */
-    private List getAvailableLangPacks() throws Exception
-    {
-        // We read from the langpacks file in the jar
-        InputStream in = getClass().getResourceAsStream("/langpacks.info");
-        ObjectInputStream objIn = new ObjectInputStream(in);
-        List available = (List) objIn.readObject();
-        objIn.close();
-
-        return available;
     }
 
     /**
      * Loads the suitable L&F.
-     * 
-     * @exception Exception Description of the Exception
+     *
+     * @throws Exception Description of the Exception
      */
     protected void loadLookAndFeel() throws Exception
     {
@@ -281,19 +407,41 @@ public class GUIInstaller extends InstallerBase
         String laf = null;
         if (installdata.guiPrefs.lookAndFeelMapping.containsKey(syskey))
         {
-            laf = (String) installdata.guiPrefs.lookAndFeelMapping.get(syskey);
+            laf = installdata.guiPrefs.lookAndFeelMapping.get(syskey);
         }
 
         // Let's use the system LAF
         // Resolve whether button icons should be used or not.
         boolean useButtonIcons = true;
         if (installdata.guiPrefs.modifier.containsKey("useButtonIcons")
-                && "no".equalsIgnoreCase((String) installdata.guiPrefs.modifier.get("useButtonIcons"))) useButtonIcons = false;
+                && "no".equalsIgnoreCase(installdata.guiPrefs.modifier
+                .get("useButtonIcons")))
+        {
+            useButtonIcons = false;
+        }
         ButtonFactory.useButtonIcons(useButtonIcons);
         boolean useLabelIcons = true;
         if (installdata.guiPrefs.modifier.containsKey("useLabelIcons")
-                && "no".equalsIgnoreCase((String) installdata.guiPrefs.modifier.get("useLabelIcons"))) useLabelIcons = false;
+                && "no".equalsIgnoreCase(installdata.guiPrefs.modifier
+                .get("useLabelIcons")))
+        {
+            useLabelIcons = false;
+        }
         LabelFactory.setUseLabelIcons(useLabelIcons);
+        if (installdata.guiPrefs.modifier.containsKey("labelFontSize"))
+        {  //'labelFontSize' modifier found in 'guiprefs'
+            final String valStr =
+                         installdata.guiPrefs.modifier.get("labelFontSize");
+            try
+            {      //parse value and enter as label-font-size multiplier:
+                LabelFactory.setLabelFontSize(Float.parseFloat(valStr));
+            }
+            catch (NumberFormatException ex)
+            {      //error parsing value; log message
+                Debug.log("Error parsing guiprefs 'labelFontSize' value (" +
+                                                              valStr + ')');
+            }
+        }
         if (laf == null)
         {
             if (!"mac".equals(syskey))
@@ -303,18 +451,15 @@ public class GUIInstaller extends InstallerBase
                 // locales the installer throws and exception and doesn't load
                 // at all. See http://jira.jboss.com/jira/browse/JBINSTALL-232.
                 // This is a workaround until this bug gets fixed.
-                if("unix".equals(syskey)) Locale.setDefault(Locale.ENGLISH);
+                if ("unix".equals(syskey))
+                {
+                    Locale.setDefault(Locale.ENGLISH);
+                }
                 String syslaf = UIManager.getSystemLookAndFeelClassName();
                 UIManager.setLookAndFeel(syslaf);
                 if (UIManager.getLookAndFeel() instanceof MetalLookAndFeel)
                 {
-                    MetalLookAndFeel.setCurrentTheme(new IzPackMetalTheme());
-                    ButtonFactory.useHighlightButtons();
-                    // Reset the use button icons state because
-                    // useHighlightButtons
-                    // make it always true.
                     ButtonFactory.useButtonIcons(useButtonIcons);
-                    installdata.buttonsHColor = new Color(182, 182, 204);
                 }
             }
             lnf = "swing";
@@ -329,16 +474,16 @@ public class GUIInstaller extends InstallerBase
             // make it always true.
             ButtonFactory.useButtonIcons(useButtonIcons);
             installdata.buttonsHColor = new Color(255, 255, 255);
-            Class lafClass = Class.forName("com.incors.plaf.kunststoff.KunststoffLookAndFeel");
+            Class<LookAndFeel> lafClass = (Class<LookAndFeel>) Class.forName("com.incors.plaf.kunststoff.KunststoffLookAndFeel");
             Class mtheme = Class.forName("javax.swing.plaf.metal.MetalTheme");
-            Class[] params = { mtheme};
-            Class theme = Class.forName("com.izforge.izpack.gui.IzPackKMetalTheme");
+            Class[] params = {mtheme};
+            Class<MetalTheme> theme = (Class<MetalTheme>) Class.forName("com.izforge.izpack.gui.IzPackKMetalTheme");
             Method setCurrentThemeMethod = lafClass.getMethod("setCurrentTheme", params);
 
             // We invoke and place Kunststoff as our L&F
-            LookAndFeel kunststoff = (LookAndFeel) lafClass.newInstance();
-            MetalTheme ktheme = (MetalTheme) theme.newInstance();
-            Object[] kparams = { ktheme};
+            LookAndFeel kunststoff = lafClass.newInstance();
+            MetalTheme ktheme = theme.newInstance();
+            Object[] kparams = {ktheme};
             UIManager.setLookAndFeel(kunststoff);
             setCurrentThemeMethod.invoke(kunststoff, kparams);
 
@@ -352,10 +497,10 @@ public class GUIInstaller extends InstallerBase
             UIManager.setLookAndFeel("com.birosoft.liquid.LiquidLookAndFeel");
             lnf = "liquid";
 
-            Map params = (Map) installdata.guiPrefs.lookAndFeelParams.get(laf);
+            Map<String, String> params = installdata.guiPrefs.lookAndFeelParams.get(laf);
             if (params.containsKey("decorate.frames"))
             {
-                String value = (String) params.get("decorate.frames");
+                String value = params.get("decorate.frames");
                 if ("yes".equals(value))
                 {
                     JFrame.setDefaultLookAndFeelDecorated(true);
@@ -363,7 +508,7 @@ public class GUIInstaller extends InstallerBase
             }
             if (params.containsKey("decorate.dialogs"))
             {
-                String value = (String) params.get("decorate.dialogs");
+                String value = params.get("decorate.dialogs");
                 if ("yes".equals(value))
                 {
                     JDialog.setDefaultLookAndFeelDecorated(true);
@@ -381,23 +526,58 @@ public class GUIInstaller extends InstallerBase
             return;
         }
 
+        // Nimbus (http://nimbus.dev.java.net/)
+        if ("nimbus".equals(laf))
+        {
+            UIManager.setLookAndFeel("org.jdesktop.swingx.plaf.nimbus.NimbusLookAndFeel");
+            return;
+        }
+
         // JGoodies Looks (http://looks.dev.java.net/)
         if ("looks".equals(laf))
         {
-            Map variants = new TreeMap();
-            variants.put("extwin", "com.jgoodies.plaf.windows.ExtWindowsLookAndFeel");
-            variants.put("plastic", "com.jgoodies.plaf.plastic.PlasticLookAndFeel");
-            variants.put("plastic3D", "com.jgoodies.plaf.plastic.Plastic3DLookAndFeel");
-            variants.put("plasticXP", "com.jgoodies.plaf.plastic.PlasticXPLookAndFeel");
-            String variant = (String) variants.get("plasticXP");
+            Map<String, String> variants = new TreeMap<String, String>();
+            variants.put("windows", "com.jgoodies.looks.windows.WindowsLookAndFeel");
+            variants.put("plastic", "com.jgoodies.looks.plastic.PlasticLookAndFeel");
+            variants.put("plastic3D", "com.jgoodies.looks.plastic.Plastic3DLookAndFeel");
+            variants.put("plasticXP", "com.jgoodies.looks.plastic.Plastic3DLookAndFeel");
+            String variant = variants.get("plasticXP");
 
-            Map params = (Map) installdata.guiPrefs.lookAndFeelParams.get(laf);
+            Map<String, String> params = installdata.guiPrefs.lookAndFeelParams.get(laf);
             if (params.containsKey("variant"))
             {
-                String param = (String) params.get("variant");
+                String param = params.get("variant");
                 if (variants.containsKey(param))
                 {
-                    variant = (String) variants.get(param);
+                    variant = variants.get(param);
+                }
+            }
+
+            UIManager.setLookAndFeel(variant);
+            return;
+        }
+
+        // Substance (http://substance.dev.java.net/)
+        if ("substance".equals(laf))
+        {
+            Map<String, String> variants = new TreeMap<String, String>();
+            variants.put("default", "org.jvnet.substance.SubstanceLookAndFeel"); // Ugly!!!
+            variants.put("business", "org.jvnet.substance.skin.SubstanceBusinessLookAndFeel");
+            variants.put("business-blue", "org.jvnet.substance.skin.SubstanceBusinessBlueSteelLookAndFeel");
+            variants.put("business-black", "org.jvnet.substance.skin.SubstanceBusinessBlackSteelLookAndFeel");
+            variants.put("creme", "org.jvnet.substance.skin.SubstanceCremeLookAndFeel");
+            variants.put("sahara", "org.jvnet.substance.skin.SubstanceSaharaLookAndFeel");
+            variants.put("moderate", "org.jvnet.substance.skin.SubstanceModerateLookAndFeel");
+            variants.put("officesilver", "org.jvnet.substance.skin.SubstanceOfficeSilver2007LookAndFeel");
+            String variant = variants.get("default");
+
+            Map<String, String> params = installdata.guiPrefs.lookAndFeelParams.get(laf);
+            if (params.containsKey("variant"))
+            {
+                String param = params.get("variant");
+                if (variants.containsKey(param))
+                {
+                    variant = variants.get(param);
                 }
             }
 
@@ -407,8 +587,8 @@ public class GUIInstaller extends InstallerBase
 
     /**
      * Loads the GUI.
-     * 
-     * @exception Exception Description of the Exception
+     *
+     * @throws Exception Description of the Exception
      */
     private void loadGUI() throws Exception
     {
@@ -422,45 +602,54 @@ public class GUIInstaller extends InstallerBase
         String message = installdata.langpack.getString(key);
         // message equal to key -> no message defined.
         if (message.indexOf(key) > -1)
+        {
             title = installdata.langpack.getString("installer.title")
                     + installdata.info.getAppName();
+        }
         else
-        {   // Attention! The alternate message has to contain the hole message including
+        { // Attention! The alternate message has to contain the whole message including
             // $APP_NAME and may be $APP_VER.
             VariableSubstitutor vs = new VariableSubstitutor(installdata.getVariables());
             title = vs.substitute(message, null);
         }
-        new InstallerFrame(title, this.installdata);
+        new InstallerFrame(title, this.installdata,this);
     }
 
     /**
      * Returns whether flags should be used in the language selection dialog or not.
-     * 
+     *
      * @return whether flags should be used in the language selection dialog or not
      */
     protected boolean useFlags()
     {
         if (installdata.guiPrefs.modifier.containsKey("useFlags")
-                && "no".equalsIgnoreCase((String) installdata.guiPrefs.modifier.get("useFlags")))
+                && "no".equalsIgnoreCase(installdata.guiPrefs.modifier.get("useFlags")))
+        {
             return (false);
+        }
         return (true);
     }
 
     /**
      * Returns the type in which the language should be displayed in the language selction dialog.
      * Possible are "iso3", "native" and "usingDefault".
-     * 
+     *
      * @return language display type
      */
     protected String getLangType()
     {
         if (installdata.guiPrefs.modifier.containsKey("langDisplayType"))
         {
-            String val = (String) installdata.guiPrefs.modifier.get("langDisplayType");
+            String val = installdata.guiPrefs.modifier.get("langDisplayType");
             val = val.toLowerCase();
             // Verify that the value is valid, else return the default.
-            for (int i = 0; i < LANGUAGE_DISPLAY_TYPES.length; ++i)
-                if (val.equalsIgnoreCase(LANGUAGE_DISPLAY_TYPES[i])) return (val);
+            for (String aLANGUAGE_DISPLAY_TYPES : LANGUAGE_DISPLAY_TYPES)
+            {
+                if (val.equalsIgnoreCase(aLANGUAGE_DISPLAY_TYPES))
+                {
+                    return (val);
+                }
+            }
             Debug.trace("Value for language display type not valid; value: " + val);
         }
         return (LANGUAGE_DISPLAY_TYPES[0]);
@@ -470,7 +659,7 @@ public class GUIInstaller extends InstallerBase
      * Used to prompt the user for the language. Languages can be displayed in iso3 or the native
      * notation or the notation of the default locale. Revising to native notation is based on code
      * from Christian Murphy (patch #395).
-     * 
+     *
      * @author Julien Ponge
      * @author Christian Murphy
      * @author Klaus Bartz
@@ -480,18 +669,24 @@ public class GUIInstaller extends InstallerBase
 
         private static final long serialVersionUID = 3256443616359887667L;
 
-        /** The combo box. */
+        /**
+         * The combo box.
+         */
         private JComboBox comboBox;
 
-        /** The ISO3 to ISO2 HashMap */
-        private HashMap iso3Toiso2 = null;
+        /**
+         * The ISO3 to ISO2 HashMap
+         */
+        private HashMap<String, String> iso3Toiso2 = null;
 
-        /** iso3Toiso2 expanded ? */
+        /**
+         * iso3Toiso2 expanded ?
+         */
         private boolean isoMapExpanded = false;
 
         /**
          * The constructor.
-         * 
+         *
          * @param items The items to display in the box.
          */
         public LanguageDialog(JFrame frame, Object[] items)
@@ -510,49 +705,50 @@ public class GUIInstaller extends InstallerBase
             // We build the GUI
             addWindowListener(new WindowHandler());
             JPanel contentPane = (JPanel) getContentPane();
-            setTitle("Language selection");
+            setTitle("Language Selection");
             GridBagLayout layout = new GridBagLayout();
             contentPane.setLayout(layout);
             GridBagConstraints gbConstraints = new GridBagConstraints();
             gbConstraints.anchor = GridBagConstraints.CENTER;
             gbConstraints.insets = new Insets(5, 5, 5, 5);
-            gbConstraints.fill = GridBagConstraints.NONE;
+            gbConstraints.fill = GridBagConstraints.HORIZONTAL;
             gbConstraints.gridx = 0;
             gbConstraints.weightx = 1.0;
             gbConstraints.weighty = 1.0;
+            gbConstraints.ipadx = 0;
+            gbConstraints.ipady = 6;
 
             ImageIcon img = getImage();
             JLabel imgLabel = new JLabel(img);
             gbConstraints.gridy = 0;
             contentPane.add(imgLabel);
 
-            gbConstraints.fill = GridBagConstraints.HORIZONTAL;
             String firstMessage = "Please select your language";
             if (getLangType().equals(LANGUAGE_DISPLAY_TYPES[0]))
             // iso3
-                firstMessage = "Please select your language (ISO3 code)";
+            {
+                firstMessage = "Please select your language below";
+            }
 
-            JLabel label1 = new JLabel(firstMessage, SwingConstants.CENTER);
+            JLabel label1 = new JLabel(firstMessage, SwingConstants.LEADING);
             gbConstraints.gridy = 1;
-            gbConstraints.insets = new Insets(5, 5, 0, 5);
+            gbConstraints.insets = new Insets(15, 5, 5, 5);
             layout.addLayoutComponent(label1, gbConstraints);
             contentPane.add(label1);
-            JLabel label2 = new JLabel("for install instructions:", SwingConstants.CENTER);
-            gbConstraints.gridy = 2;
-            gbConstraints.insets = new Insets(0, 5, 5, 5);
-            layout.addLayoutComponent(label2, gbConstraints);
-            contentPane.add(label2);
-            gbConstraints.insets = new Insets(5, 5, 5, 5);
 
+            gbConstraints.insets = new Insets(5, 5, 5, 5);
             items = reviseItems(items);
 
             comboBox = new JComboBox(items);
-            if (useFlags()) comboBox.setRenderer(new FlagRenderer());
-            gbConstraints.fill = GridBagConstraints.HORIZONTAL;
+            if (useFlags())
+            {
+                comboBox.setRenderer(new FlagRenderer());
+            }
             gbConstraints.gridy = 3;
             layout.addLayoutComponent(comboBox, gbConstraints);
             contentPane.add(comboBox);
 
+            gbConstraints.insets = new Insets(15, 5, 15, 5);
             JButton okButton = new JButton("OK");
             okButton.addActionListener(this);
             gbConstraints.fill = GridBagConstraints.NONE;
@@ -565,20 +761,20 @@ public class GUIInstaller extends InstallerBase
             // Packs and centers
             // Fix for bug "Installer won't show anything on OSX"
             if (System.getProperty("mrj.version") == null)
+            {
                 pack();
-            else
-                setSize(getPreferredSize());
+            }
+            setSize(getPreferredSize());
 
             Dimension frameSize = getSize();
             Point center = GraphicsEnvironment.getLocalGraphicsEnvironment().getCenterPoint();
-            setLocation(center.x - frameSize.width / 2,
-                    center.y - frameSize.height / 2 - 10);
+            setLocation(center.x - frameSize.width / 2, center.y - frameSize.height / 2 - 10);
             setResizable(true);
         }
 
         /**
          * Revises iso3 language items depending on the language display type.
-         * 
+         *
          * @param items item array to be revised
          * @return the revised array
          */
@@ -586,13 +782,21 @@ public class GUIInstaller extends InstallerBase
         {
             String langType = getLangType();
             // iso3: nothing todo.
-            if (langType.equals(LANGUAGE_DISPLAY_TYPES[0])) return (items);
+            if (langType.equals(LANGUAGE_DISPLAY_TYPES[0]))
+            {
+                return (items);
+            }
             // native: get the names as they are written in that language.
             if (langType.equals(LANGUAGE_DISPLAY_TYPES[1]))
+            {
                 return (expandItems(items, (new JComboBox()).getFont()));
+            }
             // default: get the names as they are written in the default
             // language.
-            if (langType.equals(LANGUAGE_DISPLAY_TYPES[2])) return (expandItems(items, null));
+            if (langType.equals(LANGUAGE_DISPLAY_TYPES[2]))
+            {
+                return (expandItems(items, null));
+            }
             // Should never be.
             return (items);
         }
@@ -601,8 +805,8 @@ public class GUIInstaller extends InstallerBase
          * Expands the given iso3 codes to language names. If a testFont is given, the codes are
          * tested whether they can displayed or not. If not, or no font given, the language name
          * will be returned as written in the default language of this VM.
-         * 
-         * @param items item array to be expanded to the language name
+         *
+         * @param items    item array to be expanded to the language name
          * @param testFont font to test wheter a name is displayable
          * @return aray of expanded items
          */
@@ -611,10 +815,12 @@ public class GUIInstaller extends InstallerBase
             int i;
             if (iso3Toiso2 == null)
             { // Loasd predefined langs into HashMap.
-                iso3Toiso2 = new HashMap(32);
+                iso3Toiso2 = new HashMap<String, String>(32);
                 isoTable = new HashMap();
                 for (i = 0; i < LANG_CODES.length; ++i)
+                {
                     iso3Toiso2.put(LANG_CODES[i][0], LANG_CODES[i][1]);
+                }
             }
             for (i = 0; i < items.length; i++)
             {
@@ -629,8 +835,8 @@ public class GUIInstaller extends InstallerBase
          * Expands the given iso3 code to a language name. If a testFont is given, the code will be
          * tested whether it is displayable or not. If not, or no font given, the language name will
          * be returned as written in the default language of this VM.
-         * 
-         * @param item item to be expanded to the language name
+         *
+         * @param item     item to be expanded to the language name
          * @param testFont font to test wheter the name is displayable
          * @return expanded item
          */
@@ -643,29 +849,37 @@ public class GUIInstaller extends InstallerBase
                 isoMapExpanded = true;
                 Locale[] loc = Locale.getAvailableLocales();
                 for (i = 0; i < loc.length; ++i)
+                {
                     iso3Toiso2.put(loc[i].getISO3Language(), loc[i].getLanguage());
+                }
                 iso2Str = iso3Toiso2.get(item);
             }
             if (iso2Str == null)
             // Unknown item, return it self.
+            {
                 return (item);
+            }
             Locale locale = new Locale((String) iso2Str);
             if (testFont == null)
             // Return the language name in the spelling of the default locale.
+            {
                 return (locale.getDisplayLanguage());
+            }
             // Get the language name in the spelling of that language.
             String str = locale.getDisplayLanguage(locale);
             int cdut = testFont.canDisplayUpTo(str);
             if (cdut > -1)
             // Test font cannot render it;
-                // use language name in the spelling of the default locale.
+            // use language name in the spelling of the default locale.
+            {
                 str = locale.getDisplayLanguage();
+            }
             return (str);
         }
 
         /**
          * Loads an image.
-         * 
+         *
          * @return The image icon.
          */
         public ImageIcon getImage()
@@ -684,19 +898,22 @@ public class GUIInstaller extends InstallerBase
 
         /**
          * Gets the selected object.
-         * 
+         *
          * @return The selected item.
          */
         public Object getSelection()
         {
             Object retval = null;
-            if (isoTable != null) retval = isoTable.get(comboBox.getSelectedItem());
+            if (isoTable != null)
+            {
+                retval = isoTable.get(comboBox.getSelectedItem());
+            }
             return (retval != null) ? retval : comboBox.getSelectedItem();
         }
 
         /**
          * Sets the selection.
-         * 
+         *
          * @param item The item to be selected.
          */
         public void setSelection(Object item)
@@ -715,13 +932,16 @@ public class GUIInstaller extends InstallerBase
                     }
                 }
             }
-            if (mapped == null) mapped = item;
+            if (mapped == null)
+            {
+                mapped = item;
+            }
             comboBox.setSelectedItem(mapped);
         }
 
         /**
          * Closer.
-         * 
+         *
          * @param e The event.
          */
         public void actionPerformed(ActionEvent e)
@@ -731,7 +951,7 @@ public class GUIInstaller extends InstallerBase
 
         /**
          * The window events handler.
-         * 
+         *
          * @author Julien Ponge
          */
         private class WindowHandler extends WindowAdapter
@@ -739,7 +959,7 @@ public class GUIInstaller extends InstallerBase
 
             /**
              * We can't avoid the exit here, so don't call exit anywhere else.
-             * 
+             *
              * @param e the event.
              */
             public void windowClosing(WindowEvent e)
@@ -751,7 +971,7 @@ public class GUIInstaller extends InstallerBase
 
     /**
      * A list cell renderer that adds the flags on the display.
-     * 
+     *
      * @author Julien Ponge
      */
     private static class FlagRenderer extends JLabel implements ListCellRenderer
@@ -759,11 +979,15 @@ public class GUIInstaller extends InstallerBase
 
         private static final long serialVersionUID = 3832899961942782769L;
 
-        /** Icons cache. */
-        private TreeMap icons = new TreeMap();
+        /**
+         * Icons cache.
+         */
+        private TreeMap<String, ImageIcon> icons = new TreeMap<String, ImageIcon>();
 
-        /** Grayed icons cache. */
-        private TreeMap grayIcons = new TreeMap();
+        /**
+         * Grayed icons cache.
+         */
+        private TreeMap<String, ImageIcon> grayIcons = new TreeMap<String, ImageIcon>();
 
         public FlagRenderer()
         {
@@ -772,21 +996,24 @@ public class GUIInstaller extends InstallerBase
 
         /**
          * Returns a suitable cell.
-         * 
-         * @param list The list.
-         * @param value The object.
-         * @param index The index.
-         * @param isSelected true if it is selected.
+         *
+         * @param list         The list.
+         * @param value        The object.
+         * @param index        The index.
+         * @param isSelected   true if it is selected.
          * @param cellHasFocus Description of the Parameter
          * @return The cell.
          */
         public Component getListCellRendererComponent(JList list, Object value, int index,
-                boolean isSelected, boolean cellHasFocus)
+                                                      boolean isSelected, boolean cellHasFocus)
         {
             // We put the label
             String iso3 = (String) value;
             setText(iso3);
-            if (isoTable != null) iso3 = (String) isoTable.get(iso3);
+            if (isoTable != null)
+            {
+                iso3 = (String) isoTable.get(iso3);
+            }
             if (isSelected)
             {
                 setForeground(list.getSelectionForeground());
@@ -808,9 +1035,13 @@ public class GUIInstaller extends InstallerBase
                 grayIcons.put(iso3, icon);
             }
             if (isSelected || index == -1)
-                setIcon((ImageIcon) icons.get(iso3));
+            {
+                setIcon(icons.get(iso3));
+            }
             else
-                setIcon((ImageIcon) grayIcons.get(iso3));
+            {
+                setIcon(grayIcons.get(iso3));
+            }
 
             // We return
             return this;

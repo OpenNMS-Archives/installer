@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2004 Gaganis Giorgos
  * 
@@ -22,14 +22,15 @@
 package com.izforge.izpack.panels;
 
 import com.izforge.izpack.LocaleDatabase;
+import com.izforge.izpack.installer.Debugger;
 
 /**
  * This interface is used to be able to access the common information in the PackPanel and the
  * ImgPacksPAnel through a common type. I introduced it so that I can remove the duplicate
  * PacksModel from each class and create a common one for both.
- * 
+ * <p/>
  * This could be avoided by inheriting ImgPacksPanel from PacksPanel
- * 
+ * <p/>
  * User: Gaganis Giorgos Date: Sep 17, 2004 Time: 8:29:22 AM
  */
 
@@ -41,11 +42,13 @@ public interface PacksPanelInterface
 
     public LocaleDatabase getLangpack();
 
-    public int getBytes();
+    public long getBytes();
 
-    public void setBytes(int bytes);
+    public void setBytes(long bytes);
 
     public void showSpaceRequired();
 
     public void showFreeSpace();
+
+    public Debugger getDebugger();
 }

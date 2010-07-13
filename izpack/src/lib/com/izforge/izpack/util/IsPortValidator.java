@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2004 Thorsten Kamann
  * 
@@ -26,7 +26,7 @@ import com.izforge.izpack.panels.Validator;
 
 /**
  * A validator to check whether the field content is a port .
- * 
+ *
  * @author thorque
  */
 public class IsPortValidator implements Validator
@@ -36,12 +36,18 @@ public class IsPortValidator implements Validator
     {
         int port = 0;
 
-        if ("".equals(client.getFieldContents(0))) { return false; }
+        if ("".equals(client.getFieldContents(0)))
+        {
+            return false;
+        }
 
         try
         {
             port = Integer.parseInt(client.getFieldContents(0));
-            if (port > 0 && port < 32000) { return true; }
+            if (port > 0 && port < 65535)
+            {
+                return true;
+            }
         }
         catch (Exception ex)
         {

@@ -1,8 +1,8 @@
 /*
- * IzPack - Copyright 2001-2007 Julien Ponge, All Rights Reserved.
+ * IzPack - Copyright 2001-2008 Julien Ponge, All Rights Reserved.
  * 
  * http://izpack.org/
- * http://developer.berlios.de/projects/izpack/
+ * http://izpack.codehaus.org/
  * 
  * Copyright 2001 Johannes Lehtinen
  * 
@@ -26,7 +26,7 @@ import java.util.ArrayList;
 
 /**
  * Encloses information about an update check.
- * 
+ *
  * @author Tino Schwarze <tino.schwarze@community4you.de>
  */
 public class UpdateCheck implements Serializable
@@ -37,28 +37,32 @@ public class UpdateCheck implements Serializable
     /**
      * ant-fileset-like list of include patterns, based on INSTALL_PATH if relative
      */
-    public ArrayList includesList = null;
+    public ArrayList<String> includesList = null;
 
     /**
      * ant-fileset-like list of exclude patterns, based on INSTALL_PATH if relative
      */
-    public ArrayList excludesList = null;
+    public ArrayList<String> excludesList = null;
 
-    /** Whether pattern matching is performed case-sensitive */
+    /**
+     * Whether pattern matching is performed case-sensitive
+     */
     boolean caseSensitive = true;
 
-    /** Constructs a new uninitialized instance. */
+    /**
+     * Constructs a new uninitialized instance.
+     */
     public UpdateCheck()
     {
     }
 
     /**
      * Constructs and initializes a new instance.
-     * 
+     *
      * @param includes The patterns to include in the check.
      * @param excludes The patterns to exclude from the check.
      */
-    public UpdateCheck(ArrayList includes, ArrayList excludes)
+    public UpdateCheck(ArrayList<String> includes, ArrayList<String> excludes)
     {
         this.includesList = includes;
         this.excludesList = excludes;
@@ -66,12 +70,12 @@ public class UpdateCheck implements Serializable
 
     /**
      * Constructs and initializes a new instance.
-     * 
-     * @param includes The patterns to include in the check.
-     * @param excludes The patterns to exclude from the check.
+     *
+     * @param includes      The patterns to include in the check.
+     * @param excludes      The patterns to exclude from the check.
      * @param casesensitive If "yes", matches are performed case sensitive.
      */
-    public UpdateCheck(ArrayList includes, ArrayList excludes, String casesensitive)
+    public UpdateCheck(ArrayList<String> includes, ArrayList<String> excludes, String casesensitive)
     {
         this.includesList = includes;
         this.excludesList = excludes;
