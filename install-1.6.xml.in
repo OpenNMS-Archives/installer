@@ -26,8 +26,9 @@
 		<res id="userInputSpec.xml" src="userInputSpec.xml" />
 		<res id="userInputLang.xml_eng" src="userInputLang.xml_eng" />
 		<res id="ProcessPanel.Spec.xml" src="ProcessPanel.Spec.xml" />
-		<res id="LicencePanel.licence" src="LICENSE"/>
-		<!-- <res id="InfoPanel.info" src="Readme.txt"/> -->
+		<res id="LicencePanel.licence" src="LICENSE" />
+		<res id="HTMLInfoPanel.readme" src="README.html" />
+		<res id="logo" src="logo.png" />
 	</resources>
 
 	<!-- 
@@ -35,8 +36,7 @@
 		We indicate here which panels we want to use. The order will be respected.
 	-->
 	<panels>
-		<panel classname="HelloPanel" />
-		<!-- <panel classname="InfoPanel" /> -->
+		<panel classname="HTMLInfoPanel" id="readme" />
 		<panel classname="LicencePanel" />
 		<panel classname="JDKPathPanel" />
 		<panel classname="TargetPanel" /> 
@@ -45,10 +45,11 @@
 		<panel classname="PacksPanel" />
 		<panel classname="InstallPanel" />
 		<panel classname="ProcessPanel" />
-		<panel classname="FinishPanel" />
+		<panel classname="SimpleFinishPanel" />
 	</panels>
 
 	<variables>
+		<variable name="showInfoLabelFlag" value="no" />
 		<variable name="JDKPathPanel.minVersion" value="1.5.0" />
 		<variable name="JDKPathPanel.skipIfValid" value="yes" />
 	</variables>
