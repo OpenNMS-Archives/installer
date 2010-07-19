@@ -7,7 +7,7 @@
 		<appversion>@appversion@</appversion>
 		<url>http://www.opennms.org/</url>
 	</info>
-	
+
 	<guiprefs width="640" height="480" resizable="yes">
 		<modifier key="useButtonIcons" value="no"/>
 		<modifier key="useLabelIcons" value="no"/>
@@ -17,11 +17,11 @@
 		<modifier key="headingPanelCounter" value="text"/>
 		<modifier key="headingPanelCounterPos" value="inHeading"/>
 	</guiprefs>
-	
+
 	<locale>
 		<langpack iso3="eng"/>
 	</locale>
-	
+
 	<resources>
 		<res id="userInputSpec.xml" src="userInputSpec.xml" />
 		<res id="userInputLang.xml_eng" src="userInputLang.xml_eng" />
@@ -40,9 +40,10 @@
 		<panel classname="LicencePanel" />
 		<panel classname="JDKPathPanel" />
 		<panel classname="TargetPanel" /> 
-		<panel classname="UserInputPanel" />
-		<panel classname="UserInputPanel" />
+		<!-- <panel classname="DataCheckPanel" /> -->
 		<panel classname="PacksPanel" />
+		<panel classname="UserInputPanel" />
+		<panel classname="UserInputPanel" />
 		<panel classname="InstallPanel" />
 		<panel classname="ProcessPanel" />
 		<panel classname="SimpleFinishPanel" />
@@ -54,10 +55,17 @@
 		<variable name="JDKPathPanel.skipIfValid" value="yes" />
 	</variables>
 
-	<condition type="variable" id="is32bit">
-		<name>SYSTEM_sun_arch_data_model</name>
-		<value>32</value>
-	</condition>
+	<conditions>
+		<condition type="variable" id="is32bit">
+			<name>SYSTEM_sun_arch_data_model</name>
+			<value>32</value>
+		</condition>
+
+		<condition type="variable" id="is64bit">
+			<name>SYSTEM_sun_arch_data_model</name>
+			<value>64</value>
+		</condition>
+	</conditions>
 
 	<!-- 
 		The packs section.
@@ -72,7 +80,7 @@
 			<file src="logs" targetdir="$UNIFIED_INSTALL_PATH" />
 			<file src="share" targetdir="$UNIFIED_INSTALL_PATH" />
 			<file src="jetty-webapps" targetdir="$UNIFIED_INSTALL_PATH" />
-			<fileset dir="." targetdir="$UNIFIED_INSTALL_PATH/lib">
+			<fileset dir="." targetdir="$UNIFIED_INSTALL_PATH">
 				<exclude name="lib/opennms-dns-provisioning-adapter-*.jar" />
 				<exclude name="lib/opennms-link-provisioning-adapter-*.jar" />
 				<exclude name="lib/opennms-map-provisioning-adapter-*.jar" />
@@ -80,15 +88,14 @@
 				<include name="lib/*.jar" />
 				<include name="lib/endorsed/*.jar" />
 			</fileset>
-			@jar_files@
-			<singlefile src="bin/install.bat" target="$UNIFIED_INSTALL_PATH/bin/install.bat" os="windows" />
-			<singlefile src="bin/opennms.bat" target="$UNIFIED_INSTALL_PATH/bin/opennms.bat" os="windows" />
-			<singlefile src="etc/java.conf.win" target="$UNIFIED_INSTALL_PATH/etc/java.conf" os="windows" />
-			<singlefile src="etc/java.conf.unix" target="$UNIFIED_INSTALL_PATH/etc/java.conf" os="unix" />
-			<singlefile src="lib/jicmp.dll" target="$UNIFIED_INSTALL_PATH/lib/jicmp.dll" os="windows" condition="is32bit" />
-			<singlefile src="lib/jicmp-win64.dll" target="$UNIFIED_INSTALL_PATH/lib/jicmp.dll" os="windows" condition="!is32bit" />
-			<singlefile src="lib/msvcr90-win64.dll" target="$UNIFIED_INSTALL_PATH/lib/msvcr90.dll" os="windows" condition="!is32bit" />
-			<singlefile src="lib/libjicmp.jnilib" target="$UNIFIED_INSTALL_PATH/lib/libjicmp.jnilib" os="mac" />
+			<singlefile src="bin/install.bat"        target="$UNIFIED_INSTALL_PATH/bin/install.bat"     os="windows" />
+			<singlefile src="bin/opennms.bat"        target="$UNIFIED_INSTALL_PATH/bin/opennms.bat"     os="windows" />
+			<singlefile src="etc/java.conf.win"      target="$UNIFIED_INSTALL_PATH/etc/java.conf"       os="windows" />
+			<singlefile src="etc/java.conf.unix"     target="$UNIFIED_INSTALL_PATH/etc/java.conf"       os="unix" />
+			<singlefile src="lib/jicmp.dll"          target="$UNIFIED_INSTALL_PATH/lib/jicmp.dll"       os="windows" condition="is32bit" />
+			<singlefile src="lib/jicmp-win64.dll"    target="$UNIFIED_INSTALL_PATH/lib/jicmp.dll"       os="windows" condition="is64bit" />
+			<singlefile src="lib/msvcr100-win64.dll" target="$UNIFIED_INSTALL_PATH/lib/msvcr100.dll"    os="windows" condition="is64bit" />
+			<singlefile src="lib/libjicmp.jnilib"    target="$UNIFIED_INSTALL_PATH/lib/libjicmp.jnilib" os="mac" />
 			<parsable targetfile="$UNIFIED_INSTALL_PATH/bin/install.bat" os="windows" />
 			<parsable targetfile="$UNIFIED_INSTALL_PATH/bin/opennms.bat" os="windows" />
 			<parsable targetfile="$UNIFIED_INSTALL_PATH/etc/discovery-configuration.xml" />
