@@ -33,6 +33,8 @@ if [ -z "$SKIP_BUILD" ]; then
 		./build.sh $SETTINGS_XML -Dbuild=all -PbuildDocs \
 			-Dinstall.database.name='$izpackDatabaseName' \
 			-Dinstall.database.url='jdbc:postgresql://$izpackDatabaseHost:5432/' \
+			-Dinstall.database.admin.user='$izpackDatabaseAdminUser' \
+			-Dinstall.database.admin.password='$izpackDatabaseAdminPass' \
 			-Dopennms.home="$REPLACEMENT_TOKEN" \
 			install assembly:directory-inline
 	popd
