@@ -46,7 +46,7 @@ VERSION=`echo $VERSION | sed -e "s,-SNAPSHOT,-${DATESTAMP},g"`
 if [ -n "$1" ]; then
 	VERSION="$1"; shift
 fi
-BINARY_DIRECTORY=`ls -d -1 "$TOPDIR/opennms-build/target/"opennms-*`
+BINARY_DIRECTORY=`ls -d -1 "$TOPDIR/opennms-build/target/"opennms-* | grep -v -E 'tar.gz$' | sort -u | tail -1`
 TEMP_DIRECTORY="$TOPDIR/izpack-temp"
 
 rsync -avr --progress --delete "$BINARY_DIRECTORY"/ "$TEMP_DIRECTORY"/
