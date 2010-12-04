@@ -29,14 +29,15 @@ if [ -z "$SKIP_BUILD" ]; then
 	fi
 
 	pushd "$TOPDIR/opennms-build"
-		[ -z "$SKIP_CLEAN" ] && ./build.sh $SETTINGS_XML clean
-		./build.sh $SETTINGS_XML -Dbuild=all -PbuildDocs \
+		[ -z "$SKIP_CLEAN" ] && ./compile.pl $SETTINGS_XML clean
+		[ -z "$SKIP_CLEAN" ] && ./assemble.pl $SETTINGS_XML clean
+		./assemble.pl $SETTINGS_XML -Dbuild=all -PbuildDocs \
 			-Dinstall.database.name='$izpackDatabaseName' \
 			-Dinstall.database.url='jdbc:postgresql://$izpackDatabaseHost:5432/' \
 			-Dinstall.database.admin.user='$izpackDatabaseAdminUser' \
 			-Dinstall.database.admin.password='$izpackDatabaseAdminPass' \
 			-Dopennms.home="$REPLACEMENT_TOKEN" \
-			install assembly:directory-inline
+			install
 	popd
 fi
 
