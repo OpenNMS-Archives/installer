@@ -37,6 +37,7 @@ if [ -z "$SKIP_BUILD" ]; then
 			-Dinstall.database.admin.user='$izpackDatabaseAdminUser' \
 			-Dinstall.database.admin.password='$izpackDatabaseAdminPass' \
 			-Dopennms.home="$REPLACEMENT_TOKEN" \
+			-Dbuild.profile=fulldir \
 			install
 	popd
 fi
@@ -48,24 +49,14 @@ if [ -n "$1" ]; then
 	VERSION="$1"; shift
 fi
 BINARY_DIRECTORY=`ls -d -1 "$TOPDIR/opennms-build/target/"opennms-* | grep -v -E 'tar.gz$' | sort -u | tail -1`
+if [ -z "$BINARY_DIRECTORY" ]; then
+	echo "build failed!"
+	exit 1
+fi
 TEMP_DIRECTORY="$TOPDIR/izpack-temp"
 
 rsync -avr --progress --delete "$BINARY_DIRECTORY"/ "$TEMP_DIRECTORY"/
 ./handle-tokens.pl "$TEMP_DIRECTORY" "($REPLACEMENT_TOKEN|$BINARY_DIRECTORY)" '$UNIFIED_INSTALL_PATH' "$VERSION"
-
-if [ -d "$TOPDIR/opennms-build/integrations/opennms-map-provisioning-adapter" ]; then
-	INSTALL_XML="install.xml"
-	cp $TOPDIR/opennms-build/integrations/opennms-dns-provisioning-adapter/target/*.jar  "$TEMP_DIRECTORY/lib/"
-	cp $TOPDIR/opennms-build/integrations/opennms-link-provisioning-adapter/target/*.jar "$TEMP_DIRECTORY/lib/"
-	cp $TOPDIR/opennms-build/integrations/opennms-map-provisioning-adapter/target/*.jar  "$TEMP_DIRECTORY/lib/"
-	cp $TOPDIR/opennms-build/integrations/opennms-rancid/target/*.jar                    "$TEMP_DIRECTORY/lib/"
-	rm -rf "$TEMP_DIRECTORY/"lib/*-sources.jar
-	rm -rf "$TEMP_DIRECTORY/"lib/*-tests.jar
-	rm -rf "$TEMP_DIRECTORY/"lib/*-xsds.jar
-	cp $TOPDIR/opennms-build/integrations/opennms-link-provisioning-adapter/src/main/resources/link-adapter-configuration.xml "$TEMP_DIRECTORY/etc/"
-	cp $TOPDIR/opennms-build/integrations/opennms-link-provisioning-adapter/src/main/resources/endpoint-configuration.xml "$TEMP_DIRECTORY/etc/"
-	cp $TOPDIR/opennms-build/integrations/opennms-map-provisioning-adapter/src/main/resources/mapsadapter-configuration.xml   "$TEMP_DIRECTORY/etc/"
-fi
 
 cp LICENSE README.html logo.png ProcessPanel.Spec.xml userInput*.xml* "$TEMP_DIRECTORY/"
 cp *.bat "$TEMP_DIRECTORY/bin/"
