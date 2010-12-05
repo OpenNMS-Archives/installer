@@ -20,18 +20,22 @@ fi
 
 export IZPACK_HOME PATH JAVA_HOME
 
-# build OpenNMS
-if [ -z "$SKIP_BUILD" ]; then
-	if [ -z "$SKIP_PULL" ]; then
-		pushd "$TOPDIR/opennms-build"
-			git pull
-		popd
-	fi
-
+if [ "$OPENNMS_SKIP_PULL" != 1 ]; then
 	pushd "$TOPDIR/opennms-build"
-		[ -z "$SKIP_CLEAN" ] && ./compile.pl $SETTINGS_XML clean
-		[ -z "$SKIP_CLEAN" ] && ./assemble.pl $SETTINGS_XML clean
-		./assemble.pl $SETTINGS_XML -Dbuild=all -PbuildDocs \
+		git pull
+	popd
+fi
+
+if [ "$OPENNMS_SKIP_CLEAN" != 1 ]; then
+	pushd "$TOPDIR/opennms-build"
+		./compile.pl $SETTINGS_XML clean
+		./assemble.pl $SETTINGS_XML clean
+	popd
+fi
+
+if [ "$OPENNMS_SKIP_COMPILE" != 1 ]; then
+	pushd "$TOPDIR/opennms-build"
+		./compile.pl $SETTINGS_XML -Dbuild=all -PbuildDocs \
 			-Dinstall.database.name='$izpackDatabaseName' \
 			-Dinstall.database.url='jdbc:postgresql://$izpackDatabaseHost:5432/' \
 			-Dinstall.database.admin.user='$izpackDatabaseAdminUser' \
@@ -41,6 +45,17 @@ if [ -z "$SKIP_BUILD" ]; then
 			install
 	popd
 fi
+
+pushd "$TOPDIR/opennms-build"
+	./assemble.pl $SETTINGS_XML -Dbuild=all -PbuildDocs \
+		-Dinstall.database.name='$izpackDatabaseName' \
+		-Dinstall.database.url='jdbc:postgresql://$izpackDatabaseHost:5432/' \
+		-Dinstall.database.admin.user='$izpackDatabaseAdminUser' \
+		-Dinstall.database.admin.password='$izpackDatabaseAdminPass' \
+		-Dopennms.home="$REPLACEMENT_TOKEN" \
+		-Dbuild.profile=fulldir \
+		install
+popd
 
 DATESTAMP=`date '+%Y%m%d'`
 VERSION=`grep '<version>' "$TOPDIR/opennms-build/pom.xml" | head -n 1 | sed -e 's,^.*<version>,,' -e 's,<.*$,,'`
@@ -69,7 +84,7 @@ rm -rf "$TOPDIR/$ZIP_DIRECTORY"
 mkdir -p "$TOPDIR/$ZIP_DIRECTORY"
 "$IZPACK_COMPILE" $INSTALL_XML -b "$TEMP_DIRECTORY" -o "$TOPDIR/$ZIP_DIRECTORY/$INSTALLER_NAME.jar" -k standard
 cp INSTALL.txt launcher.ini setup??.exe "$TOPDIR/$ZIP_DIRECTORY/"
-if [ -z "$SKIP_ZIP" ]; then
+if [ "$OPENNMS_SKIP_ZIP" != 1 ]; then
 	pushd "$TOPDIR" >/dev/null 2>&1
 		zip -9 "$INSTALLER_NAME.zip" -r "$ZIP_DIRECTORY"
 	popd >/dev/null 2>&1
