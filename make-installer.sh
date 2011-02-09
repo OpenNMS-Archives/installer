@@ -46,16 +46,18 @@ if [ "$OPENNMS_SKIP_COMPILE" != 1 ]; then
 	popd
 fi
 
-pushd "$TOPDIR/opennms-build"
-	./assemble.pl $SETTINGS_XML -Dbuild=all -PbuildDocs \
-		-Dinstall.database.name='$izpackDatabaseName' \
-		-Dinstall.database.url='jdbc:postgresql://$izpackDatabaseHost:5432/' \
-		-Dinstall.database.admin.user='$izpackDatabaseAdminUser' \
-		-Dinstall.database.admin.password='$izpackDatabaseAdminPass' \
-		-Dopennms.home="$REPLACEMENT_TOKEN" \
-		-Dbuild.profile=fulldir \
-		install
-popd
+if [ "$OPENNMS_SKIP_ASSEMBLE" != 1 ]; then
+	pushd "$TOPDIR/opennms-build"
+		./assemble.pl $SETTINGS_XML -Dbuild=all -PbuildDocs \
+			-Dinstall.database.name='$izpackDatabaseName' \
+			-Dinstall.database.url='jdbc:postgresql://$izpackDatabaseHost:5432/' \
+			-Dinstall.database.admin.user='$izpackDatabaseAdminUser' \
+			-Dinstall.database.admin.password='$izpackDatabaseAdminPass' \
+			-Dopennms.home="$REPLACEMENT_TOKEN" \
+			-Dbuild.profile=fulldir \
+			install
+	popd
+fi
 
 DATESTAMP=`date '+%Y%m%d'`
 VERSION=`grep '<version>' "$TOPDIR/opennms-build/pom.xml" | head -n 1 | sed -e 's,^.*<version>,,' -e 's,<.*$,,'`
