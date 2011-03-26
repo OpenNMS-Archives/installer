@@ -35,7 +35,7 @@ fi
 
 if [ "$OPENNMS_SKIP_COMPILE" != 1 ]; then
 	pushd "$TOPDIR/opennms-build"
-		./compile.pl $SETTINGS_XML -Dbuild=all -PbuildDocs \
+		./compile.pl $SETTINGS_XML -Dbuild=all \
 			-Dinstall.database.name='$izpackDatabaseName' \
 			-Dinstall.database.url='jdbc:postgresql://$izpackDatabaseHost:5432/' \
 			-Dinstall.database.admin.user='$izpackDatabaseAdminUser' \
@@ -48,7 +48,7 @@ fi
 
 if [ "$OPENNMS_SKIP_ASSEMBLE" != 1 ]; then
 	pushd "$TOPDIR/opennms-build"
-		./assemble.pl $SETTINGS_XML -Dbuild=all -PbuildDocs \
+		./assemble.pl $SETTINGS_XML -Dbuild=all \
 			-Dinstall.database.name='$izpackDatabaseName' \
 			-Dinstall.database.url='jdbc:postgresql://$izpackDatabaseHost:5432/' \
 			-Dinstall.database.admin.user='$izpackDatabaseAdminUser' \
