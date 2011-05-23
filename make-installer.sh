@@ -28,8 +28,7 @@ fi
 
 if [ "$OPENNMS_SKIP_CLEAN" != 1 ]; then
 	pushd "$TOPDIR/opennms-build"
-		./compile.pl $SETTINGS_XML clean
-		./assemble.pl $SETTINGS_XML clean
+		./clean.pl $SETTINGS_XML
 	popd
 fi
 
@@ -38,6 +37,8 @@ if [ "$OPENNMS_SKIP_COMPILE" != 1 ]; then
 		./compile.pl $SETTINGS_XML -Dbuild=all \
 			-Dinstall.database.name='$izpackDatabaseName' \
 			-Dinstall.database.url='jdbc:postgresql://$izpackDatabaseHost:5432/' \
+			-Dinstall.database.user='$izpackDatabaseUser' \
+			-Dinstall.database.password='$izpackDatabasePass' \
 			-Dinstall.database.admin.user='$izpackDatabaseAdminUser' \
 			-Dinstall.database.admin.password='$izpackDatabaseAdminPass' \
 			-Dopennms.home="$REPLACEMENT_TOKEN" \
@@ -51,6 +52,8 @@ if [ "$OPENNMS_SKIP_ASSEMBLE" != 1 ]; then
 		./assemble.pl $SETTINGS_XML -Dbuild=all \
 			-Dinstall.database.name='$izpackDatabaseName' \
 			-Dinstall.database.url='jdbc:postgresql://$izpackDatabaseHost:5432/' \
+			-Dinstall.database.user='$izpackDatabaseUser' \
+			-Dinstall.database.password='$izpackDatabasePass' \
 			-Dinstall.database.admin.user='$izpackDatabaseAdminUser' \
 			-Dinstall.database.admin.password='$izpackDatabaseAdminPass' \
 			-Dopennms.home="$REPLACEMENT_TOKEN" \

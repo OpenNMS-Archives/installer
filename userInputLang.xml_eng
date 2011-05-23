@@ -1,9 +1,11 @@
 <langpack>
 
 	<str id="configureDatabase.text" txt="Configure Database" />
-	<str id="databaseName.text" txt="PostgreSQL Database Name:" />
-	<str id="databaseAdminUser.text" txt="Database Administrator Username:" />
-	<str id="databaseAdminPass.text" txt="Database Administrator Password:" />
+	<str id="databaseName.text"      txt="PostgreSQL Database Name:" />
+	<str id="databaseAdminUser.text" txt="Database Username (Administrator):" />
+	<str id="databaseAdminPass.text" txt="Database Password (Administrator):" />
+	<str id="databaseUser.text"      txt="Database Username (Runtime):" />
+	<str id="databasePass.text"      txt="Database Password (Runtime):" />
 
 	<str id="configureDiscoveryRange.text" txt="Configure Discovery Range" />
 	<str id="discoveryIncludeRangeStart.text" txt="Start:" />

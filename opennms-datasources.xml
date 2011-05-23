@@ -7,8 +7,8 @@
                     database-name="$izpackDatabaseName" 
                     class-name="org.postgresql.Driver" 
                     url="jdbc:postgresql://$izpackDatabaseHost:5432/$izpackDatabaseName"
-                    user-name="opennms"
-                    password="opennms" />
+                    user-name="$izpackDatabaseUser"
+                    password="$izpackDatabasePass" />
 
   <!-- NOTE: This must be postgres, not template1, since template1 gets locked and
        then can't be copied to create the opennms database if none exists. -->

@@ -11,11 +11,19 @@
 			<validator class="com.izforge.izpack.util.NotEmptyValidator" txt="You must specify the database name." />
 		</field>
 		<field type="text" variable="izpackDatabaseAdminUser">
-			<spec txt="Database Admin User:" id="databaseAdminUser.text" size="8" set="postgres" />
+			<spec txt="Database User (Administrator):" id="databaseAdminUser.text" size="8" set="postgres" />
 			<validator class="com.izforge.izpack.util.NotEmptyValidator" txt="You must specify the database administrator username." />
 		</field>
 		<field type="text" variable="izpackDatabaseAdminPass">
-			<spec txt="Database Admin Password:" id="databaseAdminPass.text" size="8" set="" />
+			<spec txt="Database Password (Administrator):" id="databaseAdminPass.text" size="8" set="" />
+		</field>
+		<field type="text" variable="izpackDatabaseUser">
+			<spec txt="Database User (Runtime):" id="databaseUser.text" size="8" set="opennms" />
+			<validator class="com.izforge.izpack.util.NotEmptyValidator" txt="You must specify the database runtime username." />
+		</field>
+		<field type="text" variable="izpackDatabasePass">
+			<spec txt="Database Password (Runtime):" id="databasePass.text" size="8" set="opennms" />
+			<validator class="com.izforge.izpack.util.NotEmptyValidator" txt="You must specify the database runtime password." />
 		</field>
 	</panel>
 	<panel order="1">
