@@ -50,6 +50,7 @@ fi
 if [ "$OPENNMS_SKIP_ASSEMBLE" != 1 ]; then
 	pushd "$TOPDIR/opennms-build"
 		./assemble.pl $SETTINGS_XML -Dbuild=all \
+			-Denable.snapshots=true \
 			-Dinstall.database.name='$izpackDatabaseName' \
 			-Dinstall.database.url='jdbc:postgresql://$izpackDatabaseHost:5432/' \
 			-Dinstall.database.user='$izpackDatabaseUser' \
