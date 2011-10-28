@@ -63,7 +63,11 @@ if [ "$OPENNMS_SKIP_ASSEMBLE" != 1 ]; then
 	popd
 fi
 
-DATESTAMP=`date '+%Y%m%d'`
+if [ -x "$TOPDIR/opennms-build/buildtool.sh" ]; then
+	DATESTAMP=`cd "$TOPDIR/opennms-build"; ./buildtool.sh get`
+else
+	DATESTAMP=`date '+%Y%m%d'`
+fi
 VERSION=`grep '<version>' "$TOPDIR/opennms-build/pom.xml" | head -n 1 | sed -e 's,^.*<version>,,' -e 's,<.*$,,'`
 VERSION=`echo $VERSION | sed -e "s,-SNAPSHOT,-${DATESTAMP},g"`
 if [ -n "$1" ]; then
