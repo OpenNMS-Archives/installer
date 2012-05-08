@@ -177,7 +177,7 @@ function main() {
     TEMP_DIRECTORY="$TOPDIR/izpack-temp"
 
     rsync -avr --progress --delete "$BINARY_DIRECTORY"/ "$TEMP_DIRECTORY"/ || die "unable to sync $BINARY_DIRECTORY to temporary directory"
-    "${TOPDIR}"/handle-tokens.pl "$TEMP_DIRECTORY" "($REPLACEMENT_TOKEN|$BINARY_DIRECTORY)" '$UNIFIED_INSTALL_PATH' "$VERSION" || die "unable to tokenize configuration files"
+    "${TOPDIR}"/handle-tokens.pl "$TEMP_DIRECTORY" "($REPLACEMENT_TOKEN|$BINARY_DIRECTORY)" '$UNIFIED_INSTALL_PATH' "${VERSION}-${RELEASE}" || die "unable to tokenize configuration files"
     
     cp LICENSE README.html logo.png ProcessPanel.Spec.xml userInput*.xml* "$TEMP_DIRECTORY/" || die "unable to copy files to temp directory"
     cp *.bat "$TEMP_DIRECTORY/bin/" || die "unable to copy batch files to temp directory"

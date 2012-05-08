@@ -1,6 +1,6 @@
-Welcome to the OpenNMS v@appversion@ installer!
+Welcome to the OpenNMS @appversion@ installer!
 
-Before installation, make sure you've got PostgreSQL (8.0 or higher)
+Before installation, make sure you've got PostgreSQL (8.3 or higher)
 and a Sun-compatible JDK installed.
 
 On Windows, just run the appropriate setup executable in this directory.
