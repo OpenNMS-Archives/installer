@@ -7,8 +7,15 @@
     	<arg>-l</arg><arg>$UNIFIED_INSTALL_PATH/lib</arg>
     </executefile>
   </job>
-  <job name="Setting Up the Database (UNIX/Mac)">
-    <os family="windows" />
+  <job name="Setting Up the Database (UNIX)">
+    <os family="unix" />
+    <executefile name="$UNIFIED_INSTALL_PATH/bin/install">
+    	<arg>-dis</arg>
+    	<arg>-l</arg><arg>$UNIFIED_INSTALL_PATH/lib</arg>
+    </executefile>
+  </job>
+  <job name="Setting Up the Database (Mac)">
+    <os family="mac" />
     <executefile name="$UNIFIED_INSTALL_PATH/bin/install">
     	<arg>-dis</arg>
     	<arg>-l</arg><arg>$UNIFIED_INSTALL_PATH/lib</arg>
