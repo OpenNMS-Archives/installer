@@ -54,7 +54,7 @@ find (
 	$path,
 );
 
-for my $installfile ('INSTALL.txt', 'launcher.ini', 'install.xml') {
+for my $installfile ('INSTALL.txt', 'launcher.ini', 'install.xml', 'install-with-karaf.xml') {
 	open (FILEIN, "$installfile.in") or die "can't read from $installfile.in: $!";
 	open (FILEOUT, ">$installfile") or die "can't write to $installfile: $!";
 	while (<FILEIN>) {

@@ -188,7 +188,13 @@ function main() {
     ZIP_DIRECTORY="opennms-installer"
     rm -rf "$TOPDIR/$ZIP_DIRECTORY"
     mkdir -p "$TOPDIR/$ZIP_DIRECTORY"
-    "$IZPACK_COMPILE" install.xml -b "$TEMP_DIRECTORY" -o "$TOPDIR/$ZIP_DIRECTORY/$INSTALLER_NAME.jar" -k standard || die "failed while creating installer jar"
+
+    INSTALL_XML="install.xml"
+    if [ -d "$TEMP_DIRECTORY/system" ]; then
+        INSTALL_XML="install-with-karaf.xml"
+    fi
+
+    "$IZPACK_COMPILE" "$INSTALL_XML" -b "$TEMP_DIRECTORY" -o "$TOPDIR/$ZIP_DIRECTORY/$INSTALLER_NAME.jar" -k standard || die "failed while creating installer jar"
     cp INSTALL.txt launcher.ini setup??.exe "$TOPDIR/$ZIP_DIRECTORY/" || die "unable to copy files to zip directory"
 
     if [ "$OPENNMS_SKIP_ZIP" != 1 ]; then
