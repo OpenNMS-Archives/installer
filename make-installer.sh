@@ -149,12 +149,12 @@ function main() {
         echo "Release: " $RELEASE
 
         EXTRA_OPTIONS=""
-        if $ASSEMBLY_ONLY; then
+        if skipCompile; then
             EXTRA_OPTIONS="-Denable.snapshots=true -DupdatePolicy=always"
         else
             EXTRA_OPTIONS="-Denable.snapshots=false -DupdatePolicy=never"
             pushd "$TOPDIR/opennms-build"
-                ./compile.pl $EXTRA_OPTIONS install
+                ./compile.pl $EXTRA_OPTIONS install || die "compile failed"
             popd
         fi
 
