@@ -149,7 +149,7 @@ function main() {
         echo "Release: " $RELEASE
 
         EXTRA_OPTIONS=""
-        if skipCompile; then
+        if $ASSEMBLY_ONLY; then
             EXTRA_OPTIONS="-Denable.snapshots=true -DupdatePolicy=always"
         else
             EXTRA_OPTIONS="-Denable.snapshots=false -DupdatePolicy=never"
