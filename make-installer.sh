@@ -196,7 +196,7 @@ function main() {
     fi
 
     "$IZPACK_COMPILE" "$INSTALL_XML" -b "$TEMP_DIRECTORY" -o "$TOPDIR/$ZIP_DIRECTORY/$INSTALLER_NAME.jar" -k standard || die "failed while creating installer jar"
-    cp INSTALL.txt launcher.ini setup??.exe "$TOPDIR/$ZIP_DIRECTORY/" || die "unable to copy files to zip directory"
+    cp INSTALL.txt "$TOPDIR/$ZIP_DIRECTORY/" || die "unable to copy files to zip directory"
 
     if [ "$OPENNMS_SKIP_ZIP" != 1 ]; then
         pushd "$TOPDIR" >/dev/null 2>&1
