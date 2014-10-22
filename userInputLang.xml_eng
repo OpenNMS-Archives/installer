@@ -2,6 +2,7 @@
 
 	<str id="configureDatabase.text" txt="Configure Database" />
 	<str id="databaseName.text"      txt="PostgreSQL Database Name:" />
+	<str id="databasePort.text"      txt="Database Port:"/>
 	<str id="databaseAdminUser.text" txt="Database Username (Administrator):" />
 	<str id="databaseAdminPass.text" txt="Database Password (Administrator):" />
 	<str id="databaseUser.text"      txt="Database Username (Runtime):" />

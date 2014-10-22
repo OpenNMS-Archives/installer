@@ -10,6 +10,10 @@
 			<spec txt="Database Name:" id="databaseName.text" size="30" set="opennms" />
 			<validator class="com.izforge.izpack.util.NotEmptyValidator" txt="You must specify the database name." />
 		</field>
+    <field type="text" variable="izpackDatabasePort">
+      <spec txt="Database Port:" id="databasePort.text" size="30" set="5432" />
+      <validator class="com.izforge.izpack.util.NotEmptyValidator" txt="You must specify the database port." />
+    </field>
 		<field type="text" variable="izpackDatabaseAdminUser">
 			<spec txt="Database User (Administrator):" id="databaseAdminUser.text" size="8" set="postgres" />
 			<validator class="com.izforge.izpack.util.NotEmptyValidator" txt="You must specify the database administrator username." />

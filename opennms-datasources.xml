@@ -6,7 +6,7 @@
   <jdbc-data-source name="opennms" 
                     database-name="$izpackDatabaseName" 
                     class-name="org.postgresql.Driver" 
-                    url="jdbc:postgresql://$izpackDatabaseHost:5432/$izpackDatabaseName"
+                    url="jdbc:postgresql://$izpackDatabaseHost:$izpackDatabasePort/$izpackDatabaseName"
                     user-name="$izpackDatabaseUser"
                     password="$izpackDatabasePass" />
 
@@ -15,7 +15,7 @@
   <jdbc-data-source name="opennms-admin" 
                     database-name="postgres" 
                     class-name="org.postgresql.Driver" 
-                    url="jdbc:postgresql://$izpackDatabaseHost:5432/postgres"
+                    url="jdbc:postgresql://$izpackDatabaseHost:$izpackDatabasePort/postgres"
                     user-name="$izpackDatabaseAdminUser"
                     password="$izpackDatabaseAdminPass" />
 </datasource-configuration>
