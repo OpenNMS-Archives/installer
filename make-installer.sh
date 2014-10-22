@@ -66,6 +66,7 @@ function usage()
     tell "make-installer [-h] [-a] [-M <major>] [-m <minor>] [-u <micro>]"
     tell "\t-h : print this help"
     tell "\t-a : assembly only (skip the compile step)"
+    tell "\t-r : no build (skip the compile and assembly steps)"
     tell "\t-z : don't create a zip file"
     tell "\t-M <major> : default 0 (0 means a snapshot release)"
     tell "\t-m <minor> : default <datestamp> (ignored unless major is 0)"
