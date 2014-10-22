@@ -1,13 +1,11 @@
 Welcome to the OpenNMS @appversion@ installer!
 
 Before installation, make sure you've got PostgreSQL (8.3 or higher)
-and a Sun-compatible JDK installed.
+and a Sun-compatible JDK (7 or higher) installed.
 
-On Windows, just run the appropriate setup executable in this directory.
-Note that you can use setup32.exe on 64-bit Windows, but you must have a
-32-bit JVM installed for it to run.
+To install OpenNMS @appversion@ just run the installer as a user with administrator privileges from the command line:
 
-On other platforms, you can launch the .jar file directly.
+    java -jar standalone-opennms-installer-@appversion@.jar
 
 For details on installation, please see:
 
