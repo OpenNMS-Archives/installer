@@ -1,0 +1,24 @@
+#!/bin/sh -
+
+# This install script overwrites the default one.
+
+RUNAS="root"
+OPENNMS_HOME=$UNIFIED_INSTALL_PATH
+DBNAME=$izpackDatabaseName
+DBURL=jdbc:postgresql://$izpackDatabaseHost:$izpackDatabasePort/
+ETCDIR=$OPENNMS_HOME/etc
+SERVLETDIR=$OPENNMS_HOME/webapps/opennms
+
+myuser="`id | sed -e 's/uid=[0-9][0-9]*(//' -e 's/).*//'`"
+if [ x"$myuser" = x"$RUNAS" ]; then
+	true # all is well
+else
+	echo "Error: you must run this script as $RUNAS, not '$myuser'" >&2
+	exit 4 # According to LSB: 4 - user had insufficient privileges
+fi
+
+if [ -f "$OPENNMS_HOME/etc/opennms.conf" ]; then
+	. "$OPENNMS_HOME/etc/opennms.conf"
+fi
+
+"$JDKPath/bin/java" -Xmx512m "-Dopennms.home=$OPENNMS_HOME" "-Dinstall.dir=$OPENNMS_HOME" "-Dinstall.database.name=$DBNAME" "-Dinstall.database.url=$DBURL" "-Dinstall.etc.dir=$ETCDIR" "-Dinstall.servlet.dir=$SERVLETDIR" -classpath "$OPENNMS_HOME/lib/opennms_bootstrap.jar" org.opennms.bootstrap.InstallerBootstrap "$@"

@@ -182,6 +182,7 @@ function main() {
     
     cp LICENSE README.html logo.png ProcessPanel.Spec.xml userInput*.xml* "$TEMP_DIRECTORY/" || die "unable to copy files to temp directory"
     cp *.bat "$TEMP_DIRECTORY/bin/" || die "unable to copy batch files to temp directory"
+    cp install "$TEMP_DIRECTORY/bin/" || die "unable to copy install files to temp directory"
     cp discovery-configuration.xml java.conf.* opennms-datasources.xml "$TEMP_DIRECTORY/etc/" || die "unable to copy etc files to temp directory"
     cp native/* "$TEMP_DIRECTORY/lib/" || die "unable to copy native files to temp directory"
     
