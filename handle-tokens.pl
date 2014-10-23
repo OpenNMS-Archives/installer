@@ -19,12 +19,15 @@ find(
 		wanted => sub {
 			my $filename = shift;
 
-			return unless ($File::Find::name =~ m#/(bin|etc|jetty-webapps/opennms/[^/]*INF)/#);
+			return unless ($File::Find::name =~ m#/(bin|etc|contrib|share|jetty-webapps/opennms/[^/]*INF)/#);
 			return unless (-f $File::Find::name);
 			# shortcut some known non-translated files
 			return if ($File::Find::name =~ /\.(jsp|html)$/);
 
-			if (is_text($File::Find::name)) {
+            # We have to tokenize all text files
+            # and also all *.jasper files --> see http://issues.opennms.org/browse/NMS-7077
+            # for details.
+			if (is_text($File::Find::name) || is_jasper($File::Find::name)) {
 				tokenize_file($File::Find::name);
 			}
 			if ($File::Find::name =~ m#/bin/#) {
@@ -83,11 +86,14 @@ for my $installfile ('INSTALL.txt', 'install.xml', 'install-with-karaf.xml') {
 	close (FILEIN);
 }
 
+sub is_jasper {
+    my $filename = shift;
+    return ($filename =~ /\.jasper$/i);
+}
+
 sub is_text {
 	my $filename = shift;
-	
-	chomp(my $type = `file "$filename"`);
-	return $type =~ /^[^\:]+\:\s*.*?\btext\b/;
+	return -T $filename;
 }
 
 sub tokenize_file {
