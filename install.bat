@@ -1,6 +1,6 @@
 SET OPENNMS_HOME=$UNIFIED_INSTALL_PATH
 SET DBNAME=$izpackDatabaseName
-SET DBURL=jdbc:postgresql://$izpackDatabaseHost:5432/
+SET DBURL=jdbc:postgresql://$izpackDatabaseHost:$izpackDatabasePort/
 SET ETCDIR=%OPENNMS_HOME%/etc
 SET SERVLETDIR=%OPENNMS_HOME%/webapps/opennms
 
