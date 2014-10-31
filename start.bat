@@ -8,4 +8,4 @@
     -Dcom.sun.management.jmxremote.port=18980^
     -Dcom.sun.management.jmxremote.ssl=false^
     -Dcom.sun.management.jmxremote.authenticate=false^
-    -jar "$UNIFIED_INSTALL_PATH/lib/opennms_bootstrap.jar" %*
+    -jar "$UNIFIED_INSTALL_PATH/lib/opennms_bootstrap.jar" start
