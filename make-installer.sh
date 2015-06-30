@@ -149,11 +149,11 @@ function main() {
         echo "Version: " $VERSION
         echo "Release: " $RELEASE
 
-        EXTRA_OPTIONS=""
+        EXTRA_OPTIONS="-Dmaven.test.skip.exec=true -DskipITs=true"
         if $ASSEMBLY_ONLY; then
-            EXTRA_OPTIONS="-Denable.snapshots=true -DupdatePolicy=always"
+            EXTRA_OPTIONS="$EXTRA_OPTIONS -Denable.snapshots=true -DupdatePolicy=always"
         else
-            EXTRA_OPTIONS="-Denable.snapshots=false -DupdatePolicy=never"
+            EXTRA_OPTIONS="$EXTRA_OPTIONS -Denable.snapshots=false -DupdatePolicy=never"
             pushd "$TOPDIR/opennms-build"
                 ./compile.pl $EXTRA_OPTIONS install || die "compile failed"
             popd
