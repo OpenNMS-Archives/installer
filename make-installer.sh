@@ -2,6 +2,8 @@
 
 MYDIR=`dirname $0`
 TOPDIR=`cd $MYDIR; pwd`
+BRANCH=""
+COMMIT=""
 
 ASSEMBLY_ONLY=false
 
@@ -42,16 +44,28 @@ function calcMinor()
 
 function branch()
 {
-    pushd opennms-build >/dev/null 2>&1
-        run git branch | grep -E '^\*' | awk '{ print $2 }'
-    popd >/dev/null 2>&1
+    if [ -n "${BRANCH}" ]; then
+        echo "${BRANCH}"
+    elif [ -n "${bamboo_planRepository_branch}" ]; then
+        echo "${bamboo_planRepository_branch}"
+    else
+        pushd opennms-build >/dev/null 2>&1
+            run git branch | grep -E '^\*' | awk '{ print $2 }'
+        popd >/dev/null 2>&1
+    fi
 }
 
 function commit()
 {
-    pushd opennms-build >/dev/null 2>&1
-        run git log -1 | grep -E '^commit' | cut -d' ' -f2
-    popd >/dev/null 2>&1
+    if [ -n "${COMMIT}" ]; then
+        echo "${COMMIT}"
+    elif [ -n "${bamboo_repository_revision_number}" ]; then
+        echo "${bamboo_repository_revision_number}"
+    else
+        pushd opennms-build >/dev/null 2>&1
+            run git log -1 | grep -E '^commit' | cut -d' ' -f2
+        popd >/dev/null 2>&1
+    fi
 }
 
 function version()
@@ -68,9 +82,11 @@ function usage()
     tell "\t-a : assembly only (skip the compile step)"
     tell "\t-r : no build (skip the compile and assembly steps)"
     tell "\t-z : don't create a zip file"
-    tell "\t-M <major> : default 0 (0 means a snapshot release)"
-    tell "\t-m <minor> : default <datestamp> (ignored unless major is 0)"
-    tell "\t-u <micro> : default 1 (ignore unless major is 0)"
+    tell "\t-b <branch> : the name of the branch"
+    tell "\t-c <commit> : the commit revision hash from git"
+    tell "\t-M <major>  : default 0 (0 means a snapshot release)"
+    tell "\t-m <minor>  : default <datestamp> (ignored unless major is 0)"
+    tell "\t-u <micro>  : default 1 (ignore unless major is 0)"
     exit 1
 }
 
@@ -117,7 +133,7 @@ function main() {
     local RELEASE_MINOR="$(calcMinor)"
     local RELEASE_MICRO=1
 
-    while builtin getopts ahrzM:m:u: OPT; do
+    while builtin getopts ahrzM:m:u:b:c: OPT; do
         case $OPT in
             a)  ASSEMBLY_ONLY=true
                 ;;
@@ -130,6 +146,10 @@ function main() {
             u)  RELEASE_MICRO="$OPTARG"
                 ;;
             z)  ZIP=false
+                ;;
+            b)  BRANCH="$OPTARG"
+                ;;
+            c)  COMMIT="$OPTARG"
                 ;;
             *)  usage
                 ;;
