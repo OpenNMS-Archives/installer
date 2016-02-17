@@ -1,5 +1,5 @@
 "$JDKPath\bin\java"^
-    -Xmx512m -XX:MaxPermSize=256m^
+    -Xmx1024m -XX:MaxMetaspaceSize=256m^
     -XX:+HeapDumpOnOutOfMemoryError^
     -DisThreadContextMapInheritable=true^
     -Dopennms.home="$UNIFIED_INSTALL_PATH"^
