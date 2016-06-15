@@ -162,6 +162,7 @@ function main() {
     fi
 
     VERSION=$(version)
+    PARALLEL_OPTIONS="-Daether.connector.basic.threads=1 -Daether.connector.resumeDownloads=false -T1C"
 
     if $BUILD; then
         echo "==== Building OpenNMS ===="
@@ -175,7 +176,7 @@ function main() {
         else
             EXTRA_OPTIONS="$EXTRA_OPTIONS -Denable.snapshots=false -DupdatePolicy=never"
             pushd "$TOPDIR/opennms-build"
-                ./compile.pl $EXTRA_OPTIONS install || die "compile failed"
+                ./compile.pl $EXTRA_OPTIONS $PARALLEL_OPTIONS install || die "compile failed"
             popd
         fi
 
