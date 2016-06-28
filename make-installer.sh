@@ -162,7 +162,8 @@ function main() {
     fi
 
     VERSION=$(version)
-    PARALLEL_OPTIONS="-Daether.connector.basic.threads=1 -Daether.connector.resumeDownloads=false -T1C"
+    #PARALLEL_OPTIONS="-Daether.connector.basic.threads=1 -Daether.connector.resumeDownloads=false -T1C"
+    PARALLEL_OPTIONS="-Daether.connector.basic.threads=1 -Daether.connector.resumeDownloads=false"
 
     if $BUILD; then
         echo "==== Building OpenNMS ===="
