@@ -218,6 +218,10 @@ function main() {
         INSTALL_XML="install-with-karaf.xml"
     fi
 
+    if [ ! -d "$TEMP_DIRECTORY/docs" ]; then
+        INSTALL_XML="install-21.xml"
+    fi
+
     "$IZPACK_COMPILE" "$INSTALL_XML" -b "$TEMP_DIRECTORY" -o "$TOPDIR/$ZIP_DIRECTORY/$INSTALLER_NAME.jar" -k standard || die "failed while creating installer jar"
     cp INSTALL.txt "$TOPDIR/$ZIP_DIRECTORY/" || die "unable to copy files to zip directory"
 
