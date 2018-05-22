@@ -171,6 +171,10 @@ function main() {
         echo "Version: " $VERSION
         echo "Release: " $RELEASE
 
+	pushd "$TOPDIR/opennms-build"
+                git clean -fdx || die "failed to clean git directories"
+	popd
+
         EXTRA_OPTIONS="-Dmaven.test.skip.exec=true -DskipITs=true"
         if $ASSEMBLY_ONLY; then
             EXTRA_OPTIONS="$EXTRA_OPTIONS -Denable.snapshots=true -DupdatePolicy=always"
