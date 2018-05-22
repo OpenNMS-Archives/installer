@@ -219,7 +219,7 @@ function main() {
     fi
 
     if [ ! -d "$TEMP_DIRECTORY/docs" ]; then
-        INSTALL_XML="install-21.xml"
+        INSTALL_XML="install-nodocs.xml"
     fi
 
     "$IZPACK_COMPILE" "$INSTALL_XML" -b "$TEMP_DIRECTORY" -o "$TOPDIR/$ZIP_DIRECTORY/$INSTALLER_NAME.jar" -k standard || die "failed while creating installer jar"
