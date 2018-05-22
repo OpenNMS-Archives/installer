@@ -57,7 +57,7 @@ find (
 	$path,
 );
 
-for my $installfile ('INSTALL.txt', 'install.xml', 'install-with-karaf.xml', 'install-nodocs.xml') {
+for my $installfile ('INSTALL.txt', 'install.xml', 'install-with-karaf.xml', 'install-21.xml') {
 	open (FILEIN, "$installfile.in") or die "can't read from $installfile.in: $!";
 	open (FILEOUT, ">$installfile") or die "can't write to $installfile: $!";
 	while (<FILEIN>) {

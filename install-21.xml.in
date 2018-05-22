@@ -82,10 +82,7 @@
 			<file src="logs" targetdir="$UNIFIED_INSTALL_PATH" />
 			<file src="share" targetdir="$UNIFIED_INSTALL_PATH" />
 			<file src="system" targetdir="$UNIFIED_INSTALL_PATH" />
-			<fileset dir="." targetdir="$UNIFIED_INSTALL_PATH">
-				<exclude name="jetty-webapps/opennms/source" />
-				<include name="jetty-webapps" />
-			</fileset>
+			<file src="jetty-webapps" targetdir="$UNIFIED_INSTALL_PATH" />
 			<fileset dir="." targetdir="$UNIFIED_INSTALL_PATH">
 				<exclude name="lib/opennms-*-provisioning-adapter-*.jar" />
 				<exclude name="lib/opennms-rancid-*.jar" />
